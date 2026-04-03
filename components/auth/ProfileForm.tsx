@@ -1,0 +1,79 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+import { authClient } from "@/lib/auth-client"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+
+export function ProfileForm() {
+  const { data: session, isPending } = authClient.useSession()
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [image, setImage] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (session?.user) {
+      setName(session.user.name ?? "")
+      setEmail(session.user.email ?? "")
+      setImage(session.user.image ?? "")
+    }
+  }, [session])
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      await authClient.updateUser({
+        name,
+        image,
+      })
+      toast.success("Profile updated")
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message ?? "Failed to update profile")
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (isPending) return <p>Loading profile...</p>
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Profile</CardTitle>
+        <CardDescription>Update your personal information.</CardDescription>
+      </CardHeader>
+      <form onSubmit={handleUpdate}>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Name</label>
+            <Input value={name} onChange={e => setName(e.target.value)} required />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Email</label>
+            <Input value={email} disabled className="bg-muted" />
+            <p className="text-xs text-muted-foreground">Email cannot be changed.</p>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Image URL</label>
+            <Input
+              value={image}
+              onChange={e => setImage(e.target.value)}
+              placeholder="https://example.com/avatar.png"
+            />
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button type="submit" disabled={loading}>
+            {loading ? "Updating..." : "Update Profile"}
+          </Button>
+        </CardFooter>
+      </form>
+    </Card>
+  )
+}
