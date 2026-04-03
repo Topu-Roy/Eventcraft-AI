@@ -6,6 +6,7 @@ import { useAtom } from "jotai"
 import { Loader2, PartyPopper } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { tryCatch } from "@/lib/try-catch"
 import { Button } from "@/components/ui/button"
 
 export function StepThreeWelcome() {
@@ -20,8 +21,8 @@ export function StepThreeWelcome() {
     if (isSubmitting) return
     setIsSubmitting(true)
 
-    try {
-      await completeOnboarding.mutateAsync({
+    const result = await tryCatch(() =>
+      completeOnboarding.mutateAsync({
         interests: stepOneData.interests,
         city: stepTwoData.city,
         country: stepTwoData.country,
@@ -30,13 +31,16 @@ export function StepThreeWelcome() {
         lng: stepTwoData.lng,
         timezone: stepTwoData.timezone,
       })
+    )
 
-      toast.success("You're all set!")
-      router.push("/explore")
-    } catch {
+    if (result.error) {
       toast.error("Something went wrong. Please try again.")
       setIsSubmitting(false)
+      return
     }
+
+    toast.success("You're all set!")
+    router.push("/explore")
   }
 
   return (

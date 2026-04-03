@@ -7,6 +7,7 @@ import { ArrowLeft, Calendar, MapPin, Ticket, XCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import QRCode from "qrcode"
 import { toast } from "sonner"
+import { tryCatch } from "@/lib/try-catch"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -123,20 +124,20 @@ export default function TicketDetailPage({ params }: { params: Promise<{ ticketC
   })
 
   const oneHourBeforeStart = event.startDatetime - 60 * 60 * 1000
-  const canCancel = registration && Date.now() < oneHourBeforeStart && registration.status === "active"
+  const now = new Date().getTime()
+  const canCancel = registration && now < oneHourBeforeStart && registration.status === "active"
 
   async function handleCancel() {
     if (!registration) return
     setIsCancelling(true)
-    try {
-      await cancelRegistration({ registrationId: registration._id })
-      toast.success("Registration cancelled")
-      router.push("/tickets")
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to cancel registration")
-    } finally {
+    const result = await tryCatch(() => cancelRegistration({ registrationId: registration._id }))
+    if (result.error) {
+      toast.error(result.error.message)
       setIsCancelling(false)
+      return
     }
+    toast.success("Registration cancelled")
+    router.push("/tickets")
   }
 
   return (

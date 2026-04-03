@@ -1,43 +1,29 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 import { authClient } from "@/lib/auth-client"
+import { tryCatch } from "@/lib/try-catch"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 
 export function ProfileForm() {
   const { data: session, isPending } = authClient.useSession()
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [image, setImage] = useState("")
+  const [name, setName] = useState(session?.user?.name ?? "")
+  const [image, setImage] = useState(session?.user?.image ?? "")
   const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    if (session?.user) {
-      setName(session.user.name ?? "")
-      setEmail(session.user.email ?? "")
-      setImage(session.user.image ?? "")
-    }
-  }, [session])
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    try {
-      await authClient.updateUser({
-        name,
-        image,
-      })
+    const result = await tryCatch(() => authClient.updateUser({ name, image }))
+    if (result.error) {
+      toast.error(result.error.message)
+    } else {
       toast.success("Profile updated")
-    } catch (error) {
-      if (error instanceof Error) {
-        toast.error(error.message ?? "Failed to update profile")
-      }
-    } finally {
-      setLoading(false)
     }
+    setLoading(false)
   }
 
   if (isPending) return <p>Loading profile...</p>
@@ -56,7 +42,7 @@ export function ProfileForm() {
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Email</label>
-            <Input value={email} disabled className="bg-muted" />
+            <Input value={session?.user?.email ?? ""} disabled className="bg-muted" />
             <p className="text-xs text-muted-foreground">Email cannot be changed.</p>
           </div>
           <div className="space-y-2">

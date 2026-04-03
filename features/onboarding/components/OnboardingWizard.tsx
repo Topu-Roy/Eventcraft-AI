@@ -9,6 +9,7 @@ import { useOnboarding } from "@/features/onboarding/hooks/useOnboarding"
 import { useSaveStepOne, useSaveStepTwo } from "@/features/onboarding/hooks/useOnboardingMutations"
 import { useAtom } from "jotai"
 import { toast } from "sonner"
+import { tryCatch } from "@/lib/try-catch"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export function OnboardingWizard() {
@@ -58,17 +59,17 @@ export function OnboardingWizard() {
   }
 
   async function handleStepOneNext() {
-    try {
-      await saveStepOne.mutateAsync({ interests: stepOneData.interests })
-      setCurrentStep(2)
-    } catch {
+    const result = await tryCatch(() => saveStepOne.mutateAsync({ interests: stepOneData.interests }))
+    if (result.error) {
       toast.error("Failed to save your interests. Please try again.")
+      return
     }
+    setCurrentStep(2)
   }
 
   async function handleStepTwoNext() {
-    try {
-      await saveStepTwo.mutateAsync({
+    const result = await tryCatch(() =>
+      saveStepTwo.mutateAsync({
         city: stepTwoData.city,
         country: stepTwoData.country,
         countryCode: stepTwoData.countryCode,
@@ -76,10 +77,12 @@ export function OnboardingWizard() {
         lng: stepTwoData.lng,
         timezone: stepTwoData.timezone,
       })
-      setCurrentStep(3)
-    } catch {
+    )
+    if (result.error) {
       toast.error("Failed to save your location. Please try again.")
+      return
     }
+    setCurrentStep(3)
   }
 
   return (

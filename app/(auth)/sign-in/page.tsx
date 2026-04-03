@@ -1,22 +1,18 @@
 import { api } from "@/convex/_generated/api"
 import { redirect } from "next/navigation"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
+import { tryCatch } from "@/lib/try-catch"
 import { LoginForm } from "@/components/auth/LoginForm"
 
 export default async function LoginPage() {
   const authed = await isAuthenticated()
 
   if (authed) {
-    try {
-      const user = await fetchAuthQuery(api.users.getCurrentUser)
-      if (user?.onboardingComplete) {
-        redirect("/explore")
-      } else {
-        redirect("/onboarding")
-      }
-    } catch {
-      redirect("/onboarding")
+    const userResult = await tryCatch(fetchAuthQuery(api.users.getCurrentUser))
+    if (userResult.data?.onboardingComplete) {
+      redirect("/explore")
     }
+    redirect("/onboarding")
   }
 
   return (

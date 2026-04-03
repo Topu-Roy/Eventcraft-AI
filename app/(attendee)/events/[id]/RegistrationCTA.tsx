@@ -7,6 +7,7 @@ import { useMutation } from "convex/react"
 import { Ban, Settings2, Ticket } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { tryCatch } from "@/lib/try-catch"
 import { Button } from "@/components/ui/button"
 
 type RegistrationCTAProps = {
@@ -79,15 +80,14 @@ export function RegistrationCTA({
 
   async function handleRegister() {
     setIsRegistering(true)
-    try {
-      const result = await register({ eventId })
-      toast.success("You're registered!")
-      router.push(`/tickets/${result.ticketCode}`)
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to register")
-    } finally {
+    const result = await tryCatch(() => register({ eventId }))
+    if (result.error) {
+      toast.error(result.error.message)
       setIsRegistering(false)
+      return
     }
+    toast.success("You're registered!")
+    router.push(`/tickets/${result.data.ticketCode}`)
   }
 
   return (

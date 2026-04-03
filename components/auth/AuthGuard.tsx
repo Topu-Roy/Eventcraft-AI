@@ -1,6 +1,7 @@
 import { api } from "@/convex/_generated/api"
 import { redirect } from "next/navigation"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
+import { tryCatch } from "@/lib/try-catch"
 
 type AuthGuardProps = {
   children: React.ReactNode
@@ -25,28 +26,25 @@ export async function AuthGuard({
     return <>{children}</>
   }
 
-  let authed: boolean
-  try {
-    authed = await isAuthenticated()
-  } catch (error) {
-    console.error("AuthGuard: isAuthenticated check failed, failing open:", error)
+  const authResult = await tryCatch(isAuthenticated())
+  if (authResult.error) {
+    console.error("AuthGuard: isAuthenticated check failed, failing open:", authResult.error)
     return <>{children}</>
   }
 
-  if (!authed) {
+  if (!authResult.data) {
     redirect("/sign-in")
   }
 
   if (requireOnboardingComplete) {
-    try {
-      const user = await fetchAuthQuery(api.users.getCurrentUser)
-
-      if (!user?.onboardingComplete) {
-        redirect("/onboarding")
-      }
-    } catch (error) {
-      console.error("AuthGuard: onboarding check failed, failing open:", error)
+    const userResult = await tryCatch(fetchAuthQuery(api.users.getCurrentUser))
+    if (userResult.error) {
+      console.error("AuthGuard: onboarding check failed, failing open:", userResult.error)
       return <>{children}</>
+    }
+
+    if (!userResult.data?.onboardingComplete) {
+      redirect("/onboarding")
     }
   }
 
