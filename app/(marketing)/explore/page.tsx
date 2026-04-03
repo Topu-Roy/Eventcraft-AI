@@ -3,7 +3,7 @@ import { api } from "@/convex/_generated/api"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CategoryTabs } from "./CategoryTabs"
-import { EventCarousel } from "./EventCarousel"
+import { EventCarousel, EventCarouselSkeleton } from "./EventCarousel"
 import { SearchInput } from "./SearchInput"
 
 async function PersonalizedSection() {
@@ -11,28 +11,15 @@ async function PersonalizedSection() {
   return (
     <EventCarousel
       title="For You"
-      events={events || []}
+      events={events ?? []}
       emptyMessage="Complete onboarding to see personalized events"
     />
   )
 }
 
-function PersonalizedSectionSkeleton() {
-  return (
-    <div className="space-y-4">
-      <Skeleton className="h-7 w-32" />
-      <div className="flex gap-4 overflow-hidden">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-48 w-72 shrink-0 rounded-lg" />
-        ))}
-      </div>
-    </div>
-  )
-}
-
 async function TrendingSection() {
   const events = await fetchAuthQuery(api.discovery.getTrendingEvents, { limit: 10 })
-  return <EventCarousel title="Trending" events={events || []} emptyMessage="No trending events right now" />
+  return <EventCarousel title="Trending" events={events ?? []} emptyMessage="No trending events right now" />
 }
 
 async function LocationSection() {
@@ -47,19 +34,12 @@ async function LocationSection() {
 
   if (!events?.length) return null
 
-  return <EventCarousel title={`Near ${user.location.city}`} events={events} emptyMessage="No events near you" />
-}
-
-function LocationSectionSkeleton() {
   return (
-    <div className="space-y-4">
-      <Skeleton className="h-7 w-40" />
-      <div className="flex gap-4 overflow-hidden">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-48 w-72 shrink-0 rounded-lg" />
-        ))}
-      </div>
-    </div>
+    <EventCarousel
+      title={`Near ${user.location.city}, ${user.location.country}`}
+      events={events}
+      emptyMessage="No events near you"
+    />
   )
 }
 
@@ -77,11 +57,6 @@ function CategorySectionSkeleton() {
       <div className="flex gap-2">
         {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} className="h-8 w-24 rounded-full" />
-        ))}
-      </div>
-      <div className="flex gap-4 overflow-hidden">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-48 w-72 shrink-0 rounded-lg" />
         ))}
       </div>
     </div>
@@ -104,11 +79,11 @@ export default function ExplorePage() {
           <CategorySection />
         </Suspense>
 
-        <Suspense fallback={<PersonalizedSectionSkeleton />}>
+        <Suspense fallback={<EventCarouselSkeleton />}>
           <PersonalizedOrTrending />
         </Suspense>
 
-        <Suspense fallback={<LocationSectionSkeleton />}>
+        <Suspense fallback={<EventCarouselSkeleton />}>
           <LocationSection />
         </Suspense>
       </div>

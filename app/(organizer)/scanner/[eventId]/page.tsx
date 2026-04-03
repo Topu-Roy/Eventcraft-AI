@@ -271,7 +271,7 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
                     </div>
                   </div>
                 ) : (
-                  <div className="relative aspect-video overflow-hidden rounded-lg bg-black">
+                  <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
                     <video ref={videoRef} className="absolute inset-0 size-full object-cover" muted playsInline />
                     {!isScanning && (
                       <div className="absolute inset-0 flex items-center justify-center">

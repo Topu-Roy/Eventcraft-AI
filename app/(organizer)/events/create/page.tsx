@@ -255,7 +255,7 @@ function StepCoverPhoto() {
                 className="absolute inset-0 flex items-center justify-center"
                 style={{ backgroundColor: photo.dominantColor }}
               >
-                <ImageIcon className="size-8 text-white/80" aria-hidden="true" />
+                <ImageIcon className="size-8 text-primary-foreground/80" aria-hidden="true" />
               </div>
               {isSelected && (
                 <div className="absolute top-2 right-2">
