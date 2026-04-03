@@ -9,7 +9,15 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as categories from "../categories.js";
+import type * as checkin from "../checkin.js";
+import type * as discovery from "../discovery.js";
+import type * as events from "../events.js";
 import type * as http from "../http.js";
+import type * as onboarding from "../onboarding.js";
+import type * as registrations from "../registrations.js";
+import type * as seed from "../seed.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -19,7 +27,15 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  categories: typeof categories;
+  checkin: typeof checkin;
+  discovery: typeof discovery;
+  events: typeof events;
   http: typeof http;
+  onboarding: typeof onboarding;
+  registrations: typeof registrations;
+  seed: typeof seed;
+  users: typeof users;
 }>;
 
 /**

@@ -1,9 +1,9 @@
-import { defineConfig, globalIgnores } from "eslint/config"
+import query from "@tanstack/eslint-plugin-query"
+import convexPlugin from "@convex-dev/eslint-plugin"
 import nextVitals from "eslint-config-next/core-web-vitals"
 import nextTs from "eslint-config-next/typescript"
-import convexPlugin from "@convex-dev/eslint-plugin"
+import { defineConfig, globalIgnores } from "eslint/config"
 import tseslint from "typescript-eslint"
-import query from "@tanstack/eslint-plugin-query"
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -19,6 +19,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "convex/_generated/**",
     "convex/betterAuth/_generated/**",
+    // Internal tooling — not part of the app
+    ".opencode/**",
   ]),
 
   // TypeScript-specific configuration

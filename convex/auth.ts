@@ -1,4 +1,3 @@
-import { query } from "./_generated/server"
 import { query as betterAuthQuery } from "./betterAuth/_generated/server"
 import { authComponent } from "./betterAuth/auth"
 

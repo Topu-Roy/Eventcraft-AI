@@ -14,10 +14,10 @@ export function LoginForm() {
     mutationFn: () =>
       authClient.signIn.social({
         provider: "github",
-        callbackURL: "/profile",
+        callbackURL: "/onboarding",
       }),
     onSuccess: () => {
-      router.push("/profile")
+      router.push("/onboarding")
     },
     onError: error => {
       toast.error(error.message ?? "Failed to login")

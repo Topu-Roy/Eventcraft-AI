@@ -42,15 +42,24 @@ app/
 
 ---
 
-## Middleware Logic
+## Auth Gating (Server-Side Guards — No Middleware)
 
-Middleware runs on every protected request in this exact order:
+Instead of middleware, auth and onboarding gating is handled by a server component `AuthGuard` used in route group layouts.
 
-1. Check for a valid BetterAuth session. If none, redirect to `/login`.
-2. If session exists, query the user's `onboardingComplete` flag from Convex.
-3. If onboarding is incomplete and the destination is not `/onboarding`, redirect to `/onboarding`.
-4. If onboarding is complete and destination is `/onboarding`, redirect to `/explore`.
-5. On any middleware error (session query fails, Convex timeout), **fail open** — let the user through rather than creating a redirect loop. Log the failure.
+**`AuthGuard` behavior (runs server-side before render):**
+
+1. If `requireAuth=true` and no valid BetterAuth session → redirect to `/sign-in`.
+2. If `requireOnboardingComplete=true` and user's `onboardingComplete` is false → redirect to `/onboarding`.
+3. On any error (session query fails, Convex timeout), **fail open** — let the user through rather than creating a redirect loop. Log the failure.
+
+**Layout hierarchy:**
+
+- `app/(auth)/layout.tsx` → `AuthGuard(requireAuth=false, requireOnboardingComplete=false)` — public auth pages
+- `app/(onboarding)/layout.tsx` → `AuthGuard(requireAuth=true, requireOnboardingComplete=false)` — gated but allows incomplete onboarding
+- `app/(marketing)/layout.tsx` → `AuthGuard(requireAuth=false, requireOnboardingComplete=false)` — public marketing pages
+- `app/(marketing)/explore/layout.tsx` → `AuthGuard(requireAuth=true, requireOnboardingComplete=true)` — requires full onboarding
+- `app/(attendee)/layout.tsx` → `AuthGuard(requireAuth=true, requireOnboardingComplete=true)` — requires full onboarding
+- `app/(organizer)/layout.tsx` → `AuthGuard(requireAuth=true, requireOnboardingComplete=true)` — requires full onboarding
 
 ---
 
