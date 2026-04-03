@@ -82,5 +82,3 @@ export function useRevokeOtherSessionsMutation() {
     mutationFn: () => authClient.revokeOtherSessions(),
   })
 }
-
-

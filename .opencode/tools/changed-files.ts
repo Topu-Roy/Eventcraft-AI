@@ -54,10 +54,8 @@ export default tool({
         {
           changed: true,
           filter: filter ?? "all",
-          files: paths.map((p) => ({ path: p.path, changeType: p.changeType })),
-          diffCommands: paths
-            .filter((p) => p.changeType !== "added")
-            .map((p) => `git diff ${p.path}`),
+          files: paths.map(p => ({ path: p.path, changeType: p.changeType })),
+          diffCommands: paths.filter(p => p.changeType !== "added").map(p => `git diff ${p.path}`),
         },
         null,
         2
@@ -67,9 +65,9 @@ export default tool({
     const tree = buildTree(filter)
     const treeStr = renderTree(tree, "")
     const diffHint = paths
-      .filter((p) => p.changeType !== "added")
+      .filter(p => p.changeType !== "added")
       .slice(0, 5)
-      .map((p) => `  git diff ${p.path}`)
+      .map(p => `  git diff ${p.path}`)
       .join("\n")
 
     let output = `Changed files (${paths.length}):\n\n${treeStr}`

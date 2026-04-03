@@ -5,9 +5,9 @@
  * This avoids shell execution assumptions while still giving precise guidance.
  */
 
-import { tool } from "@opencode-ai/plugin/tool"
-import * as path from "path"
 import * as fs from "fs"
+import * as path from "path"
+import { tool } from "@opencode-ai/plugin/tool"
 
 type Formatter = "biome" | "prettier" | "black" | "gofmt" | "rustfmt"
 

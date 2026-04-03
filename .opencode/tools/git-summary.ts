@@ -4,25 +4,18 @@
  * Returns branch/status/log/diff details for the active repository.
  */
 
-import { tool } from "@opencode-ai/plugin/tool"
 import { execSync } from "child_process"
+import { tool } from "@opencode-ai/plugin/tool"
 
 export default tool({
-  description:
-    "Generate git summary with branch, status, recent commits, and optional diff stats.",
+  description: "Generate git summary with branch, status, recent commits, and optional diff stats.",
   args: {
-    depth: tool.schema
-      .number()
-      .optional()
-      .describe("Number of recent commits to include (default: 5)"),
+    depth: tool.schema.number().optional().describe("Number of recent commits to include (default: 5)"),
     includeDiff: tool.schema
       .boolean()
       .optional()
       .describe("Include diff stats against base branch (default: true)"),
-    baseBranch: tool.schema
-      .string()
-      .optional()
-      .describe("Base branch for diff comparison (default: main)"),
+    baseBranch: tool.schema.string().optional().describe("Base branch for diff comparison (default: main)"),
   },
   async execute(args, context) {
     const cwd = context.worktree || context.directory
@@ -38,7 +31,8 @@ export default tool({
 
     if (includeDiff) {
       result.stagedDiff = run("git diff --cached --stat", cwd) || ""
-      result.branchDiff = run(`git diff ${baseBranch}...HEAD --stat`, cwd) || `unable to diff against ${baseBranch}`
+      result.branchDiff =
+        run(`git diff ${baseBranch}...HEAD --stat`, cwd) || `unable to diff against ${baseBranch}`
     }
 
     return JSON.stringify(result)

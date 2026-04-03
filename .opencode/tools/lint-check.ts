@@ -4,24 +4,17 @@
  * Detects the appropriate linter and returns a runnable lint command.
  */
 
-import { tool } from "@opencode-ai/plugin/tool"
-import * as path from "path"
 import * as fs from "fs"
+import * as path from "path"
+import { tool } from "@opencode-ai/plugin/tool"
 
 type Linter = "biome" | "eslint" | "ruff" | "pylint" | "golangci-lint"
 
 export default tool({
-  description:
-    "Detect linter for a target path and return command for check/fix runs.",
+  description: "Detect linter for a target path and return command for check/fix runs.",
   args: {
-    target: tool.schema
-      .string()
-      .optional()
-      .describe("File or directory to lint (default: current directory)"),
-    fix: tool.schema
-      .boolean()
-      .optional()
-      .describe("Enable auto-fix mode"),
+    target: tool.schema.string().optional().describe("File or directory to lint (default: current directory)"),
+    fix: tool.schema.boolean().optional().describe("Enable auto-fix mode"),
     linter: tool.schema
       .enum(["biome", "eslint", "ruff", "pylint", "golangci-lint"])
       .optional()
@@ -55,7 +48,7 @@ function detectLinter(cwd: string): Linter {
     "eslint.config.js",
     "eslint.config.mjs",
   ]
-  if (eslintConfigs.some((name) => fs.existsSync(path.join(cwd, name)))) {
+  if (eslintConfigs.some(name => fs.existsSync(path.join(cwd, name)))) {
     return "eslint"
   }
 

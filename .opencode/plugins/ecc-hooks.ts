@@ -13,22 +13,13 @@
  * - SessionEnd → session.deleted
  */
 
-import type { PluginInput } from "@opencode-ai/plugin"
 import * as fs from "fs"
 import * as path from "path"
-import {
-  initStore,
-  recordChange,
-  clearChanges,
-} from "./lib/changed-files-store.js"
+import type { PluginInput } from "@opencode-ai/plugin"
 import changedFilesTool from "../tools/changed-files.js"
+import { clearChanges, initStore, recordChange } from "./lib/changed-files-store.js"
 
-export const ECCHooksPlugin = async ({
-  client,
-  $,
-  directory,
-  worktree,
-}: PluginInput) => {
+export const ECCHooksPlugin = async ({ client, $, directory, worktree }: PluginInput) => {
   type HookProfile = "minimal" | "standard" | "strict"
 
   const worktreePath = worktree || directory
@@ -63,7 +54,7 @@ export const ECCHooksPlugin = async ({
   const disabledHooks = new Set(
     (process.env.ECC_DISABLED_HOOKS || "")
       .split(",")
-      .map((item) => item.trim())
+      .map(item => item.trim())
       .filter(Boolean)
   )
 
@@ -75,15 +66,12 @@ export const ECCHooksPlugin = async ({
 
   const profileAllowed = (required: HookProfile | HookProfile[]): boolean => {
     if (Array.isArray(required)) {
-      return required.some((entry) => profileOrder[currentProfile] >= profileOrder[entry])
+      return required.some(entry => profileOrder[currentProfile] >= profileOrder[entry])
     }
     return profileOrder[currentProfile] >= profileOrder[required]
   }
 
-  const hookEnabled = (
-    hookId: string,
-    requiredProfile: HookProfile | HookProfile[] = "standard"
-  ): boolean => {
+  const hookEnabled = (hookId: string, requiredProfile: HookProfile | HookProfile[] = "standard"): boolean => {
     if (disabledHooks.has(hookId)) return false
     return profileAllowed(requiredProfile)
   }
@@ -111,15 +99,15 @@ export const ECCHooksPlugin = async ({
       }
 
       // Console.log warning check
-      if (hookEnabled("post:edit:console-warn", ["standard", "strict"]) && event.path.match(/\.(ts|tsx|js|jsx)$/)) {
+      if (
+        hookEnabled("post:edit:console-warn", ["standard", "strict"]) &&
+        event.path.match(/\.(ts|tsx|js|jsx)$/)
+      ) {
         try {
           const result = await $`grep -n "console\\.log" ${event.path} 2>/dev/null`.text()
           if (result.trim()) {
             const lines = result.trim().split("\n").length
-            log(
-              "warn",
-              `[ECC] console.log found in ${event.path} (${lines} occurrence${lines > 1 ? "s" : ""})`
-            )
+            log("warn", `[ECC] console.log found in ${event.path} (${lines} occurrence${lines > 1 ? "s" : ""})`)
           }
         } catch {
           // No console.log found (grep returns non-zero) - this is good
@@ -190,9 +178,7 @@ export const ECCHooksPlugin = async ({
      * Triggers: Before tool execution
      * Action: Warns about potential security issues
      */
-    "tool.execute.before": async (
-      input: { tool: string; callID?: string; args?: Record<string, unknown> }
-    ) => {
+    "tool.execute.before": async (input: { tool: string; callID?: string; args?: Record<string, unknown> }) => {
       if (input.tool === "write") {
         const filePath = getFilePath(input.args)
         if (filePath) {
@@ -216,10 +202,7 @@ export const ECCHooksPlugin = async ({
         input.tool === "bash" &&
         input.args?.toString().includes("git push")
       ) {
-        log(
-          "info",
-          "[ECC] Remember to review changes before pushing: git diff origin/main...HEAD"
-        )
+        log("info", "[ECC] Remember to review changes before pushing: git diff origin/main...HEAD")
       }
 
       // Block creation of unnecessary documentation files
@@ -237,10 +220,7 @@ export const ECCHooksPlugin = async ({
           !filePath.includes("LICENSE") &&
           !filePath.includes("CONTRIBUTING")
         ) {
-          log(
-            "warn",
-            `[ECC] Creating ${filePath} - consider if this documentation is necessary`
-          )
+          log("warn", `[ECC] Creating ${filePath} - consider if this documentation is necessary`)
         }
       }
 
@@ -252,10 +232,7 @@ export const ECCHooksPlugin = async ({
           cmd.match(/^cargo\s+(build|test|run)/) ||
           cmd.match(/^go\s+(build|test|run)/)
         ) {
-          log(
-            "info",
-            "[ECC] Long-running command detected - consider using background execution"
-          )
+          log("info", "[ECC] Long-running command detected - consider using background execution")
         }
       }
     },
@@ -319,9 +296,7 @@ export const ECCHooksPlugin = async ({
           "warn",
           `[ECC] Audit: ${totalConsoleLogCount} console.log statement(s) in ${filesWithConsoleLogs.length} file(s)`
         )
-        filesWithConsoleLogs.forEach((f) =>
-          log("warn", `  - ${f}`)
-        )
+        filesWithConsoleLogs.forEach(f => log("warn", `  - ${f}`))
         log("warn", "[ECC] Remove console.log statements before committing")
       } else {
         log("info", "[ECC] Audit passed: No console.log statements found")
@@ -378,7 +353,7 @@ export const ECCHooksPlugin = async ({
      * Action: Logs progress
      */
     "todo.updated": async (event: { todos: Array<{ text: string; done: boolean }> }) => {
-      const completed = event.todos.filter((t) => t.done).length
+      const completed = event.todos.filter(t => t.done).length
       const total = event.todos.length
       if (total > 0) {
         log("info", `[ECC] Progress: ${completed}/${total} tasks completed`)
@@ -477,7 +452,8 @@ export const ECCHooksPlugin = async ({
 
       return {
         context: contextBlock.join("\n"),
-        compaction_prompt: "Focus on preserving: 1) Current task status and progress, 2) Key decisions made, 3) Files created/modified, 4) Remaining work items, 5) Any security concerns flagged. Discard: verbose tool outputs, intermediate exploration, redundant file listings.",
+        compaction_prompt:
+          "Focus on preserving: 1) Current task status and progress, 2) Key decisions made, 3) Files created/modified, 4) Remaining work items, 5) Any security concerns flagged. Discard: verbose tool outputs, intermediate exploration, redundant file listings.",
       }
     },
 

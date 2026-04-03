@@ -5,22 +5,16 @@
  * Supports common coverage report formats.
  */
 
-import { tool } from "@opencode-ai/plugin/tool"
-import * as path from "path"
 import * as fs from "fs"
+import * as path from "path"
+import { tool } from "@opencode-ai/plugin/tool"
 
 export default tool({
   description:
     "Check test coverage against a threshold and identify files with low coverage. Reads coverage reports from common locations.",
   args: {
-    threshold: tool.schema
-      .number()
-      .optional()
-      .describe("Minimum coverage percentage required (default: 80)"),
-    showUncovered: tool.schema
-      .boolean()
-      .optional()
-      .describe("Show list of uncovered files (default: true)"),
+    threshold: tool.schema.number().optional().describe("Minimum coverage percentage required (default: 80)"),
+    showUncovered: tool.schema.boolean().optional().describe("Show list of uncovered files (default: true)"),
     format: tool.schema
       .enum(["summary", "detailed", "json"])
       .optional()
@@ -61,16 +55,13 @@ export default tool({
       return JSON.stringify({
         success: false,
         error: "No coverage report found",
-        suggestion:
-          "Run tests with coverage first: npm test -- --coverage",
+        suggestion: "Run tests with coverage first: npm test -- --coverage",
         searchedPaths: coveragePaths,
       })
     }
 
     const passed = coverageData.total.percentage >= threshold
-    const uncoveredFiles = coverageData.files.filter(
-      (f) => f.percentage < threshold
-    )
+    const uncoveredFiles = coverageData.files.filter(f => f.percentage < threshold)
 
     const result: CoverageResult = {
       success: passed,
@@ -92,7 +83,7 @@ export default tool({
     if (!passed) {
       result.suggestion = `Coverage is ${coverageData.total.percentage.toFixed(1)}% which is below the ${threshold}% threshold. Focus on these files:\n${uncoveredFiles
         .slice(0, 5)
-        .map((f) => `- ${f.file}: ${f.percentage.toFixed(1)}%`)
+        .map(f => `- ${f.file}: ${f.percentage.toFixed(1)}%`)
         .join("\n")}`
     }
 
@@ -142,9 +133,7 @@ function parseCoverageData(data: unknown): CoverageSummary {
             file: key,
             lines: fileData.lines.total,
             covered: fileData.lines.covered,
-            percentage: fileData.lines.total > 0
-              ? (fileData.lines.covered / fileData.lines.total) * 100
-              : 100,
+            percentage: fileData.lines.total > 0 ? (fileData.lines.covered / fileData.lines.total) * 100 : 100,
           })
         }
       }
@@ -154,9 +143,7 @@ function parseCoverageData(data: unknown): CoverageSummary {
       total: {
         lines: total.lines?.total || 0,
         covered: total.lines?.covered || 0,
-        percentage: total.lines?.total
-          ? (total.lines.covered / total.lines.total) * 100
-          : 0,
+        percentage: total.lines?.total ? (total.lines.covered / total.lines.total) * 100 : 0,
       },
       files,
     }
