@@ -15,7 +15,7 @@ import {
 } from "@/store/eventWizard"
 import { useMutation, useQuery } from "convex/react"
 import { useAtom } from "jotai"
-import { ArrowLeft, ArrowRight, Calendar, Image, MapPin, Rocket, Save, Sparkles } from "lucide-react"
+import { ArrowLeft, ArrowRight, Calendar, ImageIcon, MapPin, Rocket, Save, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -30,7 +30,7 @@ import { Textarea } from "@/components/ui/textarea"
 const steps: { key: WizardStep; label: string; icon: typeof Sparkles }[] = [
   { key: "ai-prompt", label: "AI Prompt", icon: Sparkles },
   { key: "details", label: "Event Details", icon: Calendar },
-  { key: "cover-photo", label: "Cover Photo", icon: Image },
+  { key: "cover-photo", label: "Cover Photo", icon: ImageIcon },
   { key: "venue-schedule", label: "Venue & Schedule", icon: MapPin },
 ]
 
@@ -255,7 +255,7 @@ function StepCoverPhoto() {
                 className="absolute inset-0 flex items-center justify-center"
                 style={{ backgroundColor: photo.dominantColor }}
               >
-                <Image className="size-8 text-white/80" aria-hidden="true" />
+                <ImageIcon className="size-8 text-white/80" aria-hidden="true" />
               </div>
               {isSelected && (
                 <div className="absolute top-2 right-2">

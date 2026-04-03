@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { api } from "@/convex/_generated/api"
-import type { Id } from "@/convex/_generated/dataModel"
 import { useMutation, useQuery } from "convex/react"
 import { ArrowLeft, Calendar, MapPin, Ticket, XCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -44,16 +43,16 @@ function useScreenWakeLock() {
   }, [])
 
   const releaseWakeLock = useCallback(() => {
-    wakeLockRef.current?.release()
+    void wakeLockRef.current?.release()
     wakeLockRef.current = null
   }, [])
 
   useEffect(() => {
-    requestWakeLock()
+    void requestWakeLock()
 
     function handleVisibilityChange() {
       if (document.visibilityState === "visible") {
-        requestWakeLock()
+        void requestWakeLock()
       }
     }
 
@@ -61,7 +60,7 @@ function useScreenWakeLock() {
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange)
-      releaseWakeLock()
+      void releaseWakeLock()
     }
   }, [requestWakeLock, releaseWakeLock])
 
@@ -73,7 +72,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ ticketC
   const [isCancelling, setIsCancelling] = useState(false)
 
   useEffect(() => {
-    params.then(p => setTicketCode(p.ticketCode))
+    void params.then(p => setTicketCode(p.ticketCode))
   }, [params])
 
   const registrationData = useQuery(api.registrations.getByTicketCode, ticketCode ? { ticketCode } : "skip")

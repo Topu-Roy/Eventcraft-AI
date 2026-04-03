@@ -48,7 +48,7 @@ export const getById = query({
 
     if (!user) return null
 
-    const event = await ctx.db.get(eventId)
+    const event = await ctx.db.get("events", eventId)
     if (!event) return null
 
     const isOrganizer = event.organizerId === user._id || event.coOrganizers.includes(user._id)
@@ -189,7 +189,7 @@ export const update = mutation({
 
     if (!user) throw new Error("User not found")
 
-    const event = await ctx.db.get(args.eventId)
+    const event = await ctx.db.get("events", args.eventId)
     if (!event) throw new Error("Event not found")
 
     if (event.organizerId !== user._id && !event.coOrganizers.includes(user._id)) {
@@ -240,7 +240,7 @@ export const publish = mutation({
 
     if (!user) throw new Error("User not found")
 
-    const event = await ctx.db.get(eventId)
+    const event = await ctx.db.get("events", eventId)
     if (!event) throw new Error("Event not found")
 
     if (event.organizerId !== user._id) {
@@ -277,7 +277,7 @@ export const cancel = mutation({
 
     if (!user) throw new Error("User not found")
 
-    const event = await ctx.db.get(eventId)
+    const event = await ctx.db.get("events", eventId)
     if (!event) throw new Error("Event not found")
 
     if (event.organizerId !== user._id && !event.coOrganizers.includes(user._id)) {

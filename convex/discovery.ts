@@ -16,7 +16,7 @@ export const getPersonalizedEvents = query({
       .withIndex("by_auth_id", q => q.eq("authId", identity.subject))
       .first()
 
-    if (!user || !user.interests.length) return []
+    if (!user?.interests.length) return []
 
     const now = Date.now()
     const allEvents = await ctx.db.query("events").collect()
@@ -98,9 +98,11 @@ export const getTrendingEvents = query({
       .slice(0, limit)
 
     const eventIds = trending.map(a => a.eventId)
-    const events = await Promise.all(eventIds.map(id => ctx.db.get(id)))
+    const events = await Promise.all(eventIds.map(id => ctx.db.get("events", id)))
 
-    return events.filter(e => e && e.status === "published" && e.startDatetime >= now)
+    return events.filter(
+      (e): e is NonNullable<typeof e> => e !== null && e.status === "published" && e.startDatetime >= now
+    )
   },
 })
 
@@ -111,7 +113,7 @@ export const getTrendingEvents = query({
 export const getEventDetail = query({
   args: { eventId: v.id("events") },
   handler: async (ctx, { eventId }) => {
-    const event = await ctx.db.get(eventId)
+    const event = await ctx.db.get("events", eventId)
     if (!event) return null
 
     if (event.status === "draft") return null
@@ -129,7 +131,7 @@ export const getEventDetail = query({
 
     if (event.status !== "published" && !isOrganizer) return null
 
-    const organizer = await ctx.db.get(event.organizerId)
+    const organizer = await ctx.db.get("users", event.organizerId)
 
     let isRegistered = false
     if (user) {

@@ -19,7 +19,7 @@ export const register = mutation({
 
     if (!user) throw new Error("User not found")
 
-    const event = await ctx.db.get(eventId)
+    const event = await ctx.db.get("events", eventId)
     if (!event) throw new Error("Event not found")
 
     if (event.status !== "published") {
@@ -114,7 +114,7 @@ export const cancelRegistration = mutation({
 
     if (!user) throw new Error("User not found")
 
-    const registration = await ctx.db.get(registrationId)
+    const registration = await ctx.db.get("registrations", registrationId)
     if (!registration) throw new Error("Registration not found")
 
     if (registration.userId !== user._id) {
@@ -125,7 +125,7 @@ export const cancelRegistration = mutation({
       throw new Error("Registration is not active")
     }
 
-    const event = await ctx.db.get(registration.eventId)
+    const event = await ctx.db.get("events", registration.eventId)
     if (!event) throw new Error("Event not found")
 
     const oneHourBeforeStart = event.startDatetime - 60 * 60 * 1000
@@ -224,7 +224,7 @@ export const getByTicketCode = query({
     if (!registration) return null
     if (registration.userId !== user._id) return null
 
-    const event = await ctx.db.get(registration.eventId)
+    const event = await ctx.db.get("events", registration.eventId)
 
     return { registration, event }
   },
@@ -246,7 +246,7 @@ export const getEventRegistrations = query({
 
     if (!user) return []
 
-    const event = await ctx.db.get(eventId)
+    const event = await ctx.db.get("events", eventId)
     if (!event) return []
 
     if (event.organizerId !== user._id && !event.coOrganizers.includes(user._id)) {
@@ -259,7 +259,7 @@ export const getEventRegistrations = query({
       .collect()
 
     const userIds = [...new Set(registrations.map(r => r.userId))]
-    const users = await Promise.all(userIds.map(id => ctx.db.get(id)))
+    const users = await Promise.all(userIds.map(id => ctx.db.get("users", id)))
     const userMap = new Map(users.filter(Boolean).map(u => [u!._id, u]))
 
     return registrations.map(reg => ({

@@ -23,7 +23,7 @@ async function executeCheckIn(
 
   if (!user) throw new Error("User not found")
 
-  const event = await ctx.db.get(eventId)
+  const event = await ctx.db.get("events", eventId)
   if (!event) {
     return { status: "invalid", reason: "Event not found" }
   }
@@ -76,7 +76,7 @@ async function executeCheckIn(
     })
   }
 
-  const attendee = await ctx.db.get(registration.userId)
+  const attendee = await ctx.db.get("users", registration.userId)
 
   return {
     status: "success",
@@ -123,7 +123,7 @@ export const getEventAnalytics = query({
 
     if (!user) return null
 
-    const event = await ctx.db.get(eventId)
+    const event = await ctx.db.get("events", eventId)
     if (!event) return null
 
     if (event.organizerId !== user._id && !event.coOrganizers.includes(user._id)) {
@@ -147,7 +147,7 @@ export const getEventAnalytics = query({
       totalCheckedIn: analytics.totalCheckedIn,
       engagementRate: Math.round(engagementRate * 100) / 100,
       capacityRemaining,
-      dailyCounts: analytics.dailyCounts,
+      dailyCounts: analytics.dailyCounts as Record<string, number>,
       timezone: user.timezone,
     }
   },

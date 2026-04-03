@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono, Roboto_Slab } from "next/font/google"
 import "./globals.css"
 import { cn } from "@/lib/utils"
+import { Header } from "@/components/layout/Header"
 import { ConvexClientProvider } from "@/components/provider/ConvexClientProvider"
 import { QueryClientProvider } from "@/components/provider/queryClientProvider"
 import { ThemeProvider } from "@/components/provider/theme-provider"
@@ -33,6 +34,7 @@ export default function RootLayout({
         <ConvexClientProvider>
           <QueryClientProvider>
             <ThemeProvider>
+              <Header />
               {children}
               <Toaster />
             </ThemeProvider>
