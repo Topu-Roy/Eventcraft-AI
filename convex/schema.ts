@@ -2,12 +2,10 @@ import { defineSchema, defineTable } from "convex/server"
 import { v } from "convex/values"
 
 export const tables = {
-  users: defineTable({
-    authId: v.string(),
-    email: v.string(),
+  profile: defineTable({
+    userId: v.string(),
     name: v.string(),
     avatarUrl: v.optional(v.string()),
-    role: v.union(v.literal("attendee"), v.literal("organizer"), v.literal("both")),
     plan: v.union(v.literal("free"), v.literal("pro")),
     interests: v.array(v.string()),
     location: v.optional(
@@ -21,12 +19,10 @@ export const tables = {
     ),
     timezone: v.optional(v.string()),
     onboardingComplete: v.boolean(),
-  })
-    .index("by_auth_id", ["authId"])
-    .index("by_email", ["email"]),
+  }).index("by_userId", ["userId"]),
 
   events: defineTable({
-    organizerId: v.id("users"),
+    organizerId: v.id("profile"),
     title: v.string(),
     description: v.string(),
     category: v.string(),
@@ -59,7 +55,7 @@ export const tables = {
         layoutVariant: v.union(v.literal("default"), v.literal("minimal"), v.literal("bold")),
       })
     ),
-    coOrganizers: v.array(v.id("users")),
+    coOrganizers: v.array(v.id("profile")),
     searchableText: v.string(),
   })
     .index("by_category_status_date", ["category", "status", "startDatetime"])
@@ -71,7 +67,7 @@ export const tables = {
     }),
 
   registrations: defineTable({
-    userId: v.id("users"),
+    profileId: v.id("profile"),
     eventId: v.id("events"),
     ticketCode: v.string(),
     status: v.union(v.literal("active"), v.literal("cancelled")),
@@ -79,9 +75,9 @@ export const tables = {
     checkedInAt: v.optional(v.union(v.null(), v.number())),
     cancelledAt: v.optional(v.union(v.null(), v.number())),
   })
-    .index("by_user", ["userId", "status"])
-    .index("by_event", ["eventId", "status"])
-    .index("by_user_event", ["userId", "eventId"])
+    .index("by_profileId_status", ["profileId", "status"])
+    .index("by_eventId_status", ["eventId", "status"])
+    .index("by_profileId_event", ["profileId", "eventId"])
     .index("by_ticket_code", ["ticketCode"]),
 
   eventAnalytics: defineTable({
@@ -99,7 +95,7 @@ export const tables = {
   }).index("by_slug", ["slug"]),
 
   onboarding: defineTable({
-    userId: v.id("users"),
+    profileId: v.id("profile"),
     completedSteps: v.array(v.number()),
     stepOneData: v.object({
       interests: v.array(v.string()),
@@ -112,7 +108,7 @@ export const tables = {
       lng: v.number(),
       timezone: v.string(),
     }),
-  }).index("by_user", ["userId"]),
+  }).index("profileId", ["profileId"]),
 }
 
 const schema = defineSchema(tables)

@@ -15,9 +15,9 @@ import type * as discovery from "../discovery.js";
 import type * as events from "../events.js";
 import type * as http from "../http.js";
 import type * as onboarding from "../onboarding.js";
+import type * as profiles from "../profiles.js";
 import type * as registrations from "../registrations.js";
 import type * as seed from "../seed.js";
-import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -33,9 +33,9 @@ declare const fullApi: ApiFromModules<{
   events: typeof events;
   http: typeof http;
   onboarding: typeof onboarding;
+  profiles: typeof profiles;
   registrations: typeof registrations;
   seed: typeof seed;
-  users: typeof users;
 }>;
 
 /**

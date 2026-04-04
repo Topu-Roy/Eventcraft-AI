@@ -2,8 +2,7 @@ import { v } from "convex/values"
 import { query } from "./_generated/server"
 
 /**
- * Returns personalized events matching the user's interest categories.
- * Sorted by startDatetime ascending. Used for the personalized carousel.
+ * Returns personalized events matching the profile's interest categories.
  */
 export const getPersonalizedEvents = query({
   args: { limit: v.optional(v.number()) },
@@ -11,18 +10,18 @@ export const getPersonalizedEvents = query({
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) return []
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_auth_id", q => q.eq("authId", identity.subject))
+    const profile = await ctx.db
+      .query("profile")
+      .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
 
-    if (!user?.interests.length) return []
+    if (!profile?.interests.length) return []
 
     const now = Date.now()
     const allEvents = await ctx.db.query("events").collect()
 
     return allEvents
-      .filter(e => e.status === "published" && e.startDatetime >= now && user.interests.includes(e.category))
+      .filter(e => e.status === "published" && e.startDatetime >= now && profile.interests.includes(e.category))
       .sort((a, b) => a.startDatetime - b.startDatetime)
       .slice(0, limit)
   },
@@ -30,7 +29,6 @@ export const getPersonalizedEvents = query({
 
 /**
  * Returns events in a specific city/country.
- * Used for the location-based carousel.
  */
 export const getEventsByLocation = query({
   args: {
@@ -57,7 +55,6 @@ export const getEventsByLocation = query({
 
 /**
  * Returns events filtered by category.
- * Used for the category browsing carousel.
  */
 export const getEventsByCategory = query({
   args: {
@@ -77,7 +74,6 @@ export const getEventsByCategory = query({
 
 /**
  * Returns trending events (most registrations in the past 7 days).
- * Used for unauthenticated visitors on the explore page.
  */
 export const getTrendingEvents = query({
   args: { limit: v.optional(v.number()) },
@@ -108,46 +104,41 @@ export const getTrendingEvents = query({
 
 /**
  * Returns a single published event by ID for the detail page.
- * Returns null if not found, not published, or cancelled.
  */
 export const getEventDetail = query({
   args: { eventId: v.id("events") },
   handler: async (ctx, { eventId }) => {
     const event = await ctx.db.get("events", eventId)
     if (!event) return null
-
     if (event.status === "draft") return null
 
     const identity = await ctx.auth.getUserIdentity()
-    let user = null
+    let profile = null
     if (identity) {
-      user = await ctx.db
-        .query("users")
-        .withIndex("by_auth_id", q => q.eq("authId", identity.subject))
+      profile = await ctx.db
+        .query("profile")
+        .withIndex("by_userId", q => q.eq("userId", identity.subject))
         .first()
     }
 
-    const isOrganizer = user ? event.organizerId === user._id || event.coOrganizers.includes(user._id) : false
+    const isOrganizer = profile
+      ? event.organizerId === profile._id || event.coOrganizers.includes(profile._id)
+      : false
 
     if (event.status !== "published" && !isOrganizer) return null
 
-    const organizer = await ctx.db.get("users", event.organizerId)
+    const organizer = await ctx.db.get("profile", event.organizerId)
 
     let isRegistered = false
-    if (user) {
+    if (profile) {
       const registration = await ctx.db
         .query("registrations")
-        .withIndex("by_user_event", q => q.eq("userId", user._id).eq("eventId", eventId))
+        .withIndex("by_profileId_event", q => q.eq("profileId", profile._id).eq("eventId", eventId))
         .first()
       isRegistered = registration?.status === "active"
     }
 
-    return {
-      event,
-      organizer,
-      isOrganizer,
-      isRegistered,
-    }
+    return { event, organizer, isOrganizer, isRegistered }
   },
 })
 
@@ -162,11 +153,9 @@ export const searchEvents = query({
   handler: async (ctx, { query: searchQuery, limit = 20 }) => {
     if (!searchQuery.trim()) return []
 
-    const results = await ctx.db
+    return await ctx.db
       .query("events")
       .withSearchIndex("search_events", q => q.search("searchableText", searchQuery).eq("status", "published"))
       .take(limit)
-
-    return results
   },
 })

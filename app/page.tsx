@@ -7,8 +7,8 @@ export default async function HomePage() {
   const authed = await isAuthenticated()
 
   if (authed) {
-    const userResult = await tryCatch(fetchAuthQuery(api.users.getCurrentUser))
-    if (userResult.data?.onboardingComplete) {
+    const profileResult = await tryCatch(fetchAuthQuery(api.profiles.getCurrent))
+    if (profileResult.data?.onboardingComplete) {
       redirect("/explore")
     }
     redirect("/onboarding")

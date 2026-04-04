@@ -5,10 +5,10 @@ export const getUserInfo = betterAuthQuery({
   args: {},
   handler: async ctx => {
     const identity = await ctx.auth.getUserIdentity()
-    if (!identity) return { error: true, cause: "Unauthenticated" } as const
+    if (!identity) return { error: true, cause: "Unauthenticated" as const, data: null }
 
     const user = await authComponent.getAuthUser(ctx)
 
-    return { error: null, data: user }
+    return { error: null, cause: null, data: user }
   },
 })

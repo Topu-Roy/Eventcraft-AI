@@ -23,12 +23,12 @@ async function TrendingSection() {
 }
 
 async function LocationSection() {
-  const user = await fetchAuthQuery(api.users.getCurrentUser)
-  if (!user?.location) return null
+  const profile = await fetchAuthQuery(api.profiles.getCurrent)
+  if (!profile?.location) return null
 
   const events = await fetchAuthQuery(api.discovery.getEventsByLocation, {
-    city: user.location.city,
-    country: user.location.country,
+    city: profile.location.city,
+    country: profile.location.country,
     limit: 10,
   })
 
@@ -36,7 +36,7 @@ async function LocationSection() {
 
   return (
     <EventCarousel
-      title={`Near ${user.location.city}, ${user.location.country}`}
+      title={`Near ${profile.location.city}, ${profile.location.country}`}
       events={events}
       emptyMessage="No events near you"
     />

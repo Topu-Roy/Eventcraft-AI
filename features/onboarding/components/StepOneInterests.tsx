@@ -1,11 +1,17 @@
 "use client"
 
+import { useState } from "react"
 import { api } from "@/convex/_generated/api"
 import { stepOneDataAtom } from "@/features/onboarding/atoms"
-import { useQuery } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { useAtom } from "jotai"
-import { Check } from "lucide-react"
+import { Check, Loader2, Shield } from "lucide-react"
+import { toast } from "sonner"
+import { authClient } from "@/lib/auth-client"
+import { tryCatch } from "@/lib/try-catch"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type StepOneInterestsProps = {
   onNext: () => void
@@ -14,6 +20,9 @@ type StepOneInterestsProps = {
 export function StepOneInterests({ onNext }: StepOneInterestsProps) {
   const [stepOneData, setStepOneData] = useAtom(stepOneDataAtom)
   const categories = useQuery(api.categories.list)
+  const session = authClient.useSession()
+  const seedCategories = useMutation(api.seed.seedCategories)
+  const [isSeeding, setIsSeeding] = useState(false)
 
   function toggleInterest(slug: string) {
     setStepOneData(prev => ({
@@ -23,7 +32,72 @@ export function StepOneInterests({ onNext }: StepOneInterestsProps) {
     }))
   }
 
+  async function handleSeed() {
+    setIsSeeding(true)
+    const result = await tryCatch(() => seedCategories())
+    if (result.error) {
+      toast.error(result.error.message)
+    } else {
+      toast.success(result.data.message)
+    }
+    setIsSeeding(false)
+  }
+
   const hasSelection = stepOneData.interests.length > 0
+
+  if (categories === undefined) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold tracking-tight">What are you interested in?</h2>
+          <p className="text-muted-foreground">Select at least one category to personalize your experience.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-lg" />
+          ))}
+        </div>
+        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" />
+          Loading categories...
+        </div>
+      </div>
+    )
+  }
+
+  if (!categories.length) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold tracking-tight">What are you interested in?</h2>
+          <p className="text-muted-foreground">Select at least one category to personalize your experience.</p>
+        </div>
+        <div className="rounded-lg border border-dashed p-8 text-center">
+          <p className="font-medium">No categories available</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {session.data?.user.role === "admin"
+              ? "Click below to seed the database with default categories."
+              : "An admin needs to seed the database with default categories."}
+          </p>
+          {session.data?.user.role === "admin" ? (
+            <Button onClick={handleSeed} disabled={isSeeding} className="mt-4" variant="outline">
+              {isSeeding ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Seeding...
+                </>
+              ) : (
+                <>
+                  <Shield className="mr-2 size-4" />
+                  Seed Categories
+                </>
+              )}
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -33,7 +107,7 @@ export function StepOneInterests({ onNext }: StepOneInterestsProps) {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {categories?.map(category => {
+        {categories.map(category => {
           const isSelected = stepOneData.interests.includes(category.slug)
           return (
             <button
@@ -57,19 +131,9 @@ export function StepOneInterests({ onNext }: StepOneInterestsProps) {
         })}
       </div>
 
-      <button
-        type="button"
-        onClick={onNext}
-        disabled={!hasSelection}
-        className={cn(
-          "w-full rounded-md px-4 py-2.5 text-sm font-medium transition-colors",
-          hasSelection
-            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-            : "cursor-not-allowed bg-muted text-muted-foreground"
-        )}
-      >
+      <Button onClick={onNext} disabled={!hasSelection} className="w-full">
         Continue
-      </button>
+      </Button>
     </div>
   )
 }

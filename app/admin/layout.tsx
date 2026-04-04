@@ -11,7 +11,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     }
 
     notFound()
-  } else if (userInfo.data.role !== "admin") {
+  } else if (userInfo.data?.role !== "admin") {
     notFound()
   }
 

@@ -46,7 +46,7 @@ export function useSaveStepTwo() {
  * Mutation hook for completing onboarding and updating user profile.
  */
 export function useCompleteOnboarding() {
-  const completeOnboarding = useConvexMutation(api.users.completeOnboarding)
+  const completeOnboarding = useConvexMutation(api.profiles.completeOnboarding)
 
   return useMutation({
     mutationFn: async ({

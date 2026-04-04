@@ -9,11 +9,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 
 type MobileMenuProps = {
   authed: boolean
-  user: Doc<"users"> | null
-  role: string | undefined
+  profile: Doc<"profile"> | null
 }
 
-export function MobileMenu({ authed, user, role }: MobileMenuProps) {
+export function MobileMenu({ authed, profile }: MobileMenuProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -40,7 +39,7 @@ export function MobileMenu({ authed, user, role }: MobileMenuProps) {
             </Button>
           </Link>
 
-          {authed && (role === "organizer" || role === "both") && (
+          {authed && (
             <>
               <Link href="/organizer/dashboard" onClick={() => setOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start">
@@ -54,16 +53,13 @@ export function MobileMenu({ authed, user, role }: MobileMenuProps) {
                   Create Event
                 </Button>
               </Link>
+              <Link href="/tickets" onClick={() => setOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start">
+                  <Ticket className="mr-2 size-4" />
+                  My Tickets
+                </Button>
+              </Link>
             </>
-          )}
-
-          {authed && (role === "attendee" || role === "both") && (
-            <Link href="/tickets" onClick={() => setOpen(false)}>
-              <Button variant="ghost" className="w-full justify-start">
-                <Ticket className="mr-2 size-4" />
-                My Tickets
-              </Button>
-            </Link>
           )}
 
           {authed ? (
@@ -71,7 +67,7 @@ export function MobileMenu({ authed, user, role }: MobileMenuProps) {
               <Link href="/profile" onClick={() => setOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start">
                   <User className="mr-2 size-4" />
-                  {user?.name ?? "Profile"}
+                  {profile?.name ?? "Profile"}
                 </Button>
               </Link>
             </div>

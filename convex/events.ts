@@ -2,7 +2,7 @@ import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
 
 /**
- * Returns all events for the current authenticated organizer (including co-organizer access).
+ * Returns all events for the current profile (including co-organizer access).
  */
 export const getMyEvents = query({
   args: {},
@@ -10,30 +10,28 @@ export const getMyEvents = query({
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) return []
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_auth_id", q => q.eq("authId", identity.subject))
+    const profile = await ctx.db
+      .query("profile")
+      .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-
-    if (!user) return []
+    if (!profile) return []
 
     const organized = await ctx.db
       .query("events")
-      .withIndex("by_organizer", q => q.eq("organizerId", user._id))
+      .withIndex("by_organizer", q => q.eq("organizerId", profile._id))
       .collect()
 
-    const coOrganized = await ctx.db.query("events").collect()
-    const coOrganizedFiltered = coOrganized.filter(
-      e => e.coOrganizers.includes(user._id) && e.organizerId !== user._id
+    const allEvents = await ctx.db.query("events").collect()
+    const coOrganized = allEvents.filter(
+      e => e.coOrganizers.includes(profile._id) && e.organizerId !== profile._id
     )
 
-    return [...organized, ...coOrganizedFiltered].sort((a, b) => b._creationTime - a._creationTime)
+    return [...organized, ...coOrganized].sort((a, b) => b._creationTime - a._creationTime)
   },
 })
 
 /**
  * Returns a single event by ID with organizer access check.
- * Returns null if event doesn't exist or user has no access.
  */
 export const getById = query({
   args: { eventId: v.id("events") },
@@ -41,27 +39,22 @@ export const getById = query({
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) return null
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_auth_id", q => q.eq("authId", identity.subject))
+    const profile = await ctx.db
+      .query("profile")
+      .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-
-    if (!user) return null
+    if (!profile) return null
 
     const event = await ctx.db.get("events", eventId)
     if (!event) return null
 
-    const isOrganizer = event.organizerId === user._id || event.coOrganizers.includes(user._id)
-
-    if (!isOrganizer) return null
-
+    if (event.organizerId !== profile._id && !event.coOrganizers.includes(profile._id)) return null
     return event
   },
 })
 
 /**
- * Creates a new event as a draft.
- * Enforces free plan limit: free users can only have 1 active event (draft + published).
+ * Creates a new event as a draft. Enforces free plan limit.
  */
 export const create = mutation({
   args: {
@@ -91,28 +84,27 @@ export const create = mutation({
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) throw new Error("Unauthenticated")
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_auth_id", q => q.eq("authId", identity.subject))
+    const profile = await ctx.db
+      .query("profile")
+      .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-
-    if (!user) throw new Error("User not found")
+    if (!profile) throw new Error("Profile not found")
 
     const activeEvents = await ctx.db
       .query("events")
-      .withIndex("by_organizer", q => q.eq("organizerId", user._id))
+      .withIndex("by_organizer", q => q.eq("organizerId", profile._id))
       .collect()
 
     const qualifyingCount = activeEvents.filter(e => e.status === "draft" || e.status === "published").length
 
-    if (user.plan === "free" && qualifyingCount >= 1) {
+    if (profile.plan === "free" && qualifyingCount >= 1) {
       throw new Error("Free plan limit reached. Upgrade to Pro to create more events.")
     }
 
     const searchableText = `${args.title} ${args.description} ${args.tags.join(" ")}`.toLowerCase()
 
     const eventId = await ctx.db.insert("events", {
-      organizerId: user._id,
+      organizerId: profile._id,
       title: args.title,
       description: args.description,
       category: args.category,
@@ -182,21 +174,20 @@ export const update = mutation({
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) throw new Error("Unauthenticated")
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_auth_id", q => q.eq("authId", identity.subject))
+    const profile = await ctx.db
+      .query("profile")
+      .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-
-    if (!user) throw new Error("User not found")
+    if (!profile) throw new Error("Profile not found")
 
     const event = await ctx.db.get("events", args.eventId)
     if (!event) throw new Error("Event not found")
 
-    if (event.organizerId !== user._id && !event.coOrganizers.includes(user._id)) {
+    if (event.organizerId !== profile._id && !event.coOrganizers.includes(profile._id)) {
       throw new Error("Not authorized to edit this event")
     }
 
-    if (args.theme && user.plan !== "pro") {
+    if (args.theme && profile.plan !== "pro") {
       throw new Error("Theme customization requires a Pro plan")
     }
 
@@ -219,13 +210,12 @@ export const update = mutation({
     }
 
     await ctx.db.patch("events", event._id, updates)
-
     return event._id
   },
 })
 
 /**
- * Publishes a draft event. Sets status to "published".
+ * Publishes a draft event.
  */
 export const publish = mutation({
   args: { eventId: v.id("events") },
@@ -233,36 +223,25 @@ export const publish = mutation({
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) throw new Error("Unauthenticated")
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_auth_id", q => q.eq("authId", identity.subject))
+    const profile = await ctx.db
+      .query("profile")
+      .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-
-    if (!user) throw new Error("User not found")
+    if (!profile) throw new Error("Profile not found")
 
     const event = await ctx.db.get("events", eventId)
     if (!event) throw new Error("Event not found")
-
-    if (event.organizerId !== user._id) {
-      throw new Error("Only the organizer can publish this event")
-    }
-
-    if (event.status !== "draft") {
-      throw new Error("Only draft events can be published")
-    }
-
-    if (!event.coverPhoto) {
-      throw new Error("A cover photo is required to publish")
-    }
+    if (event.organizerId !== profile._id) throw new Error("Only the organizer can publish this event")
+    if (event.status !== "draft") throw new Error("Only draft events can be published")
+    if (!event.coverPhoto) throw new Error("A cover photo is required to publish")
 
     await ctx.db.patch("events", event._id, { status: "published" })
-
     return event._id
   },
 })
 
 /**
- * Cancels a published event. Sets status to "cancelled".
+ * Cancels a published event.
  */
 export const cancel = mutation({
   args: { eventId: v.id("events") },
@@ -270,29 +249,25 @@ export const cancel = mutation({
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) throw new Error("Unauthenticated")
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_auth_id", q => q.eq("authId", identity.subject))
+    const profile = await ctx.db
+      .query("profile")
+      .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-
-    if (!user) throw new Error("User not found")
+    if (!profile) throw new Error("Profile not found")
 
     const event = await ctx.db.get("events", eventId)
     if (!event) throw new Error("Event not found")
-
-    if (event.organizerId !== user._id && !event.coOrganizers.includes(user._id)) {
+    if (event.organizerId !== profile._id && !event.coOrganizers.includes(profile._id)) {
       throw new Error("Not authorized to cancel this event")
     }
 
     await ctx.db.patch("events", event._id, { status: "cancelled" })
-
     return event._id
   },
 })
 
 /**
- * Returns the count of active events (draft + published) for the current user.
- * Used for plan limit enforcement.
+ * Returns the count of active events for the current profile.
  */
 export const getActiveEventCount = query({
   args: {},
@@ -300,16 +275,15 @@ export const getActiveEventCount = query({
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) return 0
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_auth_id", q => q.eq("authId", identity.subject))
+    const profile = await ctx.db
+      .query("profile")
+      .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-
-    if (!user) return 0
+    if (!profile) return 0
 
     const events = await ctx.db
       .query("events")
-      .withIndex("by_organizer", q => q.eq("organizerId", user._id))
+      .withIndex("by_organizer", q => q.eq("organizerId", profile._id))
       .collect()
 
     return events.filter(e => e.status === "draft" || e.status === "published").length
@@ -317,7 +291,7 @@ export const getActiveEventCount = query({
 })
 
 /**
- * Returns the current user's plan and event usage.
+ * Returns the current profile's plan and event usage.
  */
 export const getPlanUsage = query({
   args: {},
@@ -325,25 +299,24 @@ export const getPlanUsage = query({
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) return null
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_auth_id", q => q.eq("authId", identity.subject))
+    const profile = await ctx.db
+      .query("profile")
+      .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-
-    if (!user) return null
+    if (!profile) return null
 
     const events = await ctx.db
       .query("events")
-      .withIndex("by_organizer", q => q.eq("organizerId", user._id))
+      .withIndex("by_organizer", q => q.eq("organizerId", profile._id))
       .collect()
 
     const activeCount = events.filter(e => e.status === "draft" || e.status === "published").length
 
     return {
-      plan: user.plan,
+      plan: profile.plan,
       activeCount,
-      limit: user.plan === "free" ? 1 : Infinity,
-      canCreate: user.plan === "pro" || activeCount < 1,
+      limit: profile.plan === "free" ? 1 : Infinity,
+      canCreate: profile.plan === "pro" || activeCount < 1,
     }
   },
 })

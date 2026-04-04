@@ -37,13 +37,13 @@ export async function AuthGuard({
   }
 
   if (requireOnboardingComplete) {
-    const userResult = await tryCatch(fetchAuthQuery(api.users.getCurrentUser))
-    if (userResult.error) {
-      console.error("AuthGuard: onboarding check failed, failing open:", userResult.error)
+    const profileResult = await tryCatch(fetchAuthQuery(api.profiles.getCurrent))
+    if (profileResult.error) {
+      console.error("AuthGuard: profile check failed, failing open:", profileResult.error)
       return <>{children}</>
     }
 
-    if (!userResult.data?.onboardingComplete) {
+    if (!profileResult.data?.onboardingComplete) {
       redirect("/onboarding")
     }
   }

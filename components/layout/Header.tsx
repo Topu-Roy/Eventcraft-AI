@@ -2,14 +2,14 @@ import { api } from "@/convex/_generated/api"
 import { Calendar, LayoutDashboard, Plus, Search, Ticket } from "lucide-react"
 import Link from "next/link"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
+import { tryCatch } from "@/lib/try-catch"
 import { Button } from "@/components/ui/button"
 import { MobileMenu } from "./MobileMenu"
 
 export async function Header() {
   const authed = await isAuthenticated()
-  const user = authed ? await fetchAuthQuery(api.users.getCurrentUser) : null
-
-  const role = user?.role
+  const profileResult = authed ? await tryCatch(fetchAuthQuery(api.profiles.getCurrent)) : null
+  const profile = profileResult?.data ?? null
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -29,7 +29,7 @@ export async function Header() {
               Explore
             </Link>
 
-            {authed && (role === "organizer" || role === "both") && (
+            {authed && (
               <>
                 <Link
                   href="/organizer/dashboard"
@@ -45,17 +45,14 @@ export async function Header() {
                   <Plus className="size-3.5" />
                   Create
                 </Link>
+                <Link
+                  href="/tickets"
+                  className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                >
+                  <Ticket className="size-3.5" />
+                  My Tickets
+                </Link>
               </>
-            )}
-
-            {authed && (role === "attendee" || role === "both") && (
-              <Link
-                href="/tickets"
-                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-              >
-                <Ticket className="size-3.5" />
-                My Tickets
-              </Link>
             )}
           </nav>
         </div>
@@ -65,7 +62,7 @@ export async function Header() {
             <div className="flex items-center gap-2">
               <Link href="/profile">
                 <Button variant="ghost" size="sm">
-                  {user?.name ?? "Profile"}
+                  {profile?.name ?? "Profile"}
                 </Button>
               </Link>
             </div>
@@ -84,7 +81,7 @@ export async function Header() {
         </div>
 
         <div className="md:hidden">
-          <MobileMenu authed={authed} user={user} role={role} />
+          <MobileMenu authed={authed} profile={profile} />
         </div>
       </div>
     </header>
