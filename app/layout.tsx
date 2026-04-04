@@ -2,9 +2,9 @@ import { Geist, Geist_Mono, Roboto_Slab } from "next/font/google"
 import "./globals.css"
 import { cn } from "@/lib/utils"
 import { Header } from "@/components/layout/Header"
-import { ConvexClientProvider } from "@/components/provider/ConvexClientProvider"
-import { QueryClientProvider } from "@/components/provider/queryClientProvider"
-import { ThemeProvider } from "@/components/provider/theme-provider"
+import { ConvexClientProvider } from "@/components/providers/ConvexClientProvider"
+import { QueryClientProvider } from "@/components/providers/queryClientProvider"
+import { ThemeProvider } from "@/components/providers/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 
 const robotoSlab = Roboto_Slab({ subsets: ["latin"], variable: "--font-serif" })
