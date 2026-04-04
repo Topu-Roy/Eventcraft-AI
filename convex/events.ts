@@ -1,5 +1,7 @@
 import { v } from "convex/values"
-import { mutation, query } from "./_generated/server"
+import { array as zArray, object as zObject, string as zString } from "zod"
+import { action, mutation, query } from "./_generated/server"
+import { eventGeneratorAgent } from "./agents/eventGenerator"
 
 /**
  * Returns all events for the current profile (including co-organizer access).
@@ -324,5 +326,42 @@ export const getPlanUsage = query({
       limit: profile.plan === "free" ? 1 : Infinity,
       canCreate: profile.plan === "pro" || activeCount < 1,
     }
+  },
+})
+
+/**
+ * Generates structured event data from a natural language prompt using Gemini.
+ * Returns title, description, category, and tags.
+ */
+export const generateFromPrompt = action({
+  args: { prompt: v.string(), categorySlugs: v.array(v.string()) },
+  handler: async (ctx, { prompt, categorySlugs }) => {
+    const { thread } = await eventGeneratorAgent.createThread(ctx)
+
+    const categoryContext = `Available category slugs: ${JSON.stringify(categorySlugs)}. You must use exactly one of these for the category field.`
+
+    const { object: generatedData } = await thread.generateObject({
+      prompt: `${categoryContext}\n\nGenerate event data from this description: ${prompt}`,
+      schema: zObject({
+        title: zString().min(3).max(200),
+        description: zString().min(50).max(2000),
+        category: zString(),
+        tags: zArray(zString().max(50)),
+      }),
+      schemaName: "EventData",
+      schemaDescription: "Structured event data generated from a prompt",
+    })
+
+    // Validate category is real
+    if (!categorySlugs.includes(generatedData.category)) {
+      return {
+        error: true,
+        cause: "invalid_category" as const,
+        message: `The AI picked "${generatedData.category}" which isn't a valid category. Try describing the event type more clearly.`,
+        data: null,
+      }
+    }
+
+    return { error: null, cause: null, message: null, data: generatedData }
   },
 })

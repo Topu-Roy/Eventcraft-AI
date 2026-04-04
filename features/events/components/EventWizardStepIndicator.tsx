@@ -1,21 +1,23 @@
 "use client"
 
-import { WIZARD_STEPS } from "@/features/events/constants"
 import type { WizardStep } from "@/features/events/eventWizard"
 import { Progress } from "@/components/ui/progress"
 
+type StepDef = { key: WizardStep; label: string; icon: React.ComponentType<{ className?: string }> }
+
 type EventWizardStepIndicatorProps = {
   currentStep: WizardStep
+  steps: StepDef[]
 }
 
-export function EventWizardStepIndicator({ currentStep }: EventWizardStepIndicatorProps) {
-  const currentStepIndex = WIZARD_STEPS.findIndex(step => step.key === currentStep)
-  const progressPercentage = ((currentStepIndex + 1) / WIZARD_STEPS.length) * 100
+export function EventWizardStepIndicator({ currentStep, steps }: EventWizardStepIndicatorProps) {
+  const currentStepIndex = steps.findIndex(step => step.key === currentStep)
+  const progressPercentage = ((currentStepIndex + 1) / steps.length) * 100
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        {WIZARD_STEPS.map((step, index) => {
+        {steps.map((step, index) => {
           const isCurrentStep = step.key === currentStep
           const isCompletedStep = index < currentStepIndex
           const StepIcon = step.icon

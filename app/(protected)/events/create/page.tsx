@@ -4,13 +4,16 @@ import { useState } from "react"
 import { api } from "@/convex/_generated/api"
 import { EventWizardAiPromptStep } from "@/features/events/components/EventWizardAiPromptStep"
 import { EventWizardCoverPhotoStep } from "@/features/events/components/EventWizardCoverPhotoStep"
+import { EventWizardCreationChoice } from "@/features/events/components/EventWizardCreationChoice"
 import { EventWizardDetailsStep } from "@/features/events/components/EventWizardDetailsStep"
 import { EventWizardNavigation } from "@/features/events/components/EventWizardNavigation"
 import { EventWizardStepIndicator } from "@/features/events/components/EventWizardStepIndicator"
 import { EventWizardVenueScheduleStep } from "@/features/events/components/EventWizardVenueScheduleStep"
-import { WIZARD_STEP_DESCRIPTIONS, WIZARD_STEPS } from "@/features/events/constants"
+import { getWizardSteps, WIZARD_STEP_DESCRIPTIONS } from "@/features/events/constants"
 import {
+  creationModeAtom,
   resetWizard,
+  setCreationMode,
   setWizardStep,
   wizardDataAtom,
   wizardEventIdAtom,
@@ -20,13 +23,15 @@ import {
 } from "@/features/events/eventWizard"
 import { useMutation } from "convex/react"
 import { useAtom } from "jotai"
+import { ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 function EventWizardStepContent({ currentStep }: { currentStep: WizardStep }) {
   switch (currentStep) {
-    case "ai-prompt":
+    case "ai-assistant":
       return <EventWizardAiPromptStep />
     case "details":
       return <EventWizardDetailsStep />
@@ -39,17 +44,19 @@ function EventWizardStepContent({ currentStep }: { currentStep: WizardStep }) {
   }
 }
 
-function EventWizardStepDescription({ stepIndex }: { stepIndex: number }) {
-  return WIZARD_STEP_DESCRIPTIONS[stepIndex] ?? ""
+function EventWizardStepDescription({ currentStep }: { currentStep: WizardStep }) {
+  return WIZARD_STEP_DESCRIPTIONS[currentStep] ?? ""
 }
 
 export default function CreateEventPage() {
   const [currentWizardStep] = useAtom(wizardStepAtom)
+  const [creationMode] = useAtom(creationModeAtom)
   const [wizardFormData] = useAtom(wizardDataAtom)
   const [, setWizardEventId] = useAtom(wizardEventIdAtom)
   const [, setIsSavingDraft] = useAtom(wizardIsSavingAtom)
   const [, dispatchSetWizardStep] = useAtom(setWizardStep)
   const [, dispatchResetWizard] = useAtom(resetWizard)
+  const [, dispatchSetCreationMode] = useAtom(setCreationMode)
 
   const createEventMutation = useMutation(api.events.create)
   const publishEventMutation = useMutation(api.events.publish)
@@ -57,7 +64,8 @@ export default function CreateEventPage() {
   const router = useRouter()
   const [isPublishing, setIsPublishing] = useState(false)
 
-  const currentStepIndex = WIZARD_STEPS.findIndex(step => step.key === currentWizardStep)
+  const wizardSteps = getWizardSteps(creationMode)
+  const currentStepIndex = wizardSteps.findIndex(step => step.key === currentWizardStep)
 
   async function handleSaveDraft() {
     setIsSavingDraft(true)
@@ -190,33 +198,59 @@ export default function CreateEventPage() {
 
   function handleNavigateNext() {
     const nextStepIndex = currentStepIndex + 1
-    if (nextStepIndex < WIZARD_STEPS.length) {
-      dispatchSetWizardStep(WIZARD_STEPS[nextStepIndex].key)
+    if (nextStepIndex < wizardSteps.length) {
+      dispatchSetWizardStep(wizardSteps[nextStepIndex].key)
     }
   }
 
   function handleNavigateBack() {
     const prevStepIndex = currentStepIndex - 1
     if (prevStepIndex >= 0) {
-      dispatchSetWizardStep(WIZARD_STEPS[prevStepIndex].key)
+      dispatchSetWizardStep(wizardSteps[prevStepIndex].key)
     }
+  }
+
+  function handleChangeMode() {
+    dispatchSetCreationMode(null)
+    dispatchSetWizardStep("ai-assistant")
+  }
+
+  if (!creationMode) {
+    return (
+      <div className="min-h-screen p-4 md:p-8">
+        <div className="mx-auto max-w-2xl space-y-8">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Create Event</h1>
+            <p className="mt-1 text-muted-foreground">Choose how you want to create your event.</p>
+          </div>
+
+          <EventWizardCreationChoice />
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen p-4 md:p-8">
       <div className="mx-auto max-w-2xl space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Create Event</h1>
-          <p className="mt-1 text-muted-foreground">Build your event step by step.</p>
+        <div className="relative">
+          <Button variant="ghost" size="sm" className="fixed inset-0 top-24 -left-220" onClick={handleChangeMode}>
+            <ArrowLeft className="mr-1 size-4" />
+            Change Mode
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Create Event</h1>
+            <p className="mt-1 text-muted-foreground">Build your event step by step.</p>
+          </div>
         </div>
 
-        <EventWizardStepIndicator currentStep={currentWizardStep} />
+        <EventWizardStepIndicator currentStep={currentWizardStep} steps={wizardSteps} />
 
         <Card>
           <CardHeader>
-            <CardTitle>{WIZARD_STEPS[currentStepIndex]?.label}</CardTitle>
+            <CardTitle>{wizardSteps[currentStepIndex]?.label}</CardTitle>
             <CardDescription>
-              <EventWizardStepDescription stepIndex={currentStepIndex} />
+              <EventWizardStepDescription currentStep={currentWizardStep} />
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -226,7 +260,7 @@ export default function CreateEventPage() {
 
         <EventWizardNavigation
           currentStepIndex={currentStepIndex}
-          totalSteps={WIZARD_STEPS.length}
+          totalSteps={wizardSteps.length}
           isSubmitting={isPublishing}
           isSaving={false}
           onBack={handleNavigateBack}

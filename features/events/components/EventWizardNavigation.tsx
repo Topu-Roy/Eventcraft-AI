@@ -25,16 +25,17 @@ export function EventWizardNavigation({
   onPublish,
 }: EventWizardNavigationProps) {
   const isLastStep = currentStepIndex === totalSteps - 1
+  const isFirstStep = currentStepIndex === 0
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex gap-2">
-        {currentStepIndex > 0 ? (
+        {isFirstStep ? null : (
           <Button variant="outline" onClick={onBack} disabled={isSubmitting || isSaving}>
             <ArrowLeft className="mr-1 size-4" />
             Back
           </Button>
-        ) : null}
+        )}
         <Button variant="outline" onClick={onSaveDraft} disabled={isSubmitting || isSaving}>
           <Save className="mr-1 size-4" />
           Save Draft
