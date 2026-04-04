@@ -76,12 +76,12 @@ export default function CreateEventPage() {
 
       const venuePayload = wizardFormData.venue
         ? {
-            name: wizardFormData.venue.name || "TBD",
-            address: wizardFormData.venue.address || "TBD",
-            city: wizardFormData.venue.city || "TBD",
-            country: wizardFormData.venue.country || "TBD",
-            lat: wizardFormData.venue.lat || 0,
-            lng: wizardFormData.venue.lng || 0,
+            name: wizardFormData.venue.name ?? "TBD",
+            address: wizardFormData.venue.address ?? "TBD",
+            city: wizardFormData.venue.city ?? "TBD",
+            country: wizardFormData.venue.country ?? "TBD",
+            lat: wizardFormData.venue.lat ?? 0,
+            lng: wizardFormData.venue.lng ?? 0,
           }
         : { name: "TBD", address: "TBD", city: "TBD", country: "TBD", lat: 0, lng: 0 }
 
@@ -180,7 +180,7 @@ export default function CreateEventPage() {
       await publishEventMutation({ eventId: createdEventId })
       dispatchResetWizard()
       toast.success("Event published!")
-      router.push(`/organizer/events/${createdEventId}/edit`)
+      router.push(`/events/${createdEventId}/edit`)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to publish event")
     } finally {

@@ -78,9 +78,6 @@ export function MobileMenu({ authed, profile }: MobileMenuProps) {
                   Sign In
                 </Button>
               </Link>
-              <Link href="/sign-up" onClick={() => setOpen(false)}>
-                <Button className="w-full">Sign Up</Button>
-              </Link>
             </div>
           )}
         </nav>

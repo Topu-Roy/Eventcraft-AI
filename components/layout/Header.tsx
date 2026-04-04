@@ -66,16 +66,11 @@ export async function Header() {
               </Link>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <Link href="/sign-in">
-                <Button variant="ghost" size="sm">
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/sign-up">
-                <Button size="sm">Sign Up</Button>
-              </Link>
-            </div>
+            <Link href="/sign-in">
+              <Button variant="ghost" size="sm">
+                Sign In
+              </Button>
+            </Link>
           )}
         </div>
 

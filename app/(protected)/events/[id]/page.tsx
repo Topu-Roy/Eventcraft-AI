@@ -73,8 +73,8 @@ function EventHeader({ event, isPast }: { event: Doc<"events">; isPast: boolean 
       />
       <div className="absolute top-4 left-4 flex flex-wrap gap-2">
         {getCategoryBadge(event.category)}
-        {isCancelled && <Badge variant="destructive">Cancelled</Badge>}
-        {isPast && !isCancelled && <Badge variant="secondary">Ended</Badge>}
+        {isCancelled ? <Badge variant="destructive">Cancelled</Badge> : null}
+        {isPast && !isCancelled ? <Badge variant="secondary">Ended</Badge> : null}
       </div>
       <div className="mt-6 space-y-3">
         <h1
@@ -226,6 +226,12 @@ async function getNow(): Promise<number> {
 
 export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+
+  // Convex IDs start with "j" — reject non-ID params like "create"
+  if (!id.startsWith("j")) {
+    notFound()
+  }
+
   const eventId = id as Id<"events">
   const now = await getNow()
 
