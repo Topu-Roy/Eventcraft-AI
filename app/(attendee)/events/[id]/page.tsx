@@ -109,7 +109,7 @@ function EventDescription({ event }: { event: Doc<"events"> }) {
         <p className="mt-2 leading-relaxed whitespace-pre-wrap text-muted-foreground">{event.description}</p>
       </div>
 
-      {event.tags.length > 0 && (
+      {event.tags.length > 0 ? (
         <div>
           <h3 className="text-sm font-medium text-muted-foreground">Tags</h3>
           <div className="mt-2 flex flex-wrap gap-2">
@@ -121,7 +121,7 @@ function EventDescription({ event }: { event: Doc<"events"> }) {
             ))}
           </div>
         </div>
-      )}
+      ) : null}
 
       <Separator />
 

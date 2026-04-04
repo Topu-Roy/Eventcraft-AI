@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { api } from "@/convex/_generated/api"
-import type { Doc } from "@/convex/_generated/dataModel"
 import {
   resetWizard,
   setWizardStep,
@@ -27,166 +26,14 @@ import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 
-const steps: { key: WizardStep; label: string; icon: typeof Sparkles }[] = [
+const WIZARD_STEPS: { key: WizardStep; label: string; icon: typeof Sparkles }[] = [
   { key: "ai-prompt", label: "AI Prompt", icon: Sparkles },
   { key: "details", label: "Event Details", icon: Calendar },
   { key: "cover-photo", label: "Cover Photo", icon: ImageIcon },
   { key: "venue-schedule", label: "Venue & Schedule", icon: MapPin },
 ]
 
-function StepIndicator({ currentStep }: { currentStep: WizardStep }) {
-  const currentIndex = steps.findIndex(s => s.key === currentStep)
-  const progress = ((currentIndex + 1) / steps.length) * 100
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        {steps.map((step, index) => {
-          const isActive = step.key === currentStep
-          const isCompleted = index < currentIndex
-          const Icon = step.icon
-
-          return (
-            <div key={step.key} className="flex flex-col items-center gap-2">
-              <div
-                className={`flex size-10 items-center justify-center rounded-full border-2 transition-all ${
-                  isActive
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : isCompleted
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-muted-foreground/30 text-muted-foreground/50"
-                }`}
-              >
-                <Icon className="size-4" />
-              </div>
-              <span
-                className={`text-xs font-medium ${
-                  isActive ? "text-foreground" : isCompleted ? "text-primary" : "text-muted-foreground/50"
-                }`}
-              >
-                {step.label}
-              </span>
-            </div>
-          )
-        })}
-      </div>
-      <Progress value={progress} className="h-1" />
-    </div>
-  )
-}
-
-function StepAiPrompt() {
-  const [prompt, setPrompt] = useState("")
-
-  return (
-    <div className="space-y-6">
-      <div className="space-y-2 text-center">
-        <Sparkles className="mx-auto size-8 text-primary" />
-        <h2 className="text-xl font-semibold">Describe your event</h2>
-        <p className="text-sm text-muted-foreground">Tell us about your event and AI will help you set it up.</p>
-      </div>
-      <Textarea
-        placeholder="e.g., A weekend tech conference in San Francisco about AI and machine learning with 200 attendees..."
-        className="min-h-32"
-        value={prompt}
-        onChange={e => setPrompt(e.target.value)}
-      />
-      <p className="text-center text-xs text-muted-foreground">
-        AI-powered event creation coming soon. For now, continue to fill in details manually.
-      </p>
-    </div>
-  )
-}
-
-function StepDetails({ categories }: { categories: Doc<"categories">[] }) {
-  const data = useAtom(wizardDataAtom)[0]
-  const [, dispatchUpdate] = useAtom(updateWizardData)
-  const [tagInput, setTagInput] = useState("")
-
-  function addTag() {
-    const trimmed = tagInput.trim()
-    if (trimmed && !data.tags.includes(trimmed)) {
-      dispatchUpdate({ tags: [...data.tags, trimmed] })
-      setTagInput("")
-    }
-  }
-
-  function removeTag(tag: string) {
-    dispatchUpdate({ tags: data.tags.filter(t => t !== tag) })
-  }
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <Label htmlFor="event-title">Event Title</Label>
-        <Input
-          id="event-title"
-          placeholder="e.g., TechConf 2026"
-          value={data.title}
-          onChange={e => dispatchUpdate({ title: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="event-description">Description</Label>
-        <Textarea
-          id="event-description"
-          placeholder="Describe your event..."
-          className="min-h-24"
-          value={data.description}
-          onChange={e => dispatchUpdate({ description: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="event-category">Category</Label>
-        <Select value={data.category || undefined} onValueChange={value => dispatchUpdate({ category: value })}>
-          <SelectTrigger id="event-category">
-            <SelectValue placeholder="Select a category" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map(cat => (
-              <SelectItem key={cat._id} value={cat.slug}>
-                {cat.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label>Tags</Label>
-        <div className="mt-2 flex gap-2">
-          <Input
-            placeholder="Add a tag..."
-            value={tagInput}
-            onChange={e => setTagInput(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === "Enter") {
-                e.preventDefault()
-                addTag()
-              }
-            }}
-          />
-          <Button type="button" variant="secondary" onClick={addTag}>
-            Add
-          </Button>
-        </div>
-        {data.tags.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {data.tags.map(tag => (
-              <Badge key={tag} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-const placeholderPhotos = [
+const PLACEHOLDER_PHOTOS = [
   {
     url: "/placeholders/tech.svg",
     dominantColor: "#3B82F6",
@@ -225,9 +72,165 @@ const placeholderPhotos = [
   },
 ]
 
-function StepCoverPhoto() {
-  const data = useAtom(wizardDataAtom)[0]
-  const [, dispatchUpdate] = useAtom(updateWizardData)
+function EventWizardStepIndicator({ currentStep }: { currentStep: WizardStep }) {
+  const currentStepIndex = WIZARD_STEPS.findIndex(step => step.key === currentStep)
+  const progressPercentage = ((currentStepIndex + 1) / WIZARD_STEPS.length) * 100
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        {WIZARD_STEPS.map((step, index) => {
+          const isCurrentStep = step.key === currentStep
+          const isCompletedStep = index < currentStepIndex
+          const StepIcon = step.icon
+
+          return (
+            <div key={step.key} className="flex flex-col items-center gap-2">
+              <div
+                className={`flex size-10 items-center justify-center rounded-full border-2 transition-all ${
+                  isCurrentStep
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : isCompletedStep
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-muted-foreground/30 text-muted-foreground/50"
+                }`}
+              >
+                <StepIcon className="size-4" />
+              </div>
+              <span
+                className={`text-xs font-medium ${
+                  isCurrentStep ? "text-foreground" : isCompletedStep ? "text-primary" : "text-muted-foreground/50"
+                }`}
+              >
+                {step.label}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+      <Progress value={progressPercentage} className="h-1" />
+    </div>
+  )
+}
+
+function EventWizardAiPromptStep() {
+  const [aiPromptText, setAiPromptText] = useState("")
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2 text-center">
+        <Sparkles className="mx-auto size-8 text-primary" />
+        <h2 className="text-xl font-semibold">Describe your event</h2>
+        <p className="text-sm text-muted-foreground">Tell us about your event and AI will help you set it up.</p>
+      </div>
+      <Textarea
+        placeholder="e.g., A weekend tech conference in San Francisco about AI and machine learning with 200 attendees..."
+        className="min-h-32"
+        value={aiPromptText}
+        onChange={e => setAiPromptText(e.target.value)}
+      />
+      <p className="text-center text-xs text-muted-foreground">
+        AI-powered event creation coming soon. For now, continue to fill in details manually.
+      </p>
+    </div>
+  )
+}
+
+function EventWizardDetailsStep() {
+  const wizardData = useAtom(wizardDataAtom)[0]
+  const [, dispatchUpdateWizardData] = useAtom(updateWizardData)
+  const categories = useQuery(api.categories.list)
+  const [tagInputText, setTagInputText] = useState("")
+
+  function handleAddTag() {
+    const trimmedTag = tagInputText.trim()
+    if (trimmedTag && !wizardData.tags.includes(trimmedTag)) {
+      dispatchUpdateWizardData({ tags: [...wizardData.tags, trimmedTag] })
+      setTagInputText("")
+    }
+  }
+
+  function handleRemoveTag(tagToRemove: string) {
+    dispatchUpdateWizardData({ tags: wizardData.tags.filter(tag => tag !== tagToRemove) })
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <Label htmlFor="event-title">Event Title</Label>
+        <Input
+          id="event-title"
+          placeholder="e.g., TechConf 2026"
+          value={wizardData.title}
+          onChange={e => dispatchUpdateWizardData({ title: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="event-description">Description</Label>
+        <Textarea
+          id="event-description"
+          placeholder="Describe your event..."
+          className="min-h-24"
+          value={wizardData.description}
+          onChange={e => dispatchUpdateWizardData({ description: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="event-category">Category</Label>
+        <Select
+          value={wizardData.category || undefined}
+          onValueChange={selectedValue => dispatchUpdateWizardData({ category: selectedValue })}
+        >
+          <SelectTrigger id="event-category">
+            <SelectValue placeholder="Select a category" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories?.map(category => (
+              <SelectItem key={category._id} value={category.slug}>
+                {category.name}
+              </SelectItem>
+            )) ?? null}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label>Tags</Label>
+        <div className="mt-2 flex gap-2">
+          <Input
+            placeholder="Add a tag..."
+            value={tagInputText}
+            onChange={e => setTagInputText(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                handleAddTag()
+              }
+            }}
+          />
+          <Button type="button" variant="secondary" onClick={handleAddTag}>
+            Add
+          </Button>
+        </div>
+        {wizardData.tags.length > 0 ? (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {wizardData.tags.map(tag => (
+              <Badge key={tag} variant="secondary" className="cursor-pointer" onClick={() => handleRemoveTag(tag)}>
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+function EventWizardCoverPhotoStep() {
+  const wizardData = useAtom(wizardDataAtom)[0]
+  const [, dispatchUpdateWizardData] = useAtom(updateWizardData)
 
   return (
     <div className="space-y-6">
@@ -238,18 +241,18 @@ function StepCoverPhoto() {
         </p>
       </div>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-        {placeholderPhotos.map((photo, index) => {
-          const isSelected = data.coverPhoto?.url === photo.url
+        {PLACEHOLDER_PHOTOS.map(photo => {
+          const isPhotoSelected = wizardData.coverPhoto?.url === photo.url
           return (
             <button
-              key={index}
+              key={photo.url}
               type="button"
               className={`relative aspect-video overflow-hidden rounded-lg border-2 transition-all ${
-                isSelected
+                isPhotoSelected
                   ? "border-primary ring-2 ring-primary/20"
                   : "border-transparent hover:border-muted-foreground/50"
               }`}
-              onClick={() => dispatchUpdate({ coverPhoto: photo })}
+              onClick={() => dispatchUpdateWizardData({ coverPhoto: photo })}
             >
               <div
                 className="absolute inset-0 flex items-center justify-center"
@@ -257,30 +260,39 @@ function StepCoverPhoto() {
               >
                 <ImageIcon className="size-8 text-primary-foreground/80" aria-hidden="true" />
               </div>
-              {isSelected && (
+              {isPhotoSelected ? (
                 <div className="absolute top-2 right-2">
                   <Badge variant="default">Selected</Badge>
                 </div>
-              )}
+              ) : null}
             </button>
           )
         })}
       </div>
-      {data.coverPhoto && (
-        <p className="text-center text-xs text-muted-foreground">Photo by {data.coverPhoto.photographerName}</p>
-      )}
+      {wizardData.coverPhoto ? (
+        <p className="text-center text-xs text-muted-foreground">
+          Photo by {wizardData.coverPhoto.photographerName}
+        </p>
+      ) : null}
     </div>
   )
 }
 
-function StepVenueSchedule() {
-  const data = useAtom(wizardDataAtom)[0]
-  const [, dispatchUpdate] = useAtom(updateWizardData)
+function EventWizardVenueScheduleStep() {
+  const wizardData = useAtom(wizardDataAtom)[0]
+  const [, dispatchUpdateWizardData] = useAtom(updateWizardData)
 
-  const venue = data.venue ?? { name: "", address: "", city: "", country: "", lat: 0, lng: 0 }
+  const venueDetails = wizardData.venue ?? {
+    name: "",
+    address: "",
+    city: "",
+    country: "",
+    lat: 0,
+    lng: 0,
+  }
 
-  function updateVenue(updates: Partial<typeof venue>) {
-    dispatchUpdate({ venue: { ...venue, ...updates } })
+  function handleUpdateVenue(venueUpdates: Partial<typeof venueDetails>) {
+    dispatchUpdateWizardData({ venue: { ...venueDetails, ...venueUpdates } })
   }
 
   return (
@@ -290,8 +302,8 @@ function StepVenueSchedule() {
         <Input
           id="venue-name"
           placeholder="e.g., Moscone Center"
-          value={venue.name}
-          onChange={e => updateVenue({ name: e.target.value })}
+          value={venueDetails.name}
+          onChange={e => handleUpdateVenue({ name: e.target.value })}
         />
       </div>
 
@@ -300,8 +312,8 @@ function StepVenueSchedule() {
         <Input
           id="venue-address"
           placeholder="e.g., 747 Howard St"
-          value={venue.address}
-          onChange={e => updateVenue({ address: e.target.value })}
+          value={venueDetails.address}
+          onChange={e => handleUpdateVenue({ address: e.target.value })}
         />
       </div>
 
@@ -311,8 +323,8 @@ function StepVenueSchedule() {
           <Input
             id="venue-city"
             placeholder="e.g., San Francisco"
-            value={venue.city}
-            onChange={e => updateVenue({ city: e.target.value })}
+            value={venueDetails.city}
+            onChange={e => handleUpdateVenue({ city: e.target.value })}
           />
         </div>
         <div>
@@ -320,8 +332,8 @@ function StepVenueSchedule() {
           <Input
             id="venue-country"
             placeholder="e.g., United States"
-            value={venue.country}
-            onChange={e => updateVenue({ country: e.target.value })}
+            value={venueDetails.country}
+            onChange={e => handleUpdateVenue({ country: e.target.value })}
           />
         </div>
       </div>
@@ -332,8 +344,8 @@ function StepVenueSchedule() {
           <Input
             id="start-datetime"
             type="datetime-local"
-            value={data.startDatetime}
-            onChange={e => dispatchUpdate({ startDatetime: e.target.value })}
+            value={wizardData.startDatetime}
+            onChange={e => dispatchUpdateWizardData({ startDatetime: e.target.value })}
           />
         </div>
         <div>
@@ -341,8 +353,8 @@ function StepVenueSchedule() {
           <Input
             id="end-datetime"
             type="datetime-local"
-            value={data.endDatetime}
-            onChange={e => dispatchUpdate({ endDatetime: e.target.value })}
+            value={wizardData.endDatetime}
+            onChange={e => dispatchUpdateWizardData({ endDatetime: e.target.value })}
           />
         </div>
       </div>
@@ -354,50 +366,130 @@ function StepVenueSchedule() {
           type="number"
           min={1}
           placeholder="Leave empty for unlimited"
-          value={data.capacity ?? ""}
-          onChange={e => dispatchUpdate({ capacity: e.target.value ? Number(e.target.value) : null })}
+          value={wizardData.capacity ?? ""}
+          onChange={e => dispatchUpdateWizardData({ capacity: e.target.value ? Number(e.target.value) : null })}
         />
       </div>
     </div>
   )
 }
 
-export default function CreateEventPage() {
-  const currentStep = useAtom(wizardStepAtom)[0]
-  const data = useAtom(wizardDataAtom)[0]
-  const [, setWizardEventId] = useAtom(wizardEventIdAtom)
-  const [, setIsSaving] = useAtom(wizardIsSavingAtom)
-  const [, dispatchSetStep] = useAtom(setWizardStep)
-  const [, dispatchReset] = useAtom(resetWizard)
+function EventWizardNavigation({
+  currentStepIndex,
+  totalSteps,
+  isSubmitting,
+  isSaving,
+  onBack,
+  onNext,
+  onSaveDraft,
+  onPublish,
+}: {
+  currentStepIndex: number
+  totalSteps: number
+  isSubmitting: boolean
+  isSaving: boolean
+  onBack: () => void
+  onNext: () => void
+  onSaveDraft: () => void
+  onPublish: () => void
+}) {
+  const isLastStep = currentStepIndex === totalSteps - 1
 
-  const categories = useQuery(api.categories.list)
-  const createEvent = useMutation(api.events.create)
-  const publishEvent = useMutation(api.events.publish)
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex gap-2">
+        {currentStepIndex > 0 ? (
+          <Button variant="outline" onClick={onBack} disabled={isSubmitting || isSaving}>
+            <ArrowLeft className="mr-1 size-4" />
+            Back
+          </Button>
+        ) : null}
+        <Button variant="outline" onClick={onSaveDraft} disabled={isSubmitting || isSaving}>
+          <Save className="mr-1 size-4" />
+          Save Draft
+        </Button>
+      </div>
+
+      {isLastStep ? (
+        <Button onClick={onPublish} disabled={isSubmitting || isSaving}>
+          <Rocket className="mr-1 size-4" />
+          {isSubmitting ? "Publishing..." : "Publish Event"}
+        </Button>
+      ) : (
+        <Button onClick={onNext} disabled={isSubmitting || isSaving}>
+          Next
+          <ArrowRight className="ml-1 size-4" />
+        </Button>
+      )}
+    </div>
+  )
+}
+
+function EventWizardStepContent({ currentStep }: { currentStep: WizardStep }) {
+  switch (currentStep) {
+    case "ai-prompt":
+      return <EventWizardAiPromptStep />
+    case "details":
+      return <EventWizardDetailsStep />
+    case "cover-photo":
+      return <EventWizardCoverPhotoStep />
+    case "venue-schedule":
+      return <EventWizardVenueScheduleStep />
+    default:
+      return null
+  }
+}
+
+function EventWizardStepDescription({ stepIndex }: { stepIndex: number }) {
+  const descriptions = [
+    "Let AI help you plan your event.",
+    "Fill in the basic details about your event.",
+    "Pick a cover photo that represents your event.",
+    "Set the venue, date, and time.",
+  ]
+
+  return descriptions[stepIndex] ?? ""
+}
+
+export default function CreateEventPage() {
+  const [currentWizardStep] = useAtom(wizardStepAtom)
+  const [wizardFormData] = useAtom(wizardDataAtom)
+  const [, setWizardEventId] = useAtom(wizardEventIdAtom)
+  const [, setIsSavingDraft] = useAtom(wizardIsSavingAtom)
+  const [, dispatchSetWizardStep] = useAtom(setWizardStep)
+  const [, dispatchResetWizard] = useAtom(resetWizard)
+
+  const createEventMutation = useMutation(api.events.create)
+  const publishEventMutation = useMutation(api.events.publish)
 
   const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPublishing, setIsPublishing] = useState(false)
 
-  const stepIndex = steps.findIndex(s => s.key === currentStep)
+  const currentStepIndex = WIZARD_STEPS.findIndex(step => step.key === currentWizardStep)
 
   async function handleSaveDraft() {
-    setIsSaving(true)
+    setIsSavingDraft(true)
     try {
-      if (!data.title || !data.category) {
+      if (!wizardFormData.title || !wizardFormData.category) {
         toast.error("Title and category are required to save")
         return
       }
 
-      const startMs = data.startDatetime ? new Date(data.startDatetime).getTime() : Date.now()
-      const endMs = data.endDatetime ? new Date(data.endDatetime).getTime() : startMs + 3600000
+      const startTimestamp = wizardFormData.startDatetime
+        ? new Date(wizardFormData.startDatetime).getTime()
+        : Date.now()
+      const endTimestamp = wizardFormData.endDatetime
+        ? new Date(wizardFormData.endDatetime).getTime()
+        : startTimestamp + 3600000
 
-      const venueData = data.venue
+      const venuePayload = wizardFormData.venue
         ? {
-            name: data.venue.name || "TBD",
-            address: data.venue.address || "TBD",
-            city: data.venue.city || "TBD",
-            country: data.venue.country || "TBD",
-            lat: data.venue.lat || 0,
-            lng: data.venue.lng || 0,
+            name: wizardFormData.venue.name || "TBD",
+            address: wizardFormData.venue.address || "TBD",
+            city: wizardFormData.venue.city || "TBD",
+            country: wizardFormData.venue.country || "TBD",
+            lat: wizardFormData.venue.lat || 0,
+            lng: wizardFormData.venue.lng || 0,
           }
         : {
             name: "TBD",
@@ -408,136 +500,120 @@ export default function CreateEventPage() {
             lng: 0,
           }
 
-      const coverPhotoData = data.coverPhoto ?? {
+      const coverPhotoPayload = wizardFormData.coverPhoto ?? {
         url: "/placeholders/tech.svg",
         dominantColor: "#3B82F6",
         photographerName: "Placeholder",
         photographerUrl: "#",
       }
 
-      const result = await createEvent({
-        title: data.title,
-        description: data.description ?? "TBD",
-        category: data.category,
-        tags: data.tags,
-        venue: venueData,
-        startDatetime: startMs,
-        endDatetime: endMs,
-        capacity: data.capacity,
-        coverPhoto: coverPhotoData,
+      const createResult = await createEventMutation({
+        title: wizardFormData.title,
+        description: wizardFormData.description ?? "TBD",
+        category: wizardFormData.category,
+        tags: wizardFormData.tags,
+        venue: venuePayload,
+        startDatetime: startTimestamp,
+        endDatetime: endTimestamp,
+        capacity: wizardFormData.capacity,
+        coverPhoto: coverPhotoPayload,
       })
 
-      if (result.error) {
-        toast.error(result.cause)
-        setIsSaving(false)
+      if (createResult.error) {
+        toast.error(createResult.cause)
         return
       }
 
-      setWizardEventId(result.data)
+      setWizardEventId(createResult.data)
       toast.success("Draft saved")
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to save draft")
     } finally {
-      setIsSaving(false)
+      setIsSavingDraft(false)
     }
   }
 
-  async function handlePublish() {
+  async function handlePublishEvent() {
     if (
-      !data.title ||
-      !data.description ||
-      !data.category ||
-      !data.venue ||
-      !data.startDatetime ||
-      !data.endDatetime
+      !wizardFormData.title ||
+      !wizardFormData.description ||
+      !wizardFormData.category ||
+      !wizardFormData.venue ||
+      !wizardFormData.startDatetime ||
+      !wizardFormData.endDatetime
     ) {
       toast.error("Please fill in all required fields")
       return
     }
 
-    setIsSubmitting(true)
+    setIsPublishing(true)
     try {
-      const startMs = new Date(data.startDatetime).getTime()
-      const endMs = new Date(data.endDatetime).getTime()
+      const startTimestamp = new Date(wizardFormData.startDatetime).getTime()
+      const endTimestamp = new Date(wizardFormData.endDatetime).getTime()
 
-      const venueData = {
-        name: data.venue.name,
-        address: data.venue.address,
-        city: data.venue.city,
-        country: data.venue.country,
-        lat: data.venue.lat ?? 0,
-        lng: data.venue.lng ?? 0,
+      const venuePayload = {
+        name: wizardFormData.venue.name,
+        address: wizardFormData.venue.address,
+        city: wizardFormData.venue.city,
+        country: wizardFormData.venue.country,
+        lat: wizardFormData.venue.lat ?? 0,
+        lng: wizardFormData.venue.lng ?? 0,
       }
 
-      const coverPhotoData = data.coverPhoto ?? {
+      const coverPhotoPayload = wizardFormData.coverPhoto ?? {
         url: "/placeholders/tech.svg",
         dominantColor: "#3B82F6",
         photographerName: "Placeholder",
         photographerUrl: "#",
       }
 
-      const createResult = await createEvent({
-        title: data.title,
-        description: data.description,
-        category: data.category,
-        tags: data.tags,
-        venue: venueData,
-        startDatetime: startMs,
-        endDatetime: endMs,
-        capacity: data.capacity,
-        coverPhoto: coverPhotoData,
+      const createResult = await createEventMutation({
+        title: wizardFormData.title,
+        description: wizardFormData.description,
+        category: wizardFormData.category,
+        tags: wizardFormData.tags,
+        venue: venuePayload,
+        startDatetime: startTimestamp,
+        endDatetime: endTimestamp,
+        capacity: wizardFormData.capacity,
+        coverPhoto: coverPhotoPayload,
       })
 
       if (createResult.error) {
         toast.error(createResult.cause)
-        setIsSubmitting(false)
+        setIsPublishing(false)
         return
       }
 
-      const eventId = createResult.data
-      if (!eventId) {
+      const createdEventId = createResult.data
+      if (!createdEventId) {
         toast.error("Failed to create event")
-        setIsSubmitting(false)
+        setIsPublishing(false)
         return
       }
 
-      await publishEvent({ eventId })
-      dispatchReset()
+      await publishEventMutation({ eventId: createdEventId })
+      dispatchResetWizard()
       toast.success("Event published!")
-      router.push(`/events/${eventId}/edit`)
+      router.push(`/organizer/events/${createdEventId}/edit`)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to publish event")
     } finally {
-      setIsSubmitting(false)
+      setIsPublishing(false)
     }
   }
 
-  function handleNext() {
-    const nextIndex = stepIndex + 1
-    if (nextIndex < steps.length) {
-      dispatchSetStep(steps[nextIndex].key)
+  function handleNavigateNext() {
+    const nextStepIndex = currentStepIndex + 1
+    if (nextStepIndex < WIZARD_STEPS.length) {
+      dispatchSetWizardStep(WIZARD_STEPS[nextStepIndex].key)
     }
   }
 
-  function handleBack() {
-    const prevIndex = stepIndex - 1
-    if (prevIndex >= 0) {
-      dispatchSetStep(steps[prevIndex].key)
-    }
-  }
-
-  function renderStep() {
-    switch (currentStep) {
-      case "ai-prompt":
-        return <StepAiPrompt />
-      case "details":
-        return <StepDetails categories={categories ?? []} />
-      case "cover-photo":
-        return <StepCoverPhoto />
-      case "venue-schedule":
-        return <StepVenueSchedule />
-      default:
-        return null
+  function handleNavigateBack() {
+    const prevStepIndex = currentStepIndex - 1
+    if (prevStepIndex >= 0) {
+      dispatchSetWizardStep(WIZARD_STEPS[prevStepIndex].key)
     }
   }
 
@@ -549,47 +625,30 @@ export default function CreateEventPage() {
           <p className="mt-1 text-muted-foreground">Build your event step by step.</p>
         </div>
 
-        <StepIndicator currentStep={currentStep} />
+        <EventWizardStepIndicator currentStep={currentWizardStep} />
 
         <Card>
           <CardHeader>
-            <CardTitle>{steps[stepIndex]?.label}</CardTitle>
+            <CardTitle>{WIZARD_STEPS[currentStepIndex]?.label}</CardTitle>
             <CardDescription>
-              {stepIndex === 0 && "Let AI help you plan your event."}
-              {stepIndex === 1 && "Fill in the basic details about your event."}
-              {stepIndex === 2 && "Pick a cover photo that represents your event."}
-              {stepIndex === 3 && "Set the venue, date, and time."}
+              <EventWizardStepDescription stepIndex={currentStepIndex} />
             </CardDescription>
           </CardHeader>
-          <CardContent>{renderStep()}</CardContent>
+          <CardContent>
+            <EventWizardStepContent currentStep={currentWizardStep} />
+          </CardContent>
         </Card>
 
-        <div className="flex items-center justify-between">
-          <div className="flex gap-2">
-            {stepIndex > 0 && (
-              <Button variant="outline" onClick={handleBack} disabled={isSubmitting}>
-                <ArrowLeft className="mr-1 size-4" />
-                Back
-              </Button>
-            )}
-            <Button variant="outline" onClick={handleSaveDraft} disabled={isSubmitting}>
-              <Save className="mr-1 size-4" />
-              Save Draft
-            </Button>
-          </div>
-
-          {stepIndex === steps.length - 1 ? (
-            <Button onClick={handlePublish} disabled={isSubmitting}>
-              <Rocket className="mr-1 size-4" />
-              {isSubmitting ? "Publishing..." : "Publish Event"}
-            </Button>
-          ) : (
-            <Button onClick={handleNext} disabled={isSubmitting}>
-              Next
-              <ArrowRight className="ml-1 size-4" />
-            </Button>
-          )}
-        </div>
+        <EventWizardNavigation
+          currentStepIndex={currentStepIndex}
+          totalSteps={WIZARD_STEPS.length}
+          isSubmitting={isPublishing}
+          isSaving={false}
+          onBack={handleNavigateBack}
+          onNext={handleNavigateNext}
+          onSaveDraft={handleSaveDraft}
+          onPublish={handlePublishEvent}
+        />
       </div>
     </div>
   )
