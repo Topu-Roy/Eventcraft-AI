@@ -82,13 +82,13 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()
-    if (!identity) throw new Error("Unauthenticated")
+    if (!identity) return { error: true, cause: "Unauthenticated" as const, data: null }
 
     const profile = await ctx.db
       .query("profile")
       .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-    if (!profile) throw new Error("Profile not found")
+    if (!profile) return { error: true, cause: "Profile not found" as const, data: null }
 
     const activeEvents = await ctx.db
       .query("events")
@@ -98,7 +98,7 @@ export const create = mutation({
     const qualifyingCount = activeEvents.filter(e => e.status === "draft" || e.status === "published").length
 
     if (profile.plan === "free" && qualifyingCount >= 1) {
-      throw new Error("Free plan limit reached. Upgrade to Pro to create more events.")
+      return { error: true, cause: "Plan limit reached" as const, data: null }
     }
 
     const searchableText = `${args.title} ${args.description} ${args.tags.join(" ")}`.toLowerCase()
@@ -128,7 +128,7 @@ export const create = mutation({
       totalCheckedIn: 0,
     })
 
-    return eventId
+    return { error: null, cause: null, data: eventId }
   },
 })
 
@@ -172,23 +172,23 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()
-    if (!identity) throw new Error("Unauthenticated")
+    if (!identity) return { error: true, cause: "Unauthenticated" as const, data: null }
 
     const profile = await ctx.db
       .query("profile")
       .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-    if (!profile) throw new Error("Profile not found")
+    if (!profile) return { error: true, cause: "Profile not found" as const, data: null }
 
     const event = await ctx.db.get("events", args.eventId)
-    if (!event) throw new Error("Event not found")
+    if (!event) return { error: true, cause: "Event not found" as const, data: null }
 
     if (event.organizerId !== profile._id && !event.coOrganizers.includes(profile._id)) {
-      throw new Error("Not authorized to edit this event")
+      return { error: true, cause: "Not authorized" as const, data: null }
     }
 
     if (args.theme && profile.plan !== "pro") {
-      throw new Error("Theme customization requires a Pro plan")
+      return { error: true, cause: "Pro plan required" as const, data: null }
     }
 
     const updates: Record<string, unknown> = {}
@@ -210,7 +210,7 @@ export const update = mutation({
     }
 
     await ctx.db.patch("events", event._id, updates)
-    return event._id
+    return { error: null, cause: null, data: event._id }
   },
 })
 
@@ -221,22 +221,28 @@ export const publish = mutation({
   args: { eventId: v.id("events") },
   handler: async (ctx, { eventId }) => {
     const identity = await ctx.auth.getUserIdentity()
-    if (!identity) throw new Error("Unauthenticated")
+    if (!identity) return { error: true, cause: "Unauthenticated" as const, data: null }
 
     const profile = await ctx.db
       .query("profile")
       .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-    if (!profile) throw new Error("Profile not found")
+    if (!profile) return { error: true, cause: "Profile not found" as const, data: null }
 
     const event = await ctx.db.get("events", eventId)
-    if (!event) throw new Error("Event not found")
-    if (event.organizerId !== profile._id) throw new Error("Only the organizer can publish this event")
-    if (event.status !== "draft") throw new Error("Only draft events can be published")
-    if (!event.coverPhoto) throw new Error("A cover photo is required to publish")
+    if (!event) return { error: true, cause: "Event not found" as const, data: null }
+    if (event.organizerId !== profile._id) {
+      return { error: true, cause: "Only organizer can publish" as const, data: null }
+    }
+    if (event.status !== "draft") {
+      return { error: true, cause: "Only drafts can be published" as const, data: null }
+    }
+    if (!event.coverPhoto) {
+      return { error: true, cause: "Cover photo required" as const, data: null }
+    }
 
     await ctx.db.patch("events", event._id, { status: "published" })
-    return event._id
+    return { error: null, cause: null, data: event._id }
   },
 })
 
@@ -247,22 +253,22 @@ export const cancel = mutation({
   args: { eventId: v.id("events") },
   handler: async (ctx, { eventId }) => {
     const identity = await ctx.auth.getUserIdentity()
-    if (!identity) throw new Error("Unauthenticated")
+    if (!identity) return { error: true, cause: "Unauthenticated" as const, data: null }
 
     const profile = await ctx.db
       .query("profile")
       .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-    if (!profile) throw new Error("Profile not found")
+    if (!profile) return { error: true, cause: "Profile not found" as const, data: null }
 
     const event = await ctx.db.get("events", eventId)
-    if (!event) throw new Error("Event not found")
+    if (!event) return { error: true, cause: "Event not found" as const, data: null }
     if (event.organizerId !== profile._id && !event.coOrganizers.includes(profile._id)) {
-      throw new Error("Not authorized to cancel this event")
+      return { error: true, cause: "Not authorized" as const, data: null }
     }
 
     await ctx.db.patch("events", event._id, { status: "cancelled" })
-    return event._id
+    return { error: null, cause: null, data: event._id }
   },
 })
 

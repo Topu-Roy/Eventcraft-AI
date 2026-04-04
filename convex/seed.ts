@@ -23,11 +23,11 @@ export const seedCategories = mutation({
   args: {},
   handler: async ctx => {
     const baUser = await authComponent.getAuthUser(ctx as never)
-    if (baUser.role !== "admin") throw new Error("Admin access required")
+    if (baUser.role !== "admin") return { error: true, cause: "Admin access required" as const, data: null }
 
     const existing = await ctx.db.query("categories").collect()
     if (existing.length > 0) {
-      return { skipped: existing.length, message: "Categories already exist" }
+      return { error: null, cause: null, data: { skipped: existing.length, message: "Categories already exist" } }
     }
 
     let created = 0
@@ -36,7 +36,7 @@ export const seedCategories = mutation({
       created++
     }
 
-    return { created, message: `Seeded ${created} categories` }
+    return { error: null, cause: null, data: { created, message: `Seeded ${created} categories` } }
   },
 })
 

@@ -23,7 +23,8 @@ async function TrendingSection() {
 }
 
 async function LocationSection() {
-  const profile = await fetchAuthQuery(api.profiles.getCurrent)
+  const profileResult = await fetchAuthQuery(api.profiles.getCurrent)
+  const profile = profileResult.data
   if (!profile?.location) return null
 
   const events = await fetchAuthQuery(api.discovery.getEventsByLocation, {

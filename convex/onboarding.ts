@@ -33,7 +33,7 @@ export const saveStepOne = mutation({
       .query("profile")
       .withIndex("by_userId", q => q.eq("userId", baUser._id))
       .first()
-    if (!profile) throw new Error("Profile not found")
+    if (!profile) return { error: true, cause: "Profile not found" as const, data: null }
 
     const existing = await ctx.db
       .query("onboarding")
@@ -47,15 +47,17 @@ export const saveStepOne = mutation({
           ? existing.completedSteps
           : [...existing.completedSteps, 1],
       })
-      return existing._id
+      return { error: null, cause: null, data: existing._id }
     }
 
-    return await ctx.db.insert("onboarding", {
+    const id = await ctx.db.insert("onboarding", {
       profileId: profile._id,
       completedSteps: [1],
       stepOneData: { interests },
       stepTwoData: { city: "", country: "", countryCode: "", lat: 0, lng: 0, timezone: "" },
     })
+
+    return { error: null, cause: null, data: id }
   },
 })
 
@@ -77,7 +79,7 @@ export const saveStepTwo = mutation({
       .query("profile")
       .withIndex("by_userId", q => q.eq("userId", baUser._id))
       .first()
-    if (!profile) throw new Error("Profile not found")
+    if (!profile) return { error: true, cause: "Profile not found" as const, data: null }
 
     const existing = await ctx.db
       .query("onboarding")
@@ -91,14 +93,16 @@ export const saveStepTwo = mutation({
           ? existing.completedSteps
           : [...existing.completedSteps, 2],
       })
-      return existing._id
+      return { error: null, cause: null, data: existing._id }
     }
 
-    return await ctx.db.insert("onboarding", {
+    const id = await ctx.db.insert("onboarding", {
       profileId: profile._id,
       completedSteps: [2],
       stepOneData: { interests: [] },
       stepTwoData: { city, country, countryCode, lat, lng, timezone },
     })
+
+    return { error: null, cause: null, data: id }
   },
 })

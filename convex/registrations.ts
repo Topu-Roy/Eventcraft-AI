@@ -4,33 +4,34 @@ import { mutation, query } from "./_generated/server"
 
 /**
  * Registers the current profile for an event.
- * Atomic operation: checks capacity, prevents duplicates, generates ticket, increments counters.
  */
 export const register = mutation({
   args: { eventId: v.id("events") },
   handler: async (ctx, { eventId }) => {
     const identity = await ctx.auth.getUserIdentity()
-    if (!identity) throw new Error("Unauthenticated")
+    if (!identity) return { error: true, cause: "Unauthenticated" as const, data: null }
 
     const profile = await ctx.db
       .query("profile")
       .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-    if (!profile) throw new Error("Profile not found")
+    if (!profile) return { error: true, cause: "Profile not found" as const, data: null }
 
     const event = await ctx.db.get("events", eventId)
-    if (!event) throw new Error("Event not found")
-    if (event.status !== "published") throw new Error("Can only register for published events")
+    if (!event) return { error: true, cause: "Event not found" as const, data: null }
+    if (event.status !== "published") return { error: true, cause: "Event not published" as const, data: null }
 
     const existing = await ctx.db
       .query("registrations")
       .withIndex("by_profileId_event", q => q.eq("profileId", profile._id).eq("eventId", eventId))
       .first()
 
-    if (existing?.status === "active") throw new Error("Already registered for this event")
-
-    if (event.organizerId === profile._id) throw new Error("Organizers cannot register for their own events")
-    if (event.capacity !== null && event.registrationCount >= event.capacity) throw new Error("Event is full")
+    if (existing?.status === "active") return { error: true, cause: "Already registered" as const, data: null }
+    if (event.organizerId === profile._id)
+      return { error: true, cause: "Organizer cannot register" as const, data: null }
+    if (event.capacity !== null && event.registrationCount >= event.capacity) {
+      return { error: true, cause: "Event is full" as const, data: null }
+    }
 
     let ticketCode: string
     let attempts = 0
@@ -44,7 +45,7 @@ export const register = mutation({
       attempts++
     } while (attempts < 3)
 
-    if (attempts >= 3) throw new Error("Failed to generate unique ticket code")
+    if (attempts >= 3) return { error: true, cause: "Failed to generate ticket" as const, data: null }
 
     await ctx.db.insert("registrations", {
       profileId: profile._id,
@@ -73,7 +74,7 @@ export const register = mutation({
       })
     }
 
-    return { ticketCode, eventId }
+    return { error: null, cause: null, data: { ticketCode, eventId } }
   },
 })
 
@@ -84,24 +85,27 @@ export const cancelRegistration = mutation({
   args: { registrationId: v.id("registrations") },
   handler: async (ctx, { registrationId }) => {
     const identity = await ctx.auth.getUserIdentity()
-    if (!identity) throw new Error("Unauthenticated")
+    if (!identity) return { error: true, cause: "Unauthenticated" as const, data: null }
 
     const profile = await ctx.db
       .query("profile")
       .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-    if (!profile) throw new Error("Profile not found")
+    if (!profile) return { error: true, cause: "Profile not found" as const, data: null }
 
     const registration = await ctx.db.get("registrations", registrationId)
-    if (!registration) throw new Error("Registration not found")
-    if (registration.profileId !== profile._id) throw new Error("Not authorized")
-    if (registration.status !== "active") throw new Error("Registration is not active")
+    if (!registration) return { error: true, cause: "Registration not found" as const, data: null }
+    if (registration.profileId !== profile._id)
+      return { error: true, cause: "Not authorized" as const, data: null }
+    if (registration.status !== "active") return { error: true, cause: "Not active" as const, data: null }
 
     const event = await ctx.db.get("events", registration.eventId)
-    if (!event) throw new Error("Event not found")
+    if (!event) return { error: true, cause: "Event not found" as const, data: null }
 
     const oneHourBeforeStart = event.startDatetime - 60 * 60 * 1000
-    if (Date.now() > oneHourBeforeStart) throw new Error("Cannot cancel within 1 hour of event start")
+    if (Date.now() > oneHourBeforeStart) {
+      return { error: true, cause: "Too late to cancel" as const, data: null }
+    }
 
     await ctx.db.patch("registrations", registration._id, { status: "cancelled", cancelledAt: Date.now() })
     await ctx.db.patch("events", event._id, { registrationCount: Math.max(0, event.registrationCount - 1) })
@@ -121,7 +125,7 @@ export const cancelRegistration = mutation({
       })
     }
 
-    return registration._id
+    return { error: null, cause: null, data: registration._id }
   },
 })
 

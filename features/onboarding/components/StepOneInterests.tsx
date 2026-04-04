@@ -37,8 +37,10 @@ export function StepOneInterests({ onNext }: StepOneInterestsProps) {
     const result = await tryCatch(() => seedCategories())
     if (result.error) {
       toast.error(result.error.message)
+    } else if (result.data?.error) {
+      toast.error(result.data.cause)
     } else {
-      toast.success(result.data.message)
+      toast.success(result.data?.data?.message)
     }
     setIsSeeding(false)
   }

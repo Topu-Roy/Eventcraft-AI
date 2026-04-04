@@ -2,13 +2,12 @@ import { api } from "@/convex/_generated/api"
 import { Calendar, LayoutDashboard, Plus, Search, Ticket } from "lucide-react"
 import Link from "next/link"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
-import { tryCatch } from "@/lib/try-catch"
 import { Button } from "@/components/ui/button"
 import { MobileMenu } from "./MobileMenu"
 
 export async function Header() {
   const authed = await isAuthenticated()
-  const profileResult = authed ? await tryCatch(fetchAuthQuery(api.profiles.getCurrent)) : null
+  const profileResult = authed ? await fetchAuthQuery(api.profiles.getCurrent) : null
   const profile = profileResult?.data ?? null
 
   return (

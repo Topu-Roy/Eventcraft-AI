@@ -86,8 +86,19 @@ export function RegistrationCTA({
       setIsRegistering(false)
       return
     }
+    const mutationResult = result.data
+    if (mutationResult?.error) {
+      toast.error(mutationResult.cause)
+      setIsRegistering(false)
+      return
+    }
+    if (!mutationResult?.data?.ticketCode) {
+      toast.error("Failed to register")
+      setIsRegistering(false)
+      return
+    }
     toast.success("You're registered!")
-    router.push(`/tickets/${result.data.ticketCode}`)
+    router.push(`/tickets/${mutationResult.data.ticketCode}`)
   }
 
   return (

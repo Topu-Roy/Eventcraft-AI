@@ -415,7 +415,7 @@ export default function CreateEventPage() {
         photographerUrl: "#",
       }
 
-      const eventId = await createEvent({
+      const result = await createEvent({
         title: data.title,
         description: data.description ?? "TBD",
         category: data.category,
@@ -427,7 +427,13 @@ export default function CreateEventPage() {
         coverPhoto: coverPhotoData,
       })
 
-      setWizardEventId(eventId)
+      if (result.error) {
+        toast.error(result.cause)
+        setIsSaving(false)
+        return
+      }
+
+      setWizardEventId(result.data)
       toast.success("Draft saved")
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to save draft")
@@ -470,7 +476,7 @@ export default function CreateEventPage() {
         photographerUrl: "#",
       }
 
-      const eventId = await createEvent({
+      const createResult = await createEvent({
         title: data.title,
         description: data.description,
         category: data.category,
@@ -481,6 +487,19 @@ export default function CreateEventPage() {
         capacity: data.capacity,
         coverPhoto: coverPhotoData,
       })
+
+      if (createResult.error) {
+        toast.error(createResult.cause)
+        setIsSubmitting(false)
+        return
+      }
+
+      const eventId = createResult.data
+      if (!eventId) {
+        toast.error("Failed to create event")
+        setIsSubmitting(false)
+        return
+      }
 
       await publishEvent({ eventId })
       dispatchReset()

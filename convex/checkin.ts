@@ -8,13 +8,13 @@ export const checkIn = mutation({
   args: { ticketCode: v.string(), eventId: v.id("events") },
   handler: async (ctx, { ticketCode, eventId }) => {
     const identity = await ctx.auth.getUserIdentity()
-    if (!identity) throw new Error("Unauthenticated")
+    if (!identity) return { status: "invalid" as const, reason: "Unauthenticated" }
 
     const profile = await ctx.db
       .query("profile")
       .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-    if (!profile) throw new Error("Profile not found")
+    if (!profile) return { status: "invalid" as const, reason: "Profile not found" }
 
     const event = await ctx.db.get("events", eventId)
     if (!event) return { status: "invalid" as const, reason: "Event not found" }
@@ -55,7 +55,6 @@ export const checkIn = mutation({
     }
 
     const attendee = await ctx.db.get("profile", registration.profileId)
-
     return { status: "success" as const, attendeeName: attendee?.name ?? "Unknown", ticketCode }
   },
 })
@@ -67,16 +66,17 @@ export const manualCheckIn = mutation({
   args: { ticketCode: v.string(), eventId: v.id("events") },
   handler: async (ctx, { ticketCode, eventId }) => {
     const identity = await ctx.auth.getUserIdentity()
-    if (!identity) throw new Error("Unauthenticated")
+    if (!identity) return { status: "invalid" as const, reason: "Unauthenticated" }
 
     const profile = await ctx.db
       .query("profile")
       .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
-    if (!profile) throw new Error("Profile not found")
+    if (!profile) return { status: "invalid" as const, reason: "Profile not found" }
 
     const event = await ctx.db.get("events", eventId)
     if (!event) return { status: "invalid" as const, reason: "Event not found" }
+
     if (event.organizerId !== profile._id && !event.coOrganizers.includes(profile._id)) {
       return { status: "invalid" as const, reason: "Not authorized" }
     }

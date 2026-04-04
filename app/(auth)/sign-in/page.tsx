@@ -9,7 +9,8 @@ export default async function LoginPage() {
 
   if (authed) {
     const profileResult = await tryCatch(fetchAuthQuery(api.profiles.getCurrent))
-    if (profileResult.data?.onboardingComplete) {
+    const profile = profileResult.data?.data
+    if (profile?.onboardingComplete) {
       redirect("/explore")
     }
     redirect("/onboarding")

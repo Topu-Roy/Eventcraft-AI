@@ -10,14 +10,14 @@ export const getCurrent = query({
   args: {},
   handler: async ctx => {
     const identity = await ctx.auth.getUserIdentity()
-    if (!identity) return null
+    if (!identity) return { error: true, cause: "Unauthenticated" as const, data: null }
 
     const profile = await ctx.db
       .query("profile")
       .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
 
-    return profile
+    return { error: null, cause: null, data: profile }
   },
 })
 
@@ -30,14 +30,14 @@ export const create = mutation({
   args: {},
   handler: async ctx => {
     const identity = await ctx.auth.getUserIdentity()
-    if (!identity) throw new Error("Unauthenticated")
+    if (!identity) return { error: true, cause: "Unauthenticated" as const, data: null }
 
     const existing = await ctx.db
       .query("profile")
       .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
 
-    if (existing) return existing._id
+    if (existing) return { error: null, cause: null, data: existing._id }
 
     const baUser = await authComponent.getAuthUser(ctx as never)
 
@@ -52,7 +52,7 @@ export const create = mutation({
       onboardingComplete: false,
     })
 
-    return profileId
+    return { error: null, cause: null, data: profileId }
   },
 })
 
@@ -71,14 +71,33 @@ export const completeOnboarding = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()
-    if (!identity) throw new Error("Unauthenticated")
+    if (!identity) return { error: true, cause: "Unauthenticated" as const, data: null }
 
     const profile = await ctx.db
       .query("profile")
       .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
 
-    if (!profile) throw new Error("Profile not found. Create a profile first.")
+    if (!profile) {
+      const baUser = await authComponent.getAuthUser(ctx as never)
+      const profileId = await ctx.db.insert("profile", {
+        userId: identity.subject,
+        name: baUser.name,
+        avatarUrl: baUser.image ?? undefined,
+        plan: "free",
+        interests: args.interests,
+        location: {
+          city: args.city,
+          country: args.country,
+          countryCode: args.countryCode,
+          lat: args.lat,
+          lng: args.lng,
+        },
+        timezone: args.timezone,
+        onboardingComplete: true,
+      })
+      return { error: null, cause: null, data: profileId }
+    }
 
     await ctx.db.patch("profile", profile._id, {
       interests: args.interests,
@@ -93,6 +112,6 @@ export const completeOnboarding = mutation({
       onboardingComplete: true,
     })
 
-    return profile._id
+    return { error: null, cause: null, data: profile._id }
   },
 })
