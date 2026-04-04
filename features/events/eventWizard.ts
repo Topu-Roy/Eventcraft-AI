@@ -1,8 +1,8 @@
 import { atom } from "jotai"
 
-type WizardStep = "ai-assistant" | "details" | "cover-photo" | "venue-schedule"
-
-type CreationMode = "ai" | "manual" | null
+type AiWizardStep = "ai-prompt" | "ai-review" | "cover-photo" | "venue-schedule"
+type ManualWizardStep = "details" | "cover-photo" | "venue-schedule"
+type Pipeline = "ai" | "manual" | null
 
 type CoverPhoto = {
   url: string
@@ -51,26 +51,52 @@ const initialWizardData: EventWizardData = {
   capacity: null,
 }
 
-export const wizardStepAtom = atom<WizardStep>("ai-assistant")
+// Pipeline selection
+export const selectedPipelineAtom = atom<Pipeline>(null)
 
-export const creationModeAtom = atom<CreationMode>(null)
+// AI Pipeline state
+export const aiWizardStepAtom = atom<AiWizardStep>("ai-prompt")
+export const aiPromptTextAtom = atom("")
+export const aiGeneratedDataAtom = atom<GeneratedEventData | null>(null)
+export const aiModificationTextAtom = atom("")
+export const aiIsModifyingAtom = atom(false)
 
+// Manual Pipeline state
+export const manualWizardStepAtom = atom<ManualWizardStep>("details")
+
+// Shared state (both pipelines write here)
 export const wizardDataAtom = atom<EventWizardData>(initialWizardData)
-
 export const wizardEventIdAtom = atom<string | null>(null)
-
 export const wizardIsSavingAtom = atom(false)
-
 export const isGeneratingAtom = atom(false)
 
-export const generatedEventDataAtom = atom<GeneratedEventData | null>(null)
-
-export const setWizardStep = atom(null, (_get, set, step: WizardStep) => {
-  set(wizardStepAtom, step)
+// Setters
+export const setSelectedPipeline = atom(null, (_get, set, pipeline: Pipeline) => {
+  set(selectedPipelineAtom, pipeline)
 })
 
-export const setCreationMode = atom(null, (_get, set, mode: CreationMode) => {
-  set(creationModeAtom, mode)
+export const setAiWizardStep = atom(null, (_get, set, step: AiWizardStep) => {
+  set(aiWizardStepAtom, step)
+})
+
+export const setAiPromptText = atom(null, (_get, set, text: string) => {
+  set(aiPromptTextAtom, text)
+})
+
+export const setAiGeneratedData = atom(null, (_get, set, data: GeneratedEventData | null) => {
+  set(aiGeneratedDataAtom, data)
+})
+
+export const setAiModificationText = atom(null, (_get, set, text: string) => {
+  set(aiModificationTextAtom, text)
+})
+
+export const setIsAiModifying = atom(null, (_get, set, isModifying: boolean) => {
+  set(aiIsModifyingAtom, isModifying)
+})
+
+export const setManualWizardStep = atom(null, (_get, set, step: ManualWizardStep) => {
+  set(manualWizardStepAtom, step)
 })
 
 export const updateWizardData = atom(null, (_get, set, updates: Partial<EventWizardData>) => {
@@ -81,18 +107,26 @@ export const setIsGenerating = atom(null, (_get, set, isGenerating: boolean) => 
   set(isGeneratingAtom, isGenerating)
 })
 
-export const setGeneratedEventData = atom(null, (_get, set, data: GeneratedEventData | null) => {
-  set(generatedEventDataAtom, data)
+export const setWizardEventId = atom(null, (_get, set, id: string | null) => {
+  set(wizardEventIdAtom, id)
 })
 
-export const resetWizard = atom(null, (_get, _set) => {
-  _set(wizardStepAtom, "ai-assistant")
-  _set(creationModeAtom, null)
-  _set(wizardDataAtom, initialWizardData)
-  _set(wizardEventIdAtom, null)
-  _set(wizardIsSavingAtom, false)
-  _set(isGeneratingAtom, false)
-  _set(generatedEventDataAtom, null)
+export const setIsSavingDraft = atom(null, (_get, set, isSaving: boolean) => {
+  set(wizardIsSavingAtom, isSaving)
 })
 
-export type { WizardStep, CreationMode, EventWizardData, CoverPhoto, Venue, GeneratedEventData }
+export const resetWizard = atom(null, (_get, set) => {
+  set(selectedPipelineAtom, null)
+  set(aiWizardStepAtom, "ai-prompt")
+  set(aiPromptTextAtom, "")
+  set(aiGeneratedDataAtom, null)
+  set(aiModificationTextAtom, "")
+  set(aiIsModifyingAtom, false)
+  set(manualWizardStepAtom, "details")
+  set(wizardDataAtom, initialWizardData)
+  set(wizardEventIdAtom, null)
+  set(wizardIsSavingAtom, false)
+  set(isGeneratingAtom, false)
+})
+
+export type { AiWizardStep, ManualWizardStep, Pipeline, EventWizardData, CoverPhoto, Venue, GeneratedEventData }

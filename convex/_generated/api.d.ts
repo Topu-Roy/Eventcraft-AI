@@ -11,6 +11,7 @@
 import type * as agents_agent from "../agents/agent.js";
 import type * as agents_event from "../agents/event.js";
 import type * as agents_eventGenerator from "../agents/eventGenerator.js";
+import type * as agents_eventModifier from "../agents/eventModifier.js";
 import type * as auth from "../auth.js";
 import type * as categories from "../categories.js";
 import type * as checkin from "../checkin.js";
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   "agents/agent": typeof agents_agent;
   "agents/event": typeof agents_event;
   "agents/eventGenerator": typeof agents_eventGenerator;
+  "agents/eventModifier": typeof agents_eventModifier;
   auth: typeof auth;
   categories: typeof categories;
   checkin: typeof checkin;

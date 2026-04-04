@@ -1,7 +1,9 @@
 import { v } from "convex/values"
 import { array as zArray, object as zObject, string as zString } from "zod"
+import { canCreateEvent, getMaxEvents } from "../lib/plan.config"
 import { action, mutation, query } from "./_generated/server"
 import { eventGeneratorAgent } from "./agents/eventGenerator"
+import { eventModifierAgent } from "./agents/eventModifier"
 
 /**
  * Returns all events for the current profile (including co-organizer access).
@@ -99,7 +101,7 @@ export const create = mutation({
 
     const qualifyingCount = activeEvents.filter(e => e.status === "draft" || e.status === "published").length
 
-    if (profile.plan === "free" && qualifyingCount >= 1) {
+    if (!canCreateEvent(profile.plan, qualifyingCount)) {
       return { error: true, cause: "Plan limit reached" as const, data: null }
     }
 
@@ -323,8 +325,8 @@ export const getPlanUsage = query({
     return {
       plan: profile.plan,
       activeCount,
-      limit: profile.plan === "free" ? 1 : Infinity,
-      canCreate: profile.plan === "pro" || activeCount < 1,
+      limit: getMaxEvents(profile.plan) ?? Infinity,
+      canCreate: canCreateEvent(profile.plan, activeCount),
     }
   },
 })
@@ -363,5 +365,58 @@ export const generateFromPrompt = action({
     }
 
     return { error: null, cause: null, message: null, data: generatedData }
+  },
+})
+
+/**
+ * Modifies existing generated event data based on a user instruction.
+ * Returns a completely new set of event data with all fields replaced.
+ */
+export const modifyEventData = action({
+  args: {
+    previousData: v.object({
+      title: v.string(),
+      description: v.string(),
+      category: v.string(),
+      tags: v.array(v.string()),
+    }),
+    modification: v.string(),
+    categorySlugs: v.array(v.string()),
+  },
+  handler: async (ctx, { previousData, modification, categorySlugs }) => {
+    const { thread } = await eventModifierAgent.createThread(ctx)
+
+    const { object: modifiedData } = await thread.generateObject({
+      prompt: `Previous event data:
+Title: ${previousData.title}
+Description: ${previousData.description}
+Category: ${previousData.category}
+Tags: ${JSON.stringify(previousData.tags)}
+
+Available category slugs: ${JSON.stringify(categorySlugs)}. You must use exactly one of these.
+
+User modification instruction: ${modification}
+
+Return a COMPLETELY NEW set of event data that incorporates the user's changes. All fields must be replaced.`,
+      schema: zObject({
+        title: zString().min(3).max(200),
+        description: zString().min(50).max(2000),
+        category: zString(),
+        tags: zArray(zString().max(50)),
+      }),
+      schemaName: "EventData",
+      schemaDescription: "Modified event data",
+    })
+
+    if (!categorySlugs.includes(modifiedData.category)) {
+      return {
+        error: true,
+        cause: "invalid_category" as const,
+        message: `The AI picked "${modifiedData.category}" which isn't a valid category. Try a different modification.`,
+        data: null,
+      }
+    }
+
+    return { error: null, cause: null, message: null, data: modifiedData }
   },
 })

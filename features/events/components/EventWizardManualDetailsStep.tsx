@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 
-export function EventWizardDetailsStep() {
+export function EventWizardManualDetailsStep() {
   const wizardData = useAtom(wizardDataAtom)[0]
   const [, dispatchUpdateWizardData] = useAtom(updateWizardData)
   const categories = useQuery(api.categories.list)

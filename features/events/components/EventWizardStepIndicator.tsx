@@ -1,12 +1,11 @@
 "use client"
 
-import type { WizardStep } from "@/features/events/eventWizard"
 import { Progress } from "@/components/ui/progress"
 
-type StepDef = { key: WizardStep; label: string; icon: React.ComponentType<{ className?: string }> }
+type StepDef = { key: string; label: string; icon: React.ComponentType<{ className?: string }> }
 
 type EventWizardStepIndicatorProps = {
-  currentStep: WizardStep
+  currentStep: string
   steps: StepDef[]
 }
 

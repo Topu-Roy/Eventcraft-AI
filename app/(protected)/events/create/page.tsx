@@ -3,60 +3,63 @@
 import { useState } from "react"
 import { api } from "@/convex/_generated/api"
 import { EventWizardAiPromptStep } from "@/features/events/components/EventWizardAiPromptStep"
+import { EventWizardAiReviewStep } from "@/features/events/components/EventWizardAiReviewStep"
 import { EventWizardCoverPhotoStep } from "@/features/events/components/EventWizardCoverPhotoStep"
-import { EventWizardCreationChoice } from "@/features/events/components/EventWizardCreationChoice"
-import { EventWizardDetailsStep } from "@/features/events/components/EventWizardDetailsStep"
+import { EventWizardLanding } from "@/features/events/components/EventWizardLanding"
+import { EventWizardManualDetailsStep } from "@/features/events/components/EventWizardManualDetailsStep"
 import { EventWizardNavigation } from "@/features/events/components/EventWizardNavigation"
 import { EventWizardStepIndicator } from "@/features/events/components/EventWizardStepIndicator"
 import { EventWizardVenueScheduleStep } from "@/features/events/components/EventWizardVenueScheduleStep"
-import { getWizardSteps, WIZARD_STEP_DESCRIPTIONS } from "@/features/events/constants"
 import {
-  creationModeAtom,
+  AI_STEP_DESCRIPTIONS,
+  AI_WIZARD_STEPS,
+  MANUAL_STEP_DESCRIPTIONS,
+  MANUAL_WIZARD_STEPS,
+} from "@/features/events/constants"
+import {
+  aiWizardStepAtom,
+  manualWizardStepAtom,
   resetWizard,
-  setCreationMode,
-  setWizardStep,
+  selectedPipelineAtom,
+  setAiWizardStep,
+  setIsSavingDraft,
+  setManualWizardStep,
+  setWizardEventId,
   wizardDataAtom,
-  wizardEventIdAtom,
-  wizardIsSavingAtom,
-  wizardStepAtom,
-  type WizardStep,
+  type AiWizardStep,
+  type ManualWizardStep,
 } from "@/features/events/eventWizard"
 import { useMutation } from "convex/react"
 import { useAtom } from "jotai"
-import { ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-function EventWizardStepContent({ currentStep }: { currentStep: WizardStep }) {
-  switch (currentStep) {
-    case "ai-assistant":
-      return <EventWizardAiPromptStep />
-    case "details":
-      return <EventWizardDetailsStep />
-    case "cover-photo":
-      return <EventWizardCoverPhotoStep />
-    case "venue-schedule":
-      return <EventWizardVenueScheduleStep />
-    default:
-      return null
+function getStepDescription(pipeline: "ai" | "manual", step: AiWizardStep | ManualWizardStep): string {
+  if (pipeline === "ai") {
+    return AI_STEP_DESCRIPTIONS[step as AiWizardStep] ?? ""
   }
+  return MANUAL_STEP_DESCRIPTIONS[step as ManualWizardStep] ?? ""
 }
 
-function EventWizardStepDescription({ currentStep }: { currentStep: WizardStep }) {
-  return WIZARD_STEP_DESCRIPTIONS[currentStep] ?? ""
+function getStepLabel(
+  pipeline: "ai" | "manual",
+  step: AiWizardStep | ManualWizardStep,
+  steps: { key: string; label: string }[]
+): string {
+  return steps.find(s => s.key === step)?.label ?? ""
 }
 
 export default function CreateEventPage() {
-  const [currentWizardStep] = useAtom(wizardStepAtom)
-  const [creationMode] = useAtom(creationModeAtom)
+  const [selectedPipeline] = useAtom(selectedPipelineAtom)
+  const [aiStep] = useAtom(aiWizardStepAtom)
+  const [manualStep] = useAtom(manualWizardStepAtom)
   const [wizardFormData] = useAtom(wizardDataAtom)
-  const [, setWizardEventId] = useAtom(wizardEventIdAtom)
-  const [, setIsSavingDraft] = useAtom(wizardIsSavingAtom)
-  const [, dispatchSetWizardStep] = useAtom(setWizardStep)
+  const [, dispatchSetWizardEventId] = useAtom(setWizardEventId)
+  const [, dispatchSetIsSavingDraft] = useAtom(setIsSavingDraft)
+  const [, dispatchSetAiStep] = useAtom(setAiWizardStep)
+  const [, dispatchSetManualStep] = useAtom(setManualWizardStep)
   const [, dispatchResetWizard] = useAtom(resetWizard)
-  const [, dispatchSetCreationMode] = useAtom(setCreationMode)
 
   const createEventMutation = useMutation(api.events.create)
   const publishEventMutation = useMutation(api.events.publish)
@@ -64,11 +67,14 @@ export default function CreateEventPage() {
   const router = useRouter()
   const [isPublishing, setIsPublishing] = useState(false)
 
-  const wizardSteps = getWizardSteps(creationMode)
-  const currentStepIndex = wizardSteps.findIndex(step => step.key === currentWizardStep)
+  const aiSteps = AI_WIZARD_STEPS
+  const manualSteps = MANUAL_WIZARD_STEPS
+  const currentStep = selectedPipeline === "ai" ? aiStep : manualStep
+  const steps = selectedPipeline === "ai" ? aiSteps : manualSteps
+  const currentStepIndex = steps.findIndex(step => step.key === currentStep)
 
   async function handleSaveDraft() {
-    setIsSavingDraft(true)
+    dispatchSetIsSavingDraft(true)
     try {
       if (!wizardFormData.title || !wizardFormData.category) {
         toast.error("Title and category are required to save")
@@ -117,12 +123,12 @@ export default function CreateEventPage() {
         return
       }
 
-      setWizardEventId(createResult.data)
+      dispatchSetWizardEventId(createResult.data)
       toast.success("Draft saved")
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to save draft")
     } finally {
-      setIsSavingDraft(false)
+      dispatchSetIsSavingDraft(false)
     }
   }
 
@@ -198,24 +204,59 @@ export default function CreateEventPage() {
 
   function handleNavigateNext() {
     const nextStepIndex = currentStepIndex + 1
-    if (nextStepIndex < wizardSteps.length) {
-      dispatchSetWizardStep(wizardSteps[nextStepIndex].key)
+    if (nextStepIndex < steps.length) {
+      if (selectedPipeline === "ai") {
+        dispatchSetAiStep(steps[nextStepIndex].key as AiWizardStep)
+      } else {
+        dispatchSetManualStep(steps[nextStepIndex].key as ManualWizardStep)
+      }
     }
   }
 
   function handleNavigateBack() {
     const prevStepIndex = currentStepIndex - 1
     if (prevStepIndex >= 0) {
-      dispatchSetWizardStep(wizardSteps[prevStepIndex].key)
+      if (selectedPipeline === "ai") {
+        dispatchSetAiStep(steps[prevStepIndex].key as AiWizardStep)
+      } else {
+        dispatchSetManualStep(steps[prevStepIndex].key as ManualWizardStep)
+      }
     }
   }
 
-  function handleChangeMode() {
-    dispatchSetCreationMode(null)
-    dispatchSetWizardStep("ai-assistant")
+  function handleBackToLanding() {
+    dispatchResetWizard()
   }
 
-  if (!creationMode) {
+  function renderStepContent(step: AiWizardStep | ManualWizardStep) {
+    if (selectedPipeline === "ai") {
+      switch (step) {
+        case "ai-prompt":
+          return <EventWizardAiPromptStep />
+        case "ai-review":
+          return <EventWizardAiReviewStep />
+        case "cover-photo":
+          return <EventWizardCoverPhotoStep />
+        case "venue-schedule":
+          return <EventWizardVenueScheduleStep />
+        default:
+          return null
+      }
+    }
+
+    switch (step) {
+      case "details":
+        return <EventWizardManualDetailsStep />
+      case "cover-photo":
+        return <EventWizardCoverPhotoStep />
+      case "venue-schedule":
+        return <EventWizardVenueScheduleStep />
+      default:
+        return null
+    }
+  }
+
+  if (!selectedPipeline) {
     return (
       <div className="min-h-screen p-4 md:p-8">
         <div className="mx-auto max-w-2xl space-y-8">
@@ -224,7 +265,7 @@ export default function CreateEventPage() {
             <p className="mt-1 text-muted-foreground">Choose how you want to create your event.</p>
           </div>
 
-          <EventWizardCreationChoice />
+          <EventWizardLanding />
         </div>
       </div>
     )
@@ -233,40 +274,31 @@ export default function CreateEventPage() {
   return (
     <div className="min-h-screen p-4 md:p-8">
       <div className="mx-auto max-w-2xl space-y-8">
-        <div className="relative">
-          <Button variant="ghost" size="sm" className="fixed inset-0 top-24 -left-220" onClick={handleChangeMode}>
-            <ArrowLeft className="mr-1 size-4" />
-            Change Mode
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Create Event</h1>
-            <p className="mt-1 text-muted-foreground">Build your event step by step.</p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Create Event</h1>
+          <p className="mt-1 text-muted-foreground">Build your event step by step.</p>
         </div>
 
-        <EventWizardStepIndicator currentStep={currentWizardStep} steps={wizardSteps} />
+        <EventWizardStepIndicator currentStep={currentStep} steps={steps} />
 
         <Card>
           <CardHeader>
-            <CardTitle>{wizardSteps[currentStepIndex]?.label}</CardTitle>
-            <CardDescription>
-              <EventWizardStepDescription currentStep={currentWizardStep} />
-            </CardDescription>
+            <CardTitle>{getStepLabel(selectedPipeline, currentStep, steps)}</CardTitle>
+            <CardDescription>{getStepDescription(selectedPipeline, currentStep)}</CardDescription>
           </CardHeader>
-          <CardContent>
-            <EventWizardStepContent currentStep={currentWizardStep} />
-          </CardContent>
+          <CardContent>{renderStepContent(currentStep)}</CardContent>
         </Card>
 
         <EventWizardNavigation
           currentStepIndex={currentStepIndex}
-          totalSteps={wizardSteps.length}
+          totalSteps={steps.length}
           isSubmitting={isPublishing}
           isSaving={false}
           onBack={handleNavigateBack}
           onNext={handleNavigateNext}
           onSaveDraft={handleSaveDraft}
           onPublish={handlePublishEvent}
+          onBackToLanding={handleBackToLanding}
         />
       </div>
     </div>

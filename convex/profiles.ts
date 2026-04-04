@@ -1,4 +1,5 @@
 import { v } from "convex/values"
+import { DEFAULT_PLAN } from "../lib/plan.config"
 import { mutation, query } from "./_generated/server"
 import { authComponent } from "./betterAuth/auth"
 
@@ -45,7 +46,7 @@ export const create = mutation({
       userId: identity.subject,
       name: baUser.name,
       avatarUrl: baUser.image ?? undefined,
-      plan: "free",
+      plan: DEFAULT_PLAN,
       interests: [],
       location: undefined,
       timezone: undefined,
@@ -84,7 +85,7 @@ export const completeOnboarding = mutation({
         userId: identity.subject,
         name: baUser.name,
         avatarUrl: baUser.image ?? undefined,
-        plan: "free",
+        plan: DEFAULT_PLAN,
         interests: args.interests,
         location: {
           city: args.city,

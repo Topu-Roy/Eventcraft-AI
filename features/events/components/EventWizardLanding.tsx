@@ -1,20 +1,25 @@
 "use client"
 
-import { setCreationMode, setWizardStep, type CreationMode } from "@/features/events/eventWizard"
+import { setAiWizardStep, setManualWizardStep, setSelectedPipeline } from "@/features/events/eventWizard"
 import { useAtom } from "jotai"
 import { ArrowRight, Pencil, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 
-type EventWizardCreationChoiceProps = Record<string, never>
+type EventWizardLandingProps = Record<string, never>
 
-export function EventWizardCreationChoice(_props: EventWizardCreationChoiceProps) {
-  const [, dispatchSetMode] = useAtom(setCreationMode)
-  const [, dispatchSetStep] = useAtom(setWizardStep)
+export function EventWizardLanding(_props: EventWizardLandingProps) {
+  const [, dispatchSetPipeline] = useAtom(setSelectedPipeline)
+  const [, dispatchSetAiStep] = useAtom(setAiWizardStep)
+  const [, dispatchSetManualStep] = useAtom(setManualWizardStep)
 
-  function handleSelect(mode: CreationMode) {
-    dispatchSetMode(mode)
-    dispatchSetStep(mode === "ai" ? "ai-assistant" : "details")
+  function handleSelect(pipeline: "ai" | "manual") {
+    dispatchSetPipeline(pipeline)
+    if (pipeline === "ai") {
+      dispatchSetAiStep("ai-prompt")
+    } else {
+      dispatchSetManualStep("details")
+    }
   }
 
   return (
