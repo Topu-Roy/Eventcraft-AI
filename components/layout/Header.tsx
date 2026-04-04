@@ -11,7 +11,7 @@ export async function Header() {
   const profile = profileResult?.data ?? null
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2 text-lg font-bold">
@@ -31,14 +31,14 @@ export async function Header() {
             {authed && (
               <>
                 <Link
-                  href="/organizer/dashboard"
+                  href="/dashboard"
                   className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
                 >
                   <LayoutDashboard className="size-3.5" />
                   Dashboard
                 </Link>
                 <Link
-                  href="/organizer/events/create"
+                  href="/events/create"
                   className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
                 >
                   <Plus className="size-3.5" />

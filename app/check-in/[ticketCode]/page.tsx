@@ -8,7 +8,7 @@ export default async function CheckInPage({ params }: { params: Promise<{ ticket
   const authed = await isAuthenticated()
 
   if (authed) {
-    redirect(`/organizer/scanner?code=${ticketCode}`)
+    redirect(`/scanner/${ticketCode}`)
   }
 
   return (

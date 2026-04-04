@@ -50,11 +50,7 @@ export function RegistrationCTA({
 
   if (isOrganizer) {
     return (
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={() => router.push(`/organizer/events/${eventId}/edit`)}
-      >
+      <Button variant="outline" className="w-full" onClick={() => router.push(`/events/${eventId}/edit`)}>
         <Settings2 className="mr-2 size-4" />
         Manage Event
       </Button>

@@ -30,7 +30,7 @@ function EventSummaryCard({ event, now }: { event: Doc<"events">; now: number })
         : `${event.capacity - event.registrationCount} spots left`
 
   return (
-    <Link href={`/organizer/events/${event._id}/edit`} className="block">
+    <Link href={`/events/${event._id}/edit`} className="block">
       <Card className="group transition-all hover:border-primary/50 hover:shadow-sm">
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-3">
@@ -83,7 +83,7 @@ export default async function DashboardPage() {
             <h2 className="text-xl font-semibold">No events yet</h2>
             <p className="text-muted-foreground">Create your first event to see your dashboard.</p>
             <Button asChild>
-              <Link href="/organizer/events/create">
+              <Link href="/events/create">
                 <Plus className="mr-2 size-4" />
                 Create Event
               </Link>
@@ -109,7 +109,7 @@ export default async function DashboardPage() {
               </span>
             )}
             <Button asChild>
-              <Link href="/organizer/events/create">
+              <Link href="/events/create">
                 <Plus className="mr-2 size-4" />
                 Create Event
               </Link>

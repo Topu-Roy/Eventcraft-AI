@@ -41,13 +41,13 @@ export function MobileMenu({ authed, profile }: MobileMenuProps) {
 
           {authed && (
             <>
-              <Link href="/organizer/dashboard" onClick={() => setOpen(false)}>
+              <Link href="/dashboard" onClick={() => setOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start">
                   <LayoutDashboard className="mr-2 size-4" />
                   Dashboard
                 </Button>
               </Link>
-              <Link href="/organizer/events/create" onClick={() => setOpen(false)}>
+              <Link href="/events/create" onClick={() => setOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start">
                   <Plus className="mr-2 size-4" />
                   Create Event

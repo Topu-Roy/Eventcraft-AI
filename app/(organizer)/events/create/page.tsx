@@ -504,7 +504,7 @@ export default function CreateEventPage() {
       await publishEvent({ eventId })
       dispatchReset()
       toast.success("Event published!")
-      router.push(`/organizer/events/${eventId}/edit`)
+      router.push(`/events/${eventId}/edit`)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to publish event")
     } finally {
