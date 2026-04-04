@@ -22,6 +22,9 @@ export function EventWizardVenueScheduleStep() {
     dispatchUpdateWizardData({ venue: { ...venueDetails, ...venueUpdates } })
   }
 
+  const isEndDateBeforeStart =
+    wizardData.startDatetime && wizardData.endDatetime && wizardData.endDatetime < wizardData.startDatetime
+
   return (
     <div className="space-y-6">
       <div>
@@ -72,6 +75,7 @@ export function EventWizardVenueScheduleStep() {
             id="start-datetime"
             type="datetime-local"
             value={wizardData.startDatetime}
+            max={wizardData.endDatetime}
             onChange={e => dispatchUpdateWizardData({ startDatetime: e.target.value })}
           />
         </div>
@@ -81,8 +85,12 @@ export function EventWizardVenueScheduleStep() {
             id="end-datetime"
             type="datetime-local"
             value={wizardData.endDatetime}
+            min={wizardData.startDatetime}
             onChange={e => dispatchUpdateWizardData({ endDatetime: e.target.value })}
           />
+          {isEndDateBeforeStart ? (
+            <p className="mt-1 text-sm text-destructive">End date must be after start date</p>
+          ) : null}
         </div>
       </div>
 
