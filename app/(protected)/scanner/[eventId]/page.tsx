@@ -253,24 +253,22 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
     void params.then(resolvedParams => setEventId(resolvedParams.eventId as Id<"events">))
   }, [params])
 
-  useEffect(() => {
-    lastScanRef.current.clear()
-  }, [scanState.type])
-
   function handleReset() {
     setScanState({ type: "idle" })
   }
 
-  async function handleScan(ticketCode: string, currentEventId: Id<"events">, currentAutoResetMs: number) {
+  async function handleScan(ticketCode: string) {
+    if (!eventId) return
+
     const currentTimestamp = Date.now()
     const lastScanTimestamp = lastScanRef.current.get(ticketCode)
-    if (lastScanTimestamp && currentTimestamp - lastScanTimestamp < currentAutoResetMs) {
+    if (lastScanTimestamp && currentTimestamp - lastScanTimestamp < autoResetMs) {
       return
     }
     lastScanRef.current.set(ticketCode, currentTimestamp)
 
     setIsProcessing(true)
-    const result = await tryCatch(scanMutation({ ticketCode, eventId: currentEventId }))
+    const result = await tryCatch(scanMutation({ ticketCode, eventId }))
 
     if (result.error) {
       setScanState({ type: "error", message: result.error.message })
@@ -335,192 +333,6 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
     setIsProcessing(false)
   }
 
-  function startScanning() {
-    if (!videoRef.current) return
-
-    void (async () => {
-      try {
-        const codeReader = new BrowserMultiFormatReader()
-        codeReaderRef.current = codeReader
-
-        void (await codeReader.decodeFromVideoElement(videoRef.current!, decodedResult => {
-          if (decodedResult && eventId && scanState.type === "idle") {
-            void handleScan(decodedResult.getText(), eventId, autoResetMs)
-          }
-        }))
-
-        setCameraPermission("granted")
-        localStorage.setItem(CAMERA_PERMISSION_STORAGE_KEY, "granted")
-        setIsScanning(true)
-      } catch (error) {
-        const scanError = error as Error
-        if (scanError.name === "NotAllowedError") {
-          setCameraPermission("denied")
-          localStorage.setItem(CAMERA_PERMISSION_STORAGE_KEY, "denied")
-        } else if (scanError.name === "NotFoundError") {
-          setCameraPermission("dismissed")
-        }
-      }
-    })()
-  }
-
-  function stopScanning() {
-    try {
-      void codeReaderRef.current?.decodeFromVideoElement(undefined as unknown as HTMLVideoElement, () => {
-        /* noop */
-      })
-    } catch {
-      /* ignore */
-    }
-    codeReaderRef.current = null
-    setIsScanning(false)
-  }
-
-  useEffect(() => {
-    if (activeTab === "camera" && eventId && !isScanning && cameraPermission !== "denied") {
-      startScanning()
-    }
-
-    return () => {
-      stopScanning()
-    }
-  }, [activeTab, eventId, cameraPermission, isScanning, startScanning, stopScanning])
-
-  function handleManualSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!eventId || !manualCode.trim()) return
-    void handleScan(manualCode.trim(), eventId, autoResetMs)
-    setManualCode("")
-  }
-
-  async function handleScan(ticketCode: string) {
-    const currentEventId = eventIdRef.current
-    if (!currentEventId) return
-
-    const currentTimestamp = Date.now()
-    const lastScanTimestamp = lastScanRef.current.get(ticketCode)
-    if (lastScanTimestamp && currentTimestamp - lastScanTimestamp < autoResetRef.current) {
-      return
-    }
-    lastScanRef.current.set(ticketCode, currentTimestamp)
-
-    setIsProcessing(true)
-    const result = await tryCatch(scanMutation({ ticketCode, eventId: currentEventId }))
-
-    if (result.error) {
-      setScanState({ type: "error", message: result.error.message })
-      toast.error(result.error.message)
-    } else if (result.data?.error) {
-      if (result.data.cause === "Already approved") {
-        setScanState({ type: "already_approved", attendeeName: "Attendee", approvedAt: null })
-      } else if (result.data.cause === "Already rejected") {
-        setScanState({ type: "already_rejected" })
-      } else {
-        setScanState({ type: "error", message: result.data.cause })
-        toast.error(result.data.cause)
-      }
-    } else if (result.data?.data) {
-      const d = result.data.data
-      setScanState({
-        type: "pending",
-        attendeeName: d.attendeeName,
-        attendeeEmail: d.attendeeEmail,
-        registeredAt: d.registeredAt,
-        ticketCode: d.ticketCode,
-        registrationId: d.registrationId,
-      })
-    }
-
-    setIsProcessing(false)
-  }
-
-  async function handleApprove() {
-    if (scanState.type !== "pending") return
-    setIsProcessing(true)
-
-    const result = await tryCatch(approveMutation({ registrationId: scanState.registrationId }))
-
-    if (result.error) {
-      toast.error(result.error.message)
-    } else if (result.data?.error) {
-      toast.error(result.data.cause)
-    } else {
-      toast.success(`Approved: ${scanState.attendeeName}`)
-      setTimeout(() => setScanState({ type: "idle" }), autoResetRef.current)
-    }
-
-    setIsProcessing(false)
-  }
-
-  async function handleReject() {
-    if (scanState.type !== "pending") return
-    setIsProcessing(true)
-
-    const result = await tryCatch(rejectMutation({ registrationId: scanState.registrationId }))
-
-    if (result.error) {
-      toast.error(result.error.message)
-    } else if (result.data?.error) {
-      toast.error(result.data.cause)
-    } else {
-      toast.success(`Rejected: ${scanState.attendeeName}`)
-      setScanState({ type: "idle" })
-    }
-
-    setIsProcessing(false)
-  }
-
-  function startScanning() {
-    if (!videoRef.current) return
-
-    void (async () => {
-      try {
-        const codeReader = new BrowserMultiFormatReader()
-        codeReaderRef.current = codeReader
-
-        void (await codeReader.decodeFromVideoElement(videoRef.current!, decodedResult => {
-          if (decodedResult && scanStateRef.current.type === "idle") {
-            void handleScan(decodedResult.getText())
-          }
-        }))
-
-        setCameraPermission("granted")
-        localStorage.setItem(CAMERA_PERMISSION_STORAGE_KEY, "granted")
-        setIsScanning(true)
-      } catch (error) {
-        const scanError = error as Error
-        if (scanError.name === "NotAllowedError") {
-          setCameraPermission("denied")
-          localStorage.setItem(CAMERA_PERMISSION_STORAGE_KEY, "denied")
-        } else if (scanError.name === "NotFoundError") {
-          setCameraPermission("dismissed")
-        }
-      }
-    })()
-  }
-
-  function stopScanning() {
-    try {
-      void codeReaderRef.current?.decodeFromVideoElement(undefined as unknown as HTMLVideoElement, () => {
-        /* noop */
-      })
-    } catch {
-      /* ignore */
-    }
-    codeReaderRef.current = null
-    setIsScanning(false)
-  }
-
-  useEffect(() => {
-    if (activeTab === "camera" && eventId && !isScanning && cameraPermission !== "denied") {
-      startScanning()
-    }
-
-    return () => {
-      stopScanning()
-    }
-  }, [activeTab, eventId, cameraPermission, isScanning])
-
   function handleManualSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!eventId || !manualCode.trim()) return
@@ -533,6 +345,57 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
     setAutoResetMs(newResetMs)
     localStorage.setItem(AUTO_RESET_STORAGE_KEY, newResetMs === 1500 ? "fast" : "standard")
   }
+
+  // Camera scanning logic
+  useEffect(() => {
+    if (activeTab !== "camera" || !eventId || isScanning || cameraPermission === "denied") return
+
+    let cancelled = false
+    let codeReader: BrowserMultiFormatReader | null = null
+
+    async function start() {
+      if (!videoRef.current) return
+      try {
+        codeReader = new BrowserMultiFormatReader()
+        codeReaderRef.current = codeReader
+
+        void (await codeReader.decodeFromVideoElement(videoRef.current, decodedResult => {
+          if (decodedResult && scanState.type === "idle" && !cancelled) {
+            void handleScan(decodedResult.getText())
+          }
+        }))
+
+        if (!cancelled) {
+          setCameraPermission("granted")
+          localStorage.setItem(CAMERA_PERMISSION_STORAGE_KEY, "granted")
+          setIsScanning(true)
+        }
+      } catch (error) {
+        const scanError = error as Error
+        if (scanError.name === "NotAllowedError") {
+          setCameraPermission("denied")
+          localStorage.setItem(CAMERA_PERMISSION_STORAGE_KEY, "denied")
+        } else if (scanError.name === "NotFoundError") {
+          setCameraPermission("dismissed")
+        }
+      }
+    }
+
+    void start()
+
+    return () => {
+      cancelled = true
+      try {
+        void codeReader?.decodeFromVideoElement(undefined as unknown as HTMLVideoElement, () => {
+          /* noop */
+        })
+      } catch {
+        /* ignore */
+      }
+      codeReaderRef.current = null
+      setIsScanning(false)
+    }
+  }, [activeTab, eventId, cameraPermission, isScanning, scanState.type, handleScan, autoResetMs])
 
   if (!eventId) {
     return (
@@ -606,7 +469,9 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
                   videoRef={videoRef}
                   cameraPermission={cameraPermission}
                   isScanning={isScanning}
-                  onStartCamera={startScanning}
+                  onStartCamera={() => {
+                    /* handled by effect */
+                  }}
                   onRetryPermission={() => setCameraPermission("prompt")}
                 />
               </CardContent>
