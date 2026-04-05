@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { BrowserMultiFormatReader } from "@zxing/browser"
@@ -257,45 +257,48 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
     setScanState({ type: "idle" })
   }
 
-  async function handleScan(ticketCode: string) {
-    if (!eventId) return
+  const handleScan = useCallback(
+    async (ticketCode: string) => {
+      if (!eventId) return
 
-    const currentTimestamp = Date.now()
-    const lastScanTimestamp = lastScanRef.current.get(ticketCode)
-    if (lastScanTimestamp && currentTimestamp - lastScanTimestamp < autoResetMs) {
-      return
-    }
-    lastScanRef.current.set(ticketCode, currentTimestamp)
-
-    setIsProcessing(true)
-    const result = await tryCatch(scanMutation({ ticketCode, eventId }))
-
-    if (result.error) {
-      setScanState({ type: "error", message: result.error.message })
-      toast.error(result.error.message)
-    } else if (result.data?.error) {
-      if (result.data.cause === "Already approved") {
-        setScanState({ type: "already_approved", attendeeName: "Attendee", approvedAt: null })
-      } else if (result.data.cause === "Already rejected") {
-        setScanState({ type: "already_rejected" })
-      } else {
-        setScanState({ type: "error", message: result.data.cause })
-        toast.error(result.data.cause)
+      const currentTimestamp = Date.now()
+      const lastScanTimestamp = lastScanRef.current.get(ticketCode)
+      if (lastScanTimestamp && currentTimestamp - lastScanTimestamp < autoResetMs) {
+        return
       }
-    } else if (result.data?.data) {
-      const d = result.data.data
-      setScanState({
-        type: "pending",
-        attendeeName: d.attendeeName,
-        attendeeEmail: d.attendeeEmail,
-        registeredAt: d.registeredAt,
-        ticketCode: d.ticketCode,
-        registrationId: d.registrationId,
-      })
-    }
+      lastScanRef.current.set(ticketCode, currentTimestamp)
 
-    setIsProcessing(false)
-  }
+      setIsProcessing(true)
+      const result = await tryCatch(scanMutation({ ticketCode, eventId }))
+
+      if (result.error) {
+        setScanState({ type: "error", message: result.error.message })
+        toast.error(result.error.message)
+      } else if (result.data?.error) {
+        if (result.data.cause === "Already approved") {
+          setScanState({ type: "already_approved", attendeeName: "Attendee", approvedAt: null })
+        } else if (result.data.cause === "Already rejected") {
+          setScanState({ type: "already_rejected" })
+        } else {
+          setScanState({ type: "error", message: result.data.cause })
+          toast.error(result.data.cause)
+        }
+      } else if (result.data?.data) {
+        const d = result.data.data
+        setScanState({
+          type: "pending",
+          attendeeName: d.attendeeName,
+          attendeeEmail: d.attendeeEmail,
+          registeredAt: d.registeredAt,
+          ticketCode: d.ticketCode,
+          registrationId: d.registrationId,
+        })
+      }
+
+      setIsProcessing(false)
+    },
+    [autoResetMs, eventId, scanMutation]
+  )
 
   async function handleApprove() {
     if (scanState.type !== "pending") return
