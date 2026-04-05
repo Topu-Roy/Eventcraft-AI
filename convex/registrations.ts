@@ -52,6 +52,7 @@ export const register = mutation({
       eventId,
       ticketCode,
       status: "active",
+      checkInStatus: "pending",
       checkedIn: false,
       checkedInAt: null,
       cancelledAt: null,

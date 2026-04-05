@@ -71,6 +71,7 @@ export const tables = {
     eventId: v.id("events"),
     ticketCode: v.string(),
     status: v.union(v.literal("active"), v.literal("cancelled")),
+    checkInStatus: v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected")),
     checkedIn: v.boolean(),
     checkedInAt: v.optional(v.union(v.null(), v.number())),
     cancelledAt: v.optional(v.union(v.null(), v.number())),

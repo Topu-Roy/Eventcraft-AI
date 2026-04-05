@@ -160,8 +160,24 @@ export default function TicketDetailPage({ params }: { params: Promise<{ ticketC
           <CardContent className="space-y-6 p-6">
             <div className="space-y-1 text-center">
               <h1 className="text-xl font-bold">{event.title}</h1>
-              <Badge variant={registration.checkedIn ? "default" : "secondary"}>
-                {registration.checkedIn ? "Checked In" : "Active"}
+              <Badge
+                variant={
+                  registration.checkInStatus === "approved"
+                    ? "default"
+                    : registration.checkInStatus === "rejected"
+                      ? "destructive"
+                      : registration.checkInStatus === "pending"
+                        ? "secondary"
+                        : "outline"
+                }
+              >
+                {registration.checkInStatus === "approved"
+                  ? "Checked In"
+                  : registration.checkInStatus === "rejected"
+                    ? "Rejected"
+                    : registration.checkInStatus === "pending"
+                      ? "Pending Approval"
+                      : "Active"}
               </Badge>
             </div>
 

@@ -1,12 +1,25 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { BrowserMultiFormatReader } from "@zxing/browser"
 import { useMutation } from "convex/react"
-import { AlertTriangle, Camera, CameraOff, CheckCircle2, QrCode, RotateCcw, Settings, XCircle } from "lucide-react"
+import {
+  AlertTriangle,
+  Camera,
+  CameraOff,
+  CheckCircle2,
+  Clock,
+  Mail,
+  QrCode,
+  RotateCcw,
+  Settings,
+  User,
+  XCircle,
+} from "lucide-react"
 import { toast } from "sonner"
+import { tryCatch } from "@/lib/try-catch"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,68 +27,148 @@ import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-type ScanResultStatus = "success" | "already_checked_in" | "invalid"
-
-type ScanResultData = {
-  status: ScanResultStatus
-  message: string
-  attendeeName?: string
-  timestamp: Date
-}
+type ScanState =
+  | { type: "idle" }
+  | {
+      type: "pending"
+      attendeeName: string
+      attendeeEmail: string
+      registeredAt: number
+      ticketCode: string
+      registrationId: Id<"registrations">
+    }
+  | { type: "already_approved"; attendeeName: string; approvedAt: number | null | undefined }
+  | { type: "already_rejected" }
+  | { type: "error"; message: string }
 
 type CameraPermissionState = "prompt" | "granted" | "denied" | "dismissed"
 
 const AUTO_RESET_STORAGE_KEY = "scanner-auto-reset"
 const CAMERA_PERMISSION_STORAGE_KEY = "scanner-camera-permission"
 
-function ScannerResultBanner({ scanResult }: { scanResult: ScanResultData }) {
-  const statusColors: Record<ScanResultStatus, string> = {
-    success: "border-green-500 bg-green-50 dark:bg-green-950",
-    already_checked_in: "border-yellow-500 bg-yellow-50 dark:bg-yellow-950",
-    invalid: "border-red-500 bg-red-50 dark:bg-red-950",
-  }
-
-  const statusIcons: Record<ScanResultStatus, React.ReactNode> = {
-    success: <CheckCircle2 className="size-8 shrink-0 text-green-600" />,
-    already_checked_in: <AlertTriangle className="size-8 shrink-0 text-yellow-600" />,
-    invalid: <XCircle className="size-8 shrink-0 text-red-600" />,
-  }
-
-  return (
-    <Card className={statusColors[scanResult.status]}>
-      <CardContent className="flex items-center gap-4 p-6">
-        {statusIcons[scanResult.status]}
-        <div>
-          <p className="font-semibold">{scanResult.message}</p>
-          <p className="text-xs text-muted-foreground">{scanResult.timestamp.toLocaleTimeString()}</p>
-        </div>
-      </CardContent>
-    </Card>
-  )
+function getInitialAutoReset(): number {
+  if (typeof window === "undefined") return 3000
+  return localStorage.getItem(AUTO_RESET_STORAGE_KEY) === "fast" ? 1500 : 3000
 }
 
-function ScannerSettingsPanel({
-  autoResetMs,
-  onToggleAutoReset,
+function getInitialCameraPermission(): CameraPermissionState {
+  if (typeof window === "undefined") return "prompt"
+  const stored = localStorage.getItem(CAMERA_PERMISSION_STORAGE_KEY)
+  return (stored as CameraPermissionState) ?? "prompt"
+}
+
+function AttendeeApprovalCard({
+  scanState,
+  onApprove,
+  onReject,
+  onReset,
+  isProcessing,
 }: {
-  autoResetMs: number
-  onToggleAutoReset: () => void
+  scanState: ScanState
+  onApprove: () => void
+  onReject: () => void
+  onReset: () => void
+  isProcessing: boolean
 }) {
-  return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium">Auto-reset timing</p>
-            <p className="text-xs text-muted-foreground">
-              {autoResetMs === 3000 ? "Standard (3s)" : "Fast (1.5s)"}
-            </p>
+  if (scanState.type === "idle") return null
+
+  if (scanState.type === "pending") {
+    const registeredDate = new Date(scanState.registeredAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
+
+    return (
+      <Card className="border-primary/50">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Clock className="size-5 text-primary" />
+            <CardTitle className="text-lg">Ticket Scanned — Awaiting Approval</CardTitle>
           </div>
-          <Button variant="outline" size="sm" onClick={onToggleAutoReset}>
-            <RotateCcw className="mr-1 size-3" />
-            Toggle
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3 rounded-lg border bg-accent p-4">
+            <div className="flex items-center gap-2">
+              <User className="size-4 shrink-0 text-muted-foreground" />
+              <span className="font-medium">{scanState.attendeeName}</span>
+            </div>
+            {scanState.attendeeEmail ? (
+              <div className="flex items-center gap-2">
+                <Mail className="size-4 shrink-0 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">{scanState.attendeeEmail}</span>
+              </div>
+            ) : null}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="size-4 shrink-0" />
+              <span>Registered: {registeredDate}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <QrCode className="size-4 shrink-0" />
+              <span className="font-mono text-xs">{scanState.ticketCode}</span>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Button className="flex-1" onClick={onApprove} disabled={isProcessing}>
+              <CheckCircle2 className="mr-2 size-4" />
+              Approve
+            </Button>
+            <Button variant="destructive" className="flex-1" onClick={onReject} disabled={isProcessing}>
+              <XCircle className="mr-2 size-4" />
+              Reject
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (scanState.type === "already_approved") {
+    return (
+      <Card className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
+        <CardContent className="flex items-center gap-4 p-6">
+          <AlertTriangle className="size-8 shrink-0 text-yellow-600" />
+          <div className="flex-1">
+            <p className="font-semibold">Already approved: {scanState.attendeeName}</p>
+            <p className="text-xs text-muted-foreground">This ticket was already checked in.</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={onReset}>
+            Scan Next
           </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (scanState.type === "already_rejected") {
+    return (
+      <Card className="border-red-500 bg-red-50 dark:bg-red-950">
+        <CardContent className="flex items-center gap-4 p-6">
+          <XCircle className="size-8 shrink-0 text-red-600" />
+          <div className="flex-1">
+            <p className="font-semibold">Already rejected</p>
+            <p className="text-xs text-muted-foreground">This ticket was previously rejected.</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={onReset}>
+            Scan Next
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className="border-red-500 bg-red-50 dark:bg-red-950">
+      <CardContent className="flex items-center gap-4 p-6">
+        <XCircle className="size-8 shrink-0 text-red-600" />
+        <div className="flex-1">
+          <p className="font-semibold">Invalid Ticket</p>
+          <p className="text-xs text-muted-foreground">{scanState.message}</p>
         </div>
+        <Button variant="outline" size="sm" onClick={onReset}>
+          Scan Next
+        </Button>
       </CardContent>
     </Card>
   )
@@ -137,159 +230,141 @@ function ScannerCameraView({
   )
 }
 
-function ScannerManualEntryForm({
-  manualCode,
-  isSubmitting,
-  onCodeChange,
-  onSubmit,
-}: {
-  manualCode: string
-  isSubmitting: boolean
-  onCodeChange: (code: string) => void
-  onSubmit: (e: React.FormEvent) => void
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Enter Ticket Code</CardTitle>
-        <CardDescription>Type or paste the ticket code manually.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="manual-code">Ticket Code</Label>
-            <Input
-              id="manual-code"
-              placeholder="e.g., abc123xyz"
-              value={manualCode}
-              onChange={e => onCodeChange(e.target.value)}
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={isSubmitting || !manualCode.trim()}>
-            {isSubmitting ? "Processing..." : "Check In"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
-  )
-}
-
 export default function ScannerPage({ params }: { params: Promise<{ eventId: string }> }) {
   const [eventId, setEventId] = useState<Id<"events"> | null>(null)
   const [activeTab, setActiveTab] = useState<"camera" | "manual">("camera")
-  const [cameraPermission, setCameraPermission] = useState<CameraPermissionState>("prompt")
-  const [scanResult, setScanResult] = useState<ScanResultData | null>(null)
+  const [cameraPermission, setCameraPermission] = useState<CameraPermissionState>(getInitialCameraPermission)
+  const [scanState, setScanState] = useState<ScanState>({ type: "idle" })
   const [manualCode, setManualCode] = useState("")
   const [isScanning, setIsScanning] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [autoResetMs, setAutoResetMs] = useState(3000)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [autoResetMs, setAutoResetMs] = useState(getInitialAutoReset)
   const [showSettings, setShowSettings] = useState(false)
 
   const lastScanRef = useRef<Map<string, number>>(new Map())
   const videoRef = useRef<HTMLVideoElement>(null)
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null)
 
-  const checkInMutation = useMutation(api.checkin.checkIn)
+  const scanMutation = useMutation(api.checkin.scan)
+  const approveMutation = useMutation(api.checkin.approve)
+  const rejectMutation = useMutation(api.checkin.reject)
 
   useEffect(() => {
     void params.then(resolvedParams => setEventId(resolvedParams.eventId as Id<"events">))
   }, [params])
 
   useEffect(() => {
-    const storedReset = localStorage.getItem(AUTO_RESET_STORAGE_KEY)
-    if (storedReset === "fast") {
-      setAutoResetMs(1500)
+    lastScanRef.current.clear()
+  }, [scanState.type])
+
+  function handleReset() {
+    setScanState({ type: "idle" })
+  }
+
+  async function handleScan(ticketCode: string, currentEventId: Id<"events">, currentAutoResetMs: number) {
+    const currentTimestamp = Date.now()
+    const lastScanTimestamp = lastScanRef.current.get(ticketCode)
+    if (lastScanTimestamp && currentTimestamp - lastScanTimestamp < currentAutoResetMs) {
+      return
     }
-  }, [])
+    lastScanRef.current.set(ticketCode, currentTimestamp)
 
-  useEffect(() => {
-    const storedPermission = localStorage.getItem(CAMERA_PERMISSION_STORAGE_KEY)
-    if (storedPermission) {
-      setCameraPermission(storedPermission as CameraPermissionState)
-    }
-  }, [])
+    setIsProcessing(true)
+    const result = await tryCatch(scanMutation({ ticketCode, eventId: currentEventId }))
 
-  const handleProcessCheckInResult = useCallback(
-    (result: { status: ScanResultStatus; attendeeName?: string; reason?: string }) => {
-      const scanResultData: ScanResultData = {
-        status: result.status,
-        message:
-          result.status === "success"
-            ? `Checked in: ${result.attendeeName}`
-            : result.status === "already_checked_in"
-              ? "Already checked in"
-              : (result.reason ?? "Unknown error"),
-        attendeeName: result.status !== "invalid" ? result.attendeeName : undefined,
-        timestamp: new Date(),
-      }
-
-      setScanResult(scanResultData)
-
-      if (result.status === "success") {
-        toast.success(`Checked in: ${result.attendeeName}`)
-      } else if (result.status === "already_checked_in") {
-        toast.warning("Already checked in")
+    if (result.error) {
+      setScanState({ type: "error", message: result.error.message })
+      toast.error(result.error.message)
+    } else if (result.data?.error) {
+      if (result.data.cause === "Already approved") {
+        setScanState({ type: "already_approved", attendeeName: "Attendee", approvedAt: null })
+      } else if (result.data.cause === "Already rejected") {
+        setScanState({ type: "already_rejected" })
       } else {
-        toast.error(result.reason ?? "Check-in failed")
+        setScanState({ type: "error", message: result.data.cause })
+        toast.error(result.data.cause)
       }
+    } else if (result.data?.data) {
+      const d = result.data.data
+      setScanState({
+        type: "pending",
+        attendeeName: d.attendeeName,
+        attendeeEmail: d.attendeeEmail,
+        registeredAt: d.registeredAt,
+        ticketCode: d.ticketCode,
+        registrationId: d.registrationId,
+      })
+    }
 
-      setTimeout(() => setScanResult(null), autoResetMs)
-    },
-    [autoResetMs]
-  )
+    setIsProcessing(false)
+  }
 
-  const handleScanResult = useCallback(
-    async (ticketCode: string) => {
-      if (!eventId) return
+  async function handleApprove() {
+    if (scanState.type !== "pending") return
+    setIsProcessing(true)
 
-      const currentTimestamp = Date.now()
-      const lastScanTimestamp = lastScanRef.current.get(ticketCode)
-      if (lastScanTimestamp && currentTimestamp - lastScanTimestamp < autoResetMs) {
-        return
-      }
-      lastScanRef.current.set(ticketCode, currentTimestamp)
+    const result = await tryCatch(approveMutation({ registrationId: scanState.registrationId }))
 
-      setIsSubmitting(true)
-      try {
-        const result = await checkInMutation({ ticketCode, eventId })
-        handleProcessCheckInResult(result)
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Check-in failed")
-      } finally {
-        setIsSubmitting(false)
-      }
-    },
-    [eventId, checkInMutation, autoResetMs, handleProcessCheckInResult]
-  )
+    if (result.error) {
+      toast.error(result.error.message)
+    } else if (result.data?.error) {
+      toast.error(result.data.cause)
+    } else {
+      toast.success(`Approved: ${scanState.attendeeName}`)
+      setTimeout(() => setScanState({ type: "idle" }), autoResetMs)
+    }
 
-  const startScanning = useCallback(async () => {
+    setIsProcessing(false)
+  }
+
+  async function handleReject() {
+    if (scanState.type !== "pending") return
+    setIsProcessing(true)
+
+    const result = await tryCatch(rejectMutation({ registrationId: scanState.registrationId }))
+
+    if (result.error) {
+      toast.error(result.error.message)
+    } else if (result.data?.error) {
+      toast.error(result.data.cause)
+    } else {
+      toast.success(`Rejected: ${scanState.attendeeName}`)
+      setScanState({ type: "idle" })
+    }
+
+    setIsProcessing(false)
+  }
+
+  function startScanning() {
     if (!videoRef.current) return
 
-    try {
-      const codeReader = new BrowserMultiFormatReader()
-      codeReaderRef.current = codeReader
+    void (async () => {
+      try {
+        const codeReader = new BrowserMultiFormatReader()
+        codeReaderRef.current = codeReader
 
-      void (await codeReader.decodeFromVideoElement(videoRef.current, decodedResult => {
-        if (decodedResult && !isSubmitting) {
-          void handleScanResult(decodedResult.getText())
+        void (await codeReader.decodeFromVideoElement(videoRef.current!, decodedResult => {
+          if (decodedResult && eventId && scanState.type === "idle") {
+            void handleScan(decodedResult.getText(), eventId, autoResetMs)
+          }
+        }))
+
+        setCameraPermission("granted")
+        localStorage.setItem(CAMERA_PERMISSION_STORAGE_KEY, "granted")
+        setIsScanning(true)
+      } catch (error) {
+        const scanError = error as Error
+        if (scanError.name === "NotAllowedError") {
+          setCameraPermission("denied")
+          localStorage.setItem(CAMERA_PERMISSION_STORAGE_KEY, "denied")
+        } else if (scanError.name === "NotFoundError") {
+          setCameraPermission("dismissed")
         }
-      }))
-
-      setCameraPermission("granted")
-      localStorage.setItem(CAMERA_PERMISSION_STORAGE_KEY, "granted")
-      setIsScanning(true)
-    } catch (error) {
-      const scanError = error as Error
-      if (scanError.name === "NotAllowedError") {
-        setCameraPermission("denied")
-        localStorage.setItem(CAMERA_PERMISSION_STORAGE_KEY, "denied")
-      } else if (scanError.name === "NotFoundError") {
-        setCameraPermission("dismissed")
       }
-    }
-  }, [handleScanResult, isSubmitting])
+    })()
+  }
 
-  const stopScanning = useCallback(() => {
+  function stopScanning() {
     try {
       void codeReaderRef.current?.decodeFromVideoElement(undefined as unknown as HTMLVideoElement, () => {
         /* noop */
@@ -299,11 +374,11 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
     }
     codeReaderRef.current = null
     setIsScanning(false)
-  }, [])
+  }
 
   useEffect(() => {
     if (activeTab === "camera" && eventId && !isScanning && cameraPermission !== "denied") {
-      void startScanning()
+      startScanning()
     }
 
     return () => {
@@ -314,7 +389,142 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
   function handleManualSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!eventId || !manualCode.trim()) return
-    void handleScanResult(manualCode.trim())
+    void handleScan(manualCode.trim(), eventId, autoResetMs)
+    setManualCode("")
+  }
+
+  async function handleScan(ticketCode: string) {
+    const currentEventId = eventIdRef.current
+    if (!currentEventId) return
+
+    const currentTimestamp = Date.now()
+    const lastScanTimestamp = lastScanRef.current.get(ticketCode)
+    if (lastScanTimestamp && currentTimestamp - lastScanTimestamp < autoResetRef.current) {
+      return
+    }
+    lastScanRef.current.set(ticketCode, currentTimestamp)
+
+    setIsProcessing(true)
+    const result = await tryCatch(scanMutation({ ticketCode, eventId: currentEventId }))
+
+    if (result.error) {
+      setScanState({ type: "error", message: result.error.message })
+      toast.error(result.error.message)
+    } else if (result.data?.error) {
+      if (result.data.cause === "Already approved") {
+        setScanState({ type: "already_approved", attendeeName: "Attendee", approvedAt: null })
+      } else if (result.data.cause === "Already rejected") {
+        setScanState({ type: "already_rejected" })
+      } else {
+        setScanState({ type: "error", message: result.data.cause })
+        toast.error(result.data.cause)
+      }
+    } else if (result.data?.data) {
+      const d = result.data.data
+      setScanState({
+        type: "pending",
+        attendeeName: d.attendeeName,
+        attendeeEmail: d.attendeeEmail,
+        registeredAt: d.registeredAt,
+        ticketCode: d.ticketCode,
+        registrationId: d.registrationId,
+      })
+    }
+
+    setIsProcessing(false)
+  }
+
+  async function handleApprove() {
+    if (scanState.type !== "pending") return
+    setIsProcessing(true)
+
+    const result = await tryCatch(approveMutation({ registrationId: scanState.registrationId }))
+
+    if (result.error) {
+      toast.error(result.error.message)
+    } else if (result.data?.error) {
+      toast.error(result.data.cause)
+    } else {
+      toast.success(`Approved: ${scanState.attendeeName}`)
+      setTimeout(() => setScanState({ type: "idle" }), autoResetRef.current)
+    }
+
+    setIsProcessing(false)
+  }
+
+  async function handleReject() {
+    if (scanState.type !== "pending") return
+    setIsProcessing(true)
+
+    const result = await tryCatch(rejectMutation({ registrationId: scanState.registrationId }))
+
+    if (result.error) {
+      toast.error(result.error.message)
+    } else if (result.data?.error) {
+      toast.error(result.data.cause)
+    } else {
+      toast.success(`Rejected: ${scanState.attendeeName}`)
+      setScanState({ type: "idle" })
+    }
+
+    setIsProcessing(false)
+  }
+
+  function startScanning() {
+    if (!videoRef.current) return
+
+    void (async () => {
+      try {
+        const codeReader = new BrowserMultiFormatReader()
+        codeReaderRef.current = codeReader
+
+        void (await codeReader.decodeFromVideoElement(videoRef.current!, decodedResult => {
+          if (decodedResult && scanStateRef.current.type === "idle") {
+            void handleScan(decodedResult.getText())
+          }
+        }))
+
+        setCameraPermission("granted")
+        localStorage.setItem(CAMERA_PERMISSION_STORAGE_KEY, "granted")
+        setIsScanning(true)
+      } catch (error) {
+        const scanError = error as Error
+        if (scanError.name === "NotAllowedError") {
+          setCameraPermission("denied")
+          localStorage.setItem(CAMERA_PERMISSION_STORAGE_KEY, "denied")
+        } else if (scanError.name === "NotFoundError") {
+          setCameraPermission("dismissed")
+        }
+      }
+    })()
+  }
+
+  function stopScanning() {
+    try {
+      void codeReaderRef.current?.decodeFromVideoElement(undefined as unknown as HTMLVideoElement, () => {
+        /* noop */
+      })
+    } catch {
+      /* ignore */
+    }
+    codeReaderRef.current = null
+    setIsScanning(false)
+  }
+
+  useEffect(() => {
+    if (activeTab === "camera" && eventId && !isScanning && cameraPermission !== "denied") {
+      startScanning()
+    }
+
+    return () => {
+      stopScanning()
+    }
+  }, [activeTab, eventId, cameraPermission, isScanning])
+
+  function handleManualSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!eventId || !manualCode.trim()) return
+    void handleScan(manualCode.trim())
     setManualCode("")
   }
 
@@ -338,7 +548,7 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">QR Scanner</h1>
-            <p className="mt-1 text-muted-foreground">Scan tickets to check in attendees.</p>
+            <p className="mt-1 text-muted-foreground">Scan tickets and approve attendees.</p>
           </div>
           <Button
             variant="ghost"
@@ -351,10 +561,31 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
         </div>
 
         {showSettings ? (
-          <ScannerSettingsPanel autoResetMs={autoResetMs} onToggleAutoReset={handleToggleAutoReset} />
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Auto-reset timing</p>
+                  <p className="text-xs text-muted-foreground">
+                    {autoResetMs === 3000 ? "Standard (3s)" : "Fast (1.5s)"}
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleToggleAutoReset}>
+                  <RotateCcw className="mr-1 size-3" />
+                  Toggle
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         ) : null}
 
-        {scanResult ? <ScannerResultBanner scanResult={scanResult} /> : null}
+        <AttendeeApprovalCard
+          scanState={scanState}
+          onApprove={handleApprove}
+          onReject={handleReject}
+          onReset={handleReset}
+          isProcessing={isProcessing}
+        />
 
         <Tabs value={activeTab} onValueChange={value => setActiveTab(value as "camera" | "manual")}>
           <TabsList className="w-full">
@@ -383,12 +614,28 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
           </TabsContent>
 
           <TabsContent value="manual">
-            <ScannerManualEntryForm
-              manualCode={manualCode}
-              isSubmitting={isSubmitting}
-              onCodeChange={setManualCode}
-              onSubmit={handleManualSubmit}
-            />
+            <Card>
+              <CardHeader>
+                <CardTitle>Enter Ticket Code</CardTitle>
+                <CardDescription>Type or paste the ticket code manually.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleManualSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="manual-code">Ticket Code</Label>
+                    <Input
+                      id="manual-code"
+                      placeholder="e.g., abc123xyz"
+                      value={manualCode}
+                      onChange={e => setManualCode(e.target.value)}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={isProcessing || !manualCode.trim()}>
+                    {isProcessing ? "Processing..." : "Scan Ticket"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
