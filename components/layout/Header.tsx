@@ -3,6 +3,7 @@ import { Calendar, LayoutDashboard, Plus, Search, Ticket } from "lucide-react"
 import Link from "next/link"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
 import { Button } from "@/components/ui/button"
+import { LogoutButton } from "./LogoutButton"
 import { MobileMenu } from "./MobileMenu"
 
 export async function Header() {
@@ -64,6 +65,7 @@ export async function Header() {
                   {profile?.name ?? "Profile"}
                 </Button>
               </Link>
+              <LogoutButton />
             </div>
           ) : (
             <Link href="/sign-in">

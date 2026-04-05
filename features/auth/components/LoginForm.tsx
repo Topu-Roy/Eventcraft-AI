@@ -7,15 +7,20 @@ import { authClient } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
+type SocialProvider = "github" | "google"
+
+function signInWithProvider(provider: SocialProvider) {
+  return authClient.signIn.social({
+    provider,
+    callbackURL: "/onboarding",
+  })
+}
+
 export function LoginForm() {
   const router = useRouter()
 
   const { mutate, isPending } = useMutation({
-    mutationFn: () =>
-      authClient.signIn.social({
-        provider: "github",
-        callbackURL: "/onboarding",
-      }),
+    mutationFn: (provider: SocialProvider) => signInWithProvider(provider),
     onSuccess: () => {
       router.push("/onboarding")
     },
@@ -28,11 +33,14 @@ export function LoginForm() {
     <Card className="w-[350px]">
       <CardHeader>
         <CardTitle>Login</CardTitle>
-        <CardDescription>Enter your email and password to login.</CardDescription>
+        <CardDescription>Sign in with your preferred provider.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <Button onClick={() => mutate()} className="w-full" disabled={isPending}>
-          {isPending ? "Logging in..." : "Sign in with Github"}
+      <CardContent className="space-y-3">
+        <Button onClick={() => mutate("github")} className="w-full" variant="outline" disabled={isPending}>
+          {isPending ? "Signing in..." : "Sign in with GitHub"}
+        </Button>
+        <Button onClick={() => mutate("google")} className="w-full" variant="outline" disabled={isPending}>
+          {isPending ? "Signing in..." : "Sign in with Google"}
         </Button>
       </CardContent>
     </Card>

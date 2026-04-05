@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import type { Doc } from "@/convex/_generated/dataModel"
-import { Calendar, LayoutDashboard, Menu, Plus, Search, Ticket, User } from "lucide-react"
+import { Calendar, LayoutDashboard, LogOut, Menu, Plus, Search, Ticket, User } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -70,6 +70,17 @@ export function MobileMenu({ authed, profile }: MobileMenuProps) {
                   {profile?.name ?? "Profile"}
                 </Button>
               </Link>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-destructive hover:text-destructive"
+                onClick={() => {
+                  setOpen(false)
+                  void import("@/lib/auth-client").then(m => m.authClient.signOut())
+                }}
+              >
+                <LogOut className="mr-2 size-4" />
+                Sign Out
+              </Button>
             </div>
           ) : (
             <div className="mt-4 space-y-2 border-t pt-4">
