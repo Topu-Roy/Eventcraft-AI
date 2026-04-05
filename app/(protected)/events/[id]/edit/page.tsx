@@ -1,60 +1,52 @@
 "use client"
 
-import { useCallback, useReducer, useState } from "react"
+import { useState } from "react"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { EventCoverPhotoPicker } from "@/features/events/components/EventCoverPhotoPicker"
-import { EventDetailsForm } from "@/features/events/components/EventDetailsForm"
-import { EventEditActions } from "@/features/events/components/EventEditActions"
-import { EventEditHeader } from "@/features/events/components/EventEditHeader"
-import { EventVenueScheduleForm } from "@/features/events/components/EventVenueScheduleForm"
-import { eventToFormData } from "@/features/events/types"
-import type { EditableFields } from "@/features/events/types"
+import { EventEditForm } from "@/features/events/components/EventEditForm"
 import { useMutation, useQuery } from "convex/react"
+import { ArrowLeft, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { tryCatch } from "@/lib/try-catch"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 
-type FormAction =
-  | { type: "init"; data: EditableFields }
-  | { type: "field"; field: keyof EditableFields; value: EditableFields[keyof EditableFields] }
-  | { type: "venue"; updates: Partial<EditableFields["venue"]> }
-  | { type: "addTag"; tag: string }
-  | { type: "removeTag"; tag: string }
+const STATUS_LABELS: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+> = {
+  draft: { label: "Draft", variant: "secondary" },
+  published: { label: "Published", variant: "default" },
+  completed: { label: "Completed", variant: "outline" },
+  cancelled: { label: "Cancelled", variant: "destructive" },
+}
 
-function formReducer(state: EditableFields | null, action: FormAction): EditableFields | null {
-  switch (action.type) {
-    case "init":
-      return action.data
-    case "field":
-      if (!state) return null
-      return { ...state, [action.field]: action.value }
-    case "venue":
-      if (!state) return null
-      return { ...state, venue: { ...state.venue, ...action.updates } }
-    case "addTag":
-      if (!state || state.tags.includes(action.tag)) return state
-      return { ...state, tags: [...state.tags, action.tag] }
-    case "removeTag":
-      if (!state) return null
-      return { ...state, tags: state.tags.filter(t => t !== action.tag) }
-    default:
-      return state
-  }
+const STATUS_DESCRIPTIONS: Record<string, string> = {
+  draft: "Complete the details and publish when ready.",
+  published: "This event is live. Changes will be visible immediately.",
+  completed: "This event has ended.",
+  cancelled: "This event is no longer active.",
 }
 
 export default function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
   const [eventId, setEventId] = useState<Id<"events"> | null>(null)
-  const [formData, dispatchForm] = useReducer(formReducer, null)
-  const [tagInput, setTagInput] = useState("")
-  const [isSaving, setIsSaving] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [lastSyncedId, setLastSyncedId] = useState<string | null>(null)
 
   const router = useRouter()
-  const categories = useQuery(api.categories.list)
   const event = useQuery(api.events.getById, eventId ? { eventId } : "skip")
-  const updateEvent = useMutation(api.events.update)
   const publishEvent = useMutation(api.events.publish)
   const cancelEvent = useMutation(api.events.cancel)
 
@@ -63,68 +55,10 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
     if (!eventId) setEventId(p.id as Id<"events">)
   })
 
-  // Initialize form data when event loads — use key to reset on event change
+  // Track when event data has been synced
   const currentEventId = event?._id
-  const [lastSyncedId, setLastSyncedId] = useState<string | null>(null)
   if (currentEventId && currentEventId !== lastSyncedId) {
     setLastSyncedId(currentEventId)
-    dispatchForm({ type: "init", data: eventToFormData(event) })
-  }
-
-  const updateField = useCallback(<K extends keyof EditableFields>(field: K, value: EditableFields[K]) => {
-    dispatchForm({ type: "field", field, value })
-  }, [])
-
-  const updateVenue = useCallback((updates: Partial<EditableFields["venue"]>) => {
-    dispatchForm({ type: "venue", updates })
-  }, [])
-
-  const addTag = useCallback(() => {
-    const trimmed = tagInput.trim()
-    if (trimmed) {
-      dispatchForm({ type: "addTag", tag: trimmed })
-      setTagInput("")
-    }
-  }, [tagInput])
-
-  const removeTag = useCallback((tag: string) => {
-    dispatchForm({ type: "removeTag", tag })
-  }, [])
-
-  async function handleSave() {
-    if (!formData || !eventId) return
-    if (!formData.title || !formData.category) {
-      toast.error("Title and category are required")
-      return
-    }
-
-    setIsSaving(true)
-    const startMs = formData.startDatetime ? new Date(formData.startDatetime).getTime() : 0
-    const endMs = formData.endDatetime ? new Date(formData.endDatetime).getTime() : startMs + 3600000
-
-    const result = await tryCatch(
-      updateEvent({
-        eventId,
-        title: formData.title,
-        description: formData.description,
-        category: formData.category,
-        tags: formData.tags,
-        venue: formData.venue,
-        startDatetime: startMs,
-        endDatetime: endMs,
-        capacity: formData.capacity,
-        coverPhoto: formData.coverPhoto ?? undefined,
-      })
-    )
-
-    if (result.error) {
-      toast.error(result.error.message)
-    } else if (result.data?.error) {
-      toast.error(result.data.cause)
-    } else {
-      toast.success("Event saved")
-    }
-    setIsSaving(false)
   }
 
   async function handlePublish() {
@@ -164,44 +98,67 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
     )
   }
 
-  if (!formData || !event) {
+  if (!event) {
     return null
   }
+
+  const status = STATUS_LABELS[event.status] ?? { label: event.status, variant: "outline" as const }
+  const statusDescription = STATUS_DESCRIPTIONS[event.status] ?? ""
 
   return (
     <div className="min-h-screen p-4 md:p-8">
       <div className="mx-auto max-w-3xl space-y-6">
-        <EventEditHeader
-          event={event}
-          isSaving={isSaving}
-          onSave={handleSave}
-          onPublish={handlePublish}
-          onCancelEvent={() => setShowDeleteDialog(true)}
-        />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={() => router.back()}>
+              <ArrowLeft className="mr-1 size-4" />
+              Back
+            </Button>
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold tracking-tight">Edit Event</h1>
+                <Badge variant={status.variant}>{status.label}</Badge>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">{statusDescription}</p>
+            </div>
+          </div>
 
-        <EventDetailsForm
-          formData={formData}
-          categories={categories}
-          tagInput={tagInput}
-          onTagInputChange={setTagInput}
-          onFieldChange={updateField}
-          onAddTag={addTag}
-          onRemoveTag={removeTag}
-        />
+          <div className="flex gap-2">
+            {event.status === "draft" ? (
+              <Button variant="outline" onClick={handlePublish}>
+                Publish
+              </Button>
+            ) : null}
+            {event.status === "published" ? (
+              <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
+                <Trash2 className="mr-1 size-4" />
+                Cancel Event
+              </Button>
+            ) : null}
+          </div>
+        </div>
 
-        <EventCoverPhotoPicker formData={formData} onPhotoSelect={photo => updateField("coverPhoto", photo)} />
+        {eventId ? <EventEditForm eventId={eventId} event={event} /> : null}
 
-        <EventVenueScheduleForm formData={formData} onFieldChange={updateField} onVenueChange={updateVenue} />
-
-        <EventEditActions
-          event={event}
-          isSaving={isSaving}
-          showDeleteDialog={showDeleteDialog}
-          onSave={handleSave}
-          onPublish={handlePublish}
-          onCancel={handleCancel}
-          onDeleteDialogChange={setShowDeleteDialog}
-        />
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Cancel this event?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will cancel the event and notify all registered attendees. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep Event</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleCancel}
+                className="text-destructive-foreground bg-destructive hover:bg-destructive/90"
+              >
+                Cancel Event
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   )
