@@ -1,6 +1,6 @@
 import type { Doc } from "@/convex/_generated/dataModel"
 
-export type EventFormData = {
+export type EditableFields = {
   title: string
   description: string
   category: string
@@ -13,41 +13,33 @@ export type EventFormData = {
     lat: number
     lng: number
   }
-  startDatetime: number
-  endDatetime: number
+  startDatetime: string
+  endDatetime: string
   capacity: number | null
-  coverPhoto: {
-    url: string
-    dominantColor: string
-    photographerName: string
-    photographerUrl: string
+  coverPhoto: Doc<"events">["coverPhoto"]
+}
+
+/**
+ * Converts a Convex event document into editable form fields.
+ * Datetime fields are converted to ISO string slices for datetime-local inputs.
+ */
+export function eventToFormData(event: Doc<"events">): EditableFields {
+  return {
+    title: event.title,
+    description: event.description,
+    category: event.category,
+    tags: event.tags,
+    venue: {
+      name: event.venue.name,
+      address: event.venue.address,
+      city: event.venue.city,
+      country: event.venue.country,
+      lat: event.venue.lat,
+      lng: event.venue.lng,
+    },
+    startDatetime: event.startDatetime ? new Date(event.startDatetime).toISOString().slice(0, 16) : "",
+    endDatetime: event.endDatetime ? new Date(event.endDatetime).toISOString().slice(0, 16) : "",
+    capacity: event.capacity,
+    coverPhoto: event.coverPhoto,
   }
 }
-
-export type EventStep = 1 | 2 | 3 | 4
-
-export const DEFAULT_EVENT_FORM: EventFormData = {
-  title: "",
-  description: "",
-  category: "",
-  tags: [],
-  venue: {
-    name: "",
-    address: "",
-    city: "",
-    country: "",
-    lat: 0,
-    lng: 0,
-  },
-  startDatetime: 0,
-  endDatetime: 0,
-  capacity: null,
-  coverPhoto: {
-    url: "",
-    dominantColor: "",
-    photographerName: "",
-    photographerUrl: "",
-  },
-}
-
-export type EventDocument = Doc<"events">
