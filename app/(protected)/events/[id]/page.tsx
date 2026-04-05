@@ -2,7 +2,7 @@ import { Suspense } from "react"
 import { api } from "@/convex/_generated/api"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
 import { RegistrationCTA } from "@/features/events/components/RegistrationCTA"
-import { Calendar, Clock, MapPin, Share2, Tag, Users } from "lucide-react"
+import { Calendar, Check, Clock, MapPin, Share2, Tag, Users } from "lucide-react"
 import { notFound } from "next/navigation"
 import { fetchAuthQuery } from "@/lib/auth-server"
 import { Badge } from "@/components/ui/badge"
@@ -62,7 +62,15 @@ function formatCapacity(count: number, capacity: number | null): string {
   return `${count}/${capacity} registered`
 }
 
-function EventHeader({ event, isPast }: { event: Doc<"events">; isPast: boolean }) {
+function EventHeader({
+  event,
+  isPast,
+  isRegistered,
+}: {
+  event: Doc<"events">
+  isPast: boolean
+  isRegistered: boolean
+}) {
   const isCancelled = event.status === "cancelled"
 
   return (
@@ -75,6 +83,12 @@ function EventHeader({ event, isPast }: { event: Doc<"events">; isPast: boolean 
         {getCategoryBadge(event.category)}
         {isCancelled ? <Badge variant="destructive">Cancelled</Badge> : null}
         {isPast && !isCancelled ? <Badge variant="secondary">Ended</Badge> : null}
+        {isRegistered && !isPast && !isCancelled ? (
+          <Badge variant="default" className="gap-1">
+            <Check className="size-3" />
+            You have a ticket
+          </Badge>
+        ) : null}
       </div>
       <div className="mt-6 space-y-3">
         <h1
@@ -152,22 +166,22 @@ function SidebarSkeleton() {
   )
 }
 
-async function EventSidebar({
-  eventId,
+function EventSidebar({
+  event,
   isOrganizer,
   isRegistered,
+  isFull,
   isPast,
+  isCancelled,
 }: {
-  eventId: Id<"events">
+  event: Doc<"events">
   isOrganizer: boolean
   isRegistered: boolean
+  isFull: boolean
   isPast: boolean
+  isCancelled: boolean
 }) {
-  const event = await fetchAuthQuery(api.events.getById, { eventId })
-  if (!event) return null
-
   const capacityText = formatCapacity(event.registrationCount, event.capacity)
-  const isFull = event.capacity !== null && event.registrationCount >= event.capacity
 
   return (
     <Card className="sticky top-20">
@@ -203,12 +217,12 @@ async function EventSidebar({
         <Separator />
 
         <RegistrationCTA
-          eventId={eventId}
+          eventId={event._id}
           isOrganizer={isOrganizer}
           isRegistered={isRegistered}
           isFull={isFull}
           isPast={isPast}
-          isCancelled={event.status === "cancelled"}
+          isCancelled={isCancelled}
         />
 
         <Button variant="ghost" className="w-full" size="sm">
@@ -227,7 +241,6 @@ async function getNow(): Promise<number> {
 export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  // Convex IDs start with "j" — reject non-ID params like "create"
   if (!id.startsWith("j")) {
     notFound()
   }
@@ -251,24 +264,44 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <div className="space-y-8 lg:col-span-2">
-            <EventHeader event={event} isPast={isPast} />
+            <EventHeader event={event} isPast={isPast} isRegistered={isRegistered} />
+
+            {/* Inline CTA — visible on mobile before scrolling */}
+            <div className="lg:hidden">
+              <Card>
+                <CardContent className="p-4">
+                  <RegistrationCTA
+                    eventId={eventId}
+                    isOrganizer={isOrganizer}
+                    isRegistered={isRegistered}
+                    isFull={isFull}
+                    isPast={isPast}
+                    isCancelled={isCancelled}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+
             <EventDescription event={event} />
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="hidden lg:col-span-1 lg:block">
             <Suspense fallback={<SidebarSkeleton />}>
               <EventSidebar
-                eventId={eventId}
+                event={event}
                 isOrganizer={isOrganizer}
                 isRegistered={isRegistered}
+                isFull={isFull}
                 isPast={isPast}
+                isCancelled={isCancelled}
               />
             </Suspense>
           </div>
         </div>
       </div>
 
-      <div className="fixed right-0 bottom-0 left-0 border-t bg-background p-4 lg:hidden">
+      {/* Fixed bottom bar — mobile only */}
+      <div className="fixed right-0 bottom-0 left-0 z-50 border-t bg-background/95 p-4 backdrop-blur lg:hidden">
         <RegistrationCTA
           eventId={eventId}
           isOrganizer={isOrganizer}

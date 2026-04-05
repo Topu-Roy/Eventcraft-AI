@@ -1,5 +1,5 @@
 import type { Doc } from "@/convex/_generated/dataModel"
-import { CalendarDays, MapPin, Users } from "lucide-react"
+import { CalendarDays, MapPin, Ticket, Users } from "lucide-react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 
@@ -7,6 +7,7 @@ type EventCardProps = {
   event: Doc<"events">
   variant?: "default" | "compact" | "list"
   now?: number
+  isRegistered?: boolean
 }
 
 const categoryColors: Record<string, string> = {
@@ -61,7 +62,7 @@ function formatCapacity(capacity: number | null, count: number): string {
   return `${count}/${capacity}`
 }
 
-export function EventCard({ event, variant = "default", now }: EventCardProps) {
+export function EventCard({ event, variant = "default", now, isRegistered }: EventCardProps) {
   const isPast = event.startDatetime < (now ?? 0)
   const isFull = event.capacity !== null && event.registrationCount >= event.capacity
 
@@ -69,7 +70,7 @@ export function EventCard({ event, variant = "default", now }: EventCardProps) {
     return (
       <Link
         href={`/events/${event._id}`}
-        className="group flex w-64 shrink-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-sm"
+        className="group relative flex w-64 shrink-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-sm"
       >
         <div className="relative aspect-video overflow-hidden bg-muted">
           {event.coverPhoto ? (
@@ -87,6 +88,14 @@ export function EventCard({ event, variant = "default", now }: EventCardProps) {
           {isPast && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/60">
               <span className="text-xs font-medium text-muted-foreground">Ended</span>
+            </div>
+          )}
+          {isRegistered && (
+            <div className="absolute top-2 right-2">
+              <Badge variant="default" className="gap-1 text-[10px]">
+                <Ticket className="size-3" />
+                Registered
+              </Badge>
             </div>
           )}
         </div>
@@ -109,8 +118,16 @@ export function EventCard({ event, variant = "default", now }: EventCardProps) {
     return (
       <Link
         href={`/events/${event._id}`}
-        className="group flex gap-4 overflow-hidden border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-sm"
+        className="group relative flex gap-4 overflow-hidden border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-sm"
       >
+        {isRegistered && (
+          <div className="absolute top-2 right-2">
+            <Badge variant="default" className="gap-1 text-[10px]">
+              <Ticket className="size-3" />
+              Registered
+            </Badge>
+          </div>
+        )}
         <div className="relative aspect-square h-24 shrink-0 overflow-hidden bg-muted">
           {event.coverPhoto ? (
             <div
@@ -151,7 +168,7 @@ export function EventCard({ event, variant = "default", now }: EventCardProps) {
   return (
     <Link
       href={`/events/${event._id}`}
-      className="group flex w-72 shrink-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-sm"
+      className="group relative flex w-72 shrink-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-sm"
     >
       <div className="relative aspect-video overflow-hidden bg-muted">
         {event.coverPhoto ? (
@@ -175,6 +192,12 @@ export function EventCard({ event, variant = "default", now }: EventCardProps) {
         {isFull && !isPast && (
           <Badge className="absolute top-2 right-2" variant="destructive">
             Full
+          </Badge>
+        )}
+        {isRegistered && (
+          <Badge className="absolute top-2 right-2" variant="default">
+            <Ticket className="mr-1 size-3" />
+            Registered
           </Badge>
         )}
       </div>
