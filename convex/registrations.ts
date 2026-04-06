@@ -1,6 +1,27 @@
 import { v } from "convex/values"
 import { nanoid } from "nanoid"
-import { mutation, query } from "./_generated/server"
+import { mutation, query, type QueryCtx } from "./_generated/server"
+
+const MAX_STRING_LENGTH = 200
+
+function sanitizeString(str: string, maxLength: number = MAX_STRING_LENGTH): string {
+  return str.trim().slice(0, maxLength)
+}
+
+async function getProfileOrNull(ctx: QueryCtx) {
+  const identity = await ctx.auth.getUserIdentity()
+  if (!identity) return null
+  return ctx.db
+    .query("profile")
+    .withIndex("by_userId", q => q.eq("userId", identity.subject))
+    .first()
+}
+
+async function getProfileOrThrow(ctx: QueryCtx) {
+  const profile = await getProfileOrNull(ctx)
+  if (!profile) return null
+  return profile
+}
 
 /**
  * Registers the current profile for an event.
@@ -8,29 +29,46 @@ import { mutation, query } from "./_generated/server"
 export const register = mutation({
   args: { eventId: v.id("events") },
   handler: async (ctx, { eventId }) => {
-    const identity = await ctx.auth.getUserIdentity()
-    if (!identity) return { error: true, cause: "Unauthenticated" as const, data: null }
-
-    const profile = await ctx.db
-      .query("profile")
-      .withIndex("by_userId", q => q.eq("userId", identity.subject))
-      .first()
-    if (!profile) return { error: true, cause: "Profile not found" as const, data: null }
+    const profile = await getProfileOrThrow(ctx)
+    if (!profile)
+      return {
+        error: true,
+        message: "You must be logged in to register",
+        cause: "unauthenticated" as const,
+        data: null,
+      }
 
     const event = await ctx.db.get("events", eventId)
-    if (!event) return { error: true, cause: "Event not found" as const, data: null }
-    if (event.status !== "published") return { error: true, cause: "Event not published" as const, data: null }
+    if (!event) return { error: true, message: "Event not found", cause: "event_not_found" as const, data: null }
+    if (event.status !== "published")
+      return {
+        error: true,
+        message: "Event is not available for registration",
+        cause: "event_not_published" as const,
+        data: null,
+      }
 
     const existing = await ctx.db
       .query("registrations")
       .withIndex("by_profileId_event", q => q.eq("profileId", profile._id).eq("eventId", eventId))
       .first()
 
-    if (existing?.status === "active") return { error: true, cause: "Already registered" as const, data: null }
+    if (existing?.status === "active")
+      return {
+        error: true,
+        message: "You are already registered for this event",
+        cause: "already_registered" as const,
+        data: null,
+      }
     if (event.organizerId === profile._id)
-      return { error: true, cause: "Organizer cannot register" as const, data: null }
+      return {
+        error: true,
+        message: "Organizers cannot register for their own events",
+        cause: "organizer_cannot_register" as const,
+        data: null,
+      }
     if (event.capacity !== null && event.registrationCount >= event.capacity) {
-      return { error: true, cause: "Event is full" as const, data: null }
+      return { error: true, message: "This event is full", cause: "event_full" as const, data: null }
     }
 
     let ticketCode: string
@@ -45,7 +83,13 @@ export const register = mutation({
       attempts++
     } while (attempts < 3)
 
-    if (attempts >= 3) return { error: true, cause: "Failed to generate ticket" as const, data: null }
+    if (attempts >= 3)
+      return {
+        error: true,
+        message: "Failed to generate ticket code",
+        cause: "ticket_generation_failed" as const,
+        data: null,
+      }
 
     await ctx.db.insert("registrations", {
       profileId: profile._id,
@@ -75,7 +119,7 @@ export const register = mutation({
       })
     }
 
-    return { error: null, cause: null, data: { ticketCode, eventId } }
+    return { error: false, message: null, cause: null, data: { ticketCode, eventId } }
   },
 })
 
@@ -85,27 +129,44 @@ export const register = mutation({
 export const cancelRegistration = mutation({
   args: { registrationId: v.id("registrations") },
   handler: async (ctx, { registrationId }) => {
-    const identity = await ctx.auth.getUserIdentity()
-    if (!identity) return { error: true, cause: "Unauthenticated" as const, data: null }
-
-    const profile = await ctx.db
-      .query("profile")
-      .withIndex("by_userId", q => q.eq("userId", identity.subject))
-      .first()
-    if (!profile) return { error: true, cause: "Profile not found" as const, data: null }
+    const profile = await getProfileOrThrow(ctx)
+    if (!profile)
+      return {
+        error: true,
+        message: "You must be logged in to cancel registration",
+        cause: "unauthenticated" as const,
+        data: null,
+      }
 
     const registration = await ctx.db.get("registrations", registrationId)
-    if (!registration) return { error: true, cause: "Registration not found" as const, data: null }
+    if (!registration)
+      return {
+        error: true,
+        message: "Registration not found",
+        cause: "registration_not_found" as const,
+        data: null,
+      }
     if (registration.profileId !== profile._id)
-      return { error: true, cause: "Not authorized" as const, data: null }
-    if (registration.status !== "active") return { error: true, cause: "Not active" as const, data: null }
+      return {
+        error: true,
+        message: "You are not authorized to cancel this registration",
+        cause: "not_authorized" as const,
+        data: null,
+      }
+    if (registration.status !== "active")
+      return { error: true, message: "Registration is not active", cause: "not_active" as const, data: null }
 
     const event = await ctx.db.get("events", registration.eventId)
-    if (!event) return { error: true, cause: "Event not found" as const, data: null }
+    if (!event) return { error: true, message: "Event not found", cause: "event_not_found" as const, data: null }
 
     const oneHourBeforeStart = event.startDatetime - 60 * 60 * 1000
     if (Date.now() > oneHourBeforeStart) {
-      return { error: true, cause: "Too late to cancel" as const, data: null }
+      return {
+        error: true,
+        message: "Cannot cancel less than 1 hour before event starts",
+        cause: "too_late_to_cancel" as const,
+        data: null,
+      }
     }
 
     await ctx.db.patch("registrations", registration._id, { status: "cancelled", cancelledAt: Date.now() })
@@ -126,7 +187,7 @@ export const cancelRegistration = mutation({
       })
     }
 
-    return { error: null, cause: null, data: registration._id }
+    return { error: false, message: null, cause: null, data: registration._id }
   },
 })
 
@@ -136,14 +197,10 @@ export const cancelRegistration = mutation({
 export const getMyRegistrations = query({
   args: {},
   handler: async ctx => {
-    const identity = await ctx.auth.getUserIdentity()
-    if (!identity) return []
-
-    const profile = await ctx.db
-      .query("profile")
-      .withIndex("by_userId", q => q.eq("userId", identity.subject))
-      .first()
-    if (!profile) return []
+    const profile = await getProfileOrNull(ctx)
+    if (!profile) {
+      return { error: true, message: "Profile not found", cause: "profile_not_found" as const, data: [] }
+    }
 
     const registrations = await ctx.db
       .query("registrations")
@@ -153,10 +210,12 @@ export const getMyRegistrations = query({
     const events = await ctx.db.query("events").collect()
     const eventMap = new Map(events.map(e => [e._id, e]))
 
-    return registrations
+    const result = registrations
       .map(reg => ({ ...reg, event: eventMap.get(reg.eventId) }))
       .filter((r): r is typeof r & { event: NonNullable<typeof r.event> } => r.event != null)
       .sort((a, b) => (b.event?.startDatetime ?? 0) - (a.event?.startDatetime ?? 0))
+
+    return { error: false, message: null, cause: null, data: result }
   },
 })
 
@@ -166,24 +225,38 @@ export const getMyRegistrations = query({
 export const getByTicketCode = query({
   args: { ticketCode: v.string() },
   handler: async (ctx, { ticketCode }) => {
-    const identity = await ctx.auth.getUserIdentity()
-    if (!identity) return null
+    const sanitizedTicketCode = sanitizeString(ticketCode, 50)
 
-    const profile = await ctx.db
-      .query("profile")
-      .withIndex("by_userId", q => q.eq("userId", identity.subject))
-      .first()
-    if (!profile) return null
+    const profile = await getProfileOrNull(ctx)
+    if (!profile) {
+      return { error: true, message: "Profile not found", cause: "profile_not_found" as const, data: null }
+    }
 
     const registration = await ctx.db
       .query("registrations")
-      .withIndex("by_ticket_code", q => q.eq("ticketCode", ticketCode))
+      .withIndex("by_ticket_code", q => q.eq("ticketCode", sanitizedTicketCode))
       .first()
 
-    if (registration?.profileId !== profile._id) return null
+    if (!registration) {
+      return {
+        error: true,
+        message: "Registration not found",
+        cause: "registration_not_found" as const,
+        data: null,
+      }
+    }
+
+    if (registration.profileId !== profile._id) {
+      return {
+        error: true,
+        message: "Registration not found",
+        cause: "registration_not_found" as const,
+        data: null,
+      }
+    }
 
     const event = await ctx.db.get("events", registration.eventId)
-    return { registration, event }
+    return { error: false, message: null, cause: null, data: { registration, event } }
   },
 })
 
@@ -193,18 +266,21 @@ export const getByTicketCode = query({
 export const getEventRegistrations = query({
   args: { eventId: v.id("events") },
   handler: async (ctx, { eventId }) => {
-    const identity = await ctx.auth.getUserIdentity()
-    if (!identity) return []
-
-    const profile = await ctx.db
-      .query("profile")
-      .withIndex("by_userId", q => q.eq("userId", identity.subject))
-      .first()
-    if (!profile) return []
+    const profile = await getProfileOrNull(ctx)
+    if (!profile) {
+      return { error: true, message: "Profile not found", cause: "profile_not_found" as const, data: [] }
+    }
 
     const event = await ctx.db.get("events", eventId)
-    if (!event) return []
-    if (event.organizerId !== profile._id && !event.coOrganizers.includes(profile._id)) return []
+    if (!event) return { error: true, message: "Event not found", cause: "event_not_found" as const, data: [] }
+    if (event.organizerId !== profile._id && !event.coOrganizers.includes(profile._id)) {
+      return {
+        error: true,
+        message: "You are not authorized to view this event's registrations",
+        cause: "not_authorized" as const,
+        data: [],
+      }
+    }
 
     const registrations = await ctx.db
       .query("registrations")
@@ -215,9 +291,11 @@ export const getEventRegistrations = query({
     const profiles = await Promise.all(profileIds.map(id => ctx.db.get("profile", id)))
     const profileMap = new Map(profiles.filter(Boolean).map(p => [p!._id, p]))
 
-    return registrations.map(reg => ({
+    const result = registrations.map(reg => ({
       ...reg,
       profile: profileMap.get(reg.profileId),
     }))
+
+    return { error: false, message: null, cause: null, data: result }
   },
 })

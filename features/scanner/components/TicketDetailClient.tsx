@@ -118,6 +118,12 @@ export function TicketDetailClient({
       setIsCancelling(false)
       return
     }
+    const mutationResult = result.data
+    if (mutationResult?.error) {
+      toast.error(mutationResult.message ?? "Failed to cancel registration")
+      setIsCancelling(false)
+      return
+    }
     toast.success("Registration cancelled")
     router.push("/tickets")
   }

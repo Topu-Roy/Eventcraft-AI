@@ -37,13 +37,25 @@ export default async function TicketDetailPage({ params }: PageProps<"/tickets/[
     fetchAuthQuery(api.registrations.getByTicketCode, { ticketCode }),
   ])
 
-  const profileId = profile.data?._id
+  const profileId = (profile as any).data?._id
   if (!profileId) {
     redirect("/sign-in")
   }
 
-  const registration = registrationData?.registration
-  const event = registrationData?.event
+  const response = (registrationData as any).data
+  if (!response || response.error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="space-y-4 text-center">
+          <h1 className="text-xl font-semibold">Ticket not found</h1>
+          <p className="text-muted-foreground">This ticket does not exist or has been removed.</p>
+        </div>
+      </div>
+    )
+  }
+
+  const registration = response.data?.registration
+  const event = response.data?.event
 
   if (!registration || !event) {
     return (

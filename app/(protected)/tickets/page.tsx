@@ -189,7 +189,7 @@ async function TicketList() {
   const currentTimestamp = await getCurrentTimestamp()
   const result = await tryCatch(fetchAuthQuery(api.registrations.getMyRegistrations))
 
-  if (result.error) {
+  if (result.error || (result.data as any)?.error) {
     return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
@@ -199,7 +199,7 @@ async function TicketList() {
     )
   }
 
-  const registrations = result.data
+  const registrations: TicketRegistration[] = (result.data as any)?.data ?? []
   const validRegistrations = registrations?.filter((reg): reg is TicketRegistration => reg.event != null)
 
   if (!validRegistrations?.length) {
