@@ -4,6 +4,7 @@ import type { Doc } from "@/convex/_generated/dataModel"
 import { ArrowRight, Calendar, Clock, MapPin, Ticket, Users } from "lucide-react"
 import Link from "next/link"
 import { fetchAuthQuery } from "@/lib/auth-server"
+import { tryCatch } from "@/lib/try-catch"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,6 +12,8 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { Skeleton } from "@/components/ui/skeleton"
 
 type TicketRegistration = Doc<"registrations"> & { event: Doc<"events"> }
+
+const ONE_HOUR_IN_MS = 60 * 60 * 1000
 
 function formatEventDate(timestamp: number): string {
   return new Date(timestamp).toLocaleDateString("en-US", {
@@ -33,9 +36,8 @@ function isEventPast(eventEndTimestamp: number, currentTimestamp: number): boole
 }
 
 function isEventSoon(eventStartTimestamp: number, currentTimestamp: number): boolean {
-  const oneHourInMs = 60 * 60 * 1000
   const timeUntilStart = eventStartTimestamp - currentTimestamp
-  return timeUntilStart < oneHourInMs && timeUntilStart > 0
+  return timeUntilStart < ONE_HOUR_IN_MS && timeUntilStart > 0
 }
 
 function getRegistrationStatusBadge(registration: TicketRegistration): "destructive" | "default" | "secondary" {
@@ -185,7 +187,19 @@ async function getCurrentTimestamp(): Promise<number> {
 
 async function TicketList() {
   const currentTimestamp = await getCurrentTimestamp()
-  const registrations = await fetchAuthQuery(api.registrations.getMyRegistrations)
+  const result = await tryCatch(fetchAuthQuery(api.registrations.getMyRegistrations))
+
+  if (result.error) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center text-muted-foreground">
+          Unable to load tickets. Please try again later.
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const registrations = result.data
   const validRegistrations = registrations?.filter((reg): reg is TicketRegistration => reg.event != null)
 
   if (!validRegistrations?.length) {
