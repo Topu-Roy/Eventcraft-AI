@@ -22,9 +22,11 @@ export async function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-            <Calendar className="size-5 text-primary" />
-            <span>EventCraft AI</span>
+          <Link href="/" className="flex items-center gap-2">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
+              <Calendar className="size-4 text-primary-foreground" />
+            </div>
+            <span className="text-lg font-bold tracking-tight">EventCraft AI</span>
           </Link>
 
           <nav className="hidden items-center gap-4 md:flex">
@@ -76,9 +78,7 @@ export async function Header() {
             </div>
           ) : (
             <Link href="/sign-in">
-              <Button variant="ghost" size="sm">
-                Sign In
-              </Button>
+              <Button size="sm">Sign In</Button>
             </Link>
           )}
         </div>
