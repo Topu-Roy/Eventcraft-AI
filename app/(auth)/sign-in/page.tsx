@@ -3,6 +3,11 @@ import { LoginForm } from "@/features/auth/components/LoginForm"
 import { redirect } from "next/navigation"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
 
+export const metadata = {
+  title: "Sign In — EventCraft AI",
+  description: "Sign in to EventCraft AI to create and discover events.",
+}
+
 export default async function LoginPage() {
   const authed = await isAuthenticated()
 

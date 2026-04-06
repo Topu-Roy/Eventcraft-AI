@@ -4,6 +4,11 @@ import { SessionManager } from "@/features/auth/components/SessionManager"
 import { redirect } from "next/navigation"
 import { isAuthenticated } from "@/lib/auth-server"
 
+export const metadata = {
+  title: "Profile — EventCraft AI",
+  description: "Manage your account settings and preferences.",
+}
+
 export default async function ProfilePage() {
   const auth = await isAuthenticated()
 

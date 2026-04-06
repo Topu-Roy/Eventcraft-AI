@@ -4,6 +4,12 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
 
+export const metadata = {
+  title: "EventCraft AI — Events at the speed of thought",
+  description:
+    "AI-powered event creation. Describe your event in plain language. AI builds the draft. Tweak. Publish. Done in seconds.",
+}
+
 export default async function HomePage() {
   const authed = await isAuthenticated()
 

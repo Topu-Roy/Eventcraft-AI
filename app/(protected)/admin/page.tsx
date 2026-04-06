@@ -1,5 +1,10 @@
 import { UsersTable } from "@/features/admin/components/UsersTable"
 
+export const metadata = {
+  title: "Admin — EventCraft AI",
+  description: "Manage users, roles, and administrative tasks.",
+}
+
 export default function AdminPage() {
   return (
     <div className="container mx-auto space-y-8 px-4 py-10">

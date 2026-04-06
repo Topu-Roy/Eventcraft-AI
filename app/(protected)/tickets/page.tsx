@@ -11,6 +11,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 
+export const metadata = {
+  title: "My Tickets — EventCraft AI",
+  description: "Your event tickets. QR-coded. Always in your pocket.",
+}
+
 type TicketRegistration = Doc<"registrations"> & { event: Doc<"events"> }
 
 const ONE_HOUR_IN_MS = 60 * 60 * 1000
@@ -189,7 +194,7 @@ async function TicketList() {
   const currentTimestamp = await getCurrentTimestamp()
   const result = await tryCatch(fetchAuthQuery(api.registrations.getMyRegistrations))
 
-  if (result.error || (result.data)?.error) {
+  if (result.error || result.data?.error) {
     return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
@@ -199,7 +204,7 @@ async function TicketList() {
     )
   }
 
-  const registrations: TicketRegistration[] = (result.data)?.data ?? []
+  const registrations: TicketRegistration[] = result.data?.data ?? []
   const validRegistrations = registrations?.filter((reg): reg is TicketRegistration => reg.event != null)
 
   if (!validRegistrations?.length) {

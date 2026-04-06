@@ -7,6 +7,11 @@ import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
 import { tryCatch } from "@/lib/try-catch"
 import { Skeleton } from "@/components/ui/skeleton"
 
+export const metadata = {
+  title: "Explore Events — EventCraft AI",
+  description: "Discover events happening around you. Find meetups, conferences, and more.",
+}
+
 async function PersonalizedSection() {
   const result = await tryCatch(fetchAuthQuery(api.discovery.getPersonalizedEvents, { limit: 10 }))
   const events = result.data?.data ?? []

@@ -53,7 +53,7 @@ export function StepOneInterests({ onNext }: StepOneInterestsProps) {
         <div className="space-y-2">
           <h2 className="text-2xl font-semibold tracking-tight">What are you interested in?</h2>
           <p className="text-muted-foreground">
-            Pick categories you're interested in. You'll see events like these.
+            Pick categories you&apos;re interested in. You&apos;ll see events like these.
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -75,7 +75,7 @@ export function StepOneInterests({ onNext }: StepOneInterestsProps) {
         <div className="space-y-2">
           <h2 className="text-2xl font-semibold tracking-tight">What are you interested in?</h2>
           <p className="text-muted-foreground">
-            Pick categories you're interested in. You'll see events like these.
+            Pick categories you&apos;re interested in. You&apos;ll see events like these.
           </p>
         </div>
         <div className="rounded-lg border border-dashed p-8 text-center">
@@ -110,7 +110,7 @@ export function StepOneInterests({ onNext }: StepOneInterestsProps) {
       <div className="space-y-2">
         <h2 className="text-2xl font-semibold tracking-tight">What are you interested in?</h2>
         <p className="text-muted-foreground">
-          Pick categories you're interested in. You'll see events like these.
+          Pick categories you&apos;re interested in. You&apos;ll see events like these.
         </p>
       </div>
 

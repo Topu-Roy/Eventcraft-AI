@@ -14,6 +14,24 @@ type RegistrationResponse = {
   data: { registration: TicketRegistration; event: TicketEvent } | null
 }
 
+export async function generateMetadata({ params }: PageProps<"/tickets/[ticketCode]">) {
+  const { ticketCode } = await params
+
+  const registrationData = await fetchAuthQuery(api.registrations.getByTicketCode, { ticketCode })
+  const response = registrationData.data as RegistrationResponse | null
+
+  if (!response || response.error || !response.data) {
+    return { title: "Ticket — EventCraft AI" }
+  }
+
+  const { event } = response.data
+
+  return {
+    title: `${event.title} Ticket — EventCraft AI`,
+    description: `Your ticket for ${event.title}`,
+  }
+}
+
 function getCheckInBadgeVariant(status: string): "default" | "destructive" | "secondary" | "outline" {
   switch (status) {
     case "approved":

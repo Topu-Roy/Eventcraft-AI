@@ -8,6 +8,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
+export const metadata = {
+  title: "Dashboard — EventCraft AI",
+  description: "Your events. Your metrics. All in one place.",
+}
+
 const statusLabels: Record<
   string,
   { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
