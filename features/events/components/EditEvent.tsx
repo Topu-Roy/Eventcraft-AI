@@ -42,18 +42,11 @@ const STATUS_DESCRIPTIONS: Record<string, string> = {
 
 export function EditEvent({ eventId }: { eventId: string }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [lastSyncedId, setLastSyncedId] = useState<string | null>(null)
 
   const router = useRouter()
   const event = useQuery(api.events.getById, eventId ? { eventId: eventId as Id<"events"> } : "skip")
   const publishEvent = useMutation(api.events.publish)
   const cancelEvent = useMutation(api.events.cancel)
-
-  // Track when event data has been synced
-  const currentEventId = event?._id
-  if (currentEventId && currentEventId !== lastSyncedId) {
-    setLastSyncedId(currentEventId)
-  }
 
   async function handlePublish() {
     if (!eventId) return
