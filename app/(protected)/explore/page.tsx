@@ -4,35 +4,45 @@ import { CategoryTabs } from "@/features/discovery/components/CategoryTabs"
 import { EventCarousel, EventCarouselSkeleton } from "@/features/discovery/components/EventCarousel"
 import { SearchInput } from "@/features/discovery/components/SearchInput"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
+import { tryCatch } from "@/lib/try-catch"
 import { Skeleton } from "@/components/ui/skeleton"
 
 async function PersonalizedSection() {
-  const events = await fetchAuthQuery(api.discovery.getPersonalizedEvents, { limit: 10 })
+  const result = await tryCatch(fetchAuthQuery(api.discovery.getPersonalizedEvents, { limit: 10 }))
   return (
     <EventCarousel
       title="For You"
-      events={events ?? []}
-      emptyMessage="Complete onboarding to see personalized events"
+      events={result.data ?? []}
+      emptyMessage={result.error ? "Unable to load events" : "Complete onboarding to see personalized events"}
     />
   )
 }
 
 async function TrendingSection() {
-  const events = await fetchAuthQuery(api.discovery.getTrendingEvents, { limit: 10 })
-  return <EventCarousel title="Trending" events={events ?? []} emptyMessage="No trending events right now" />
+  const result = await tryCatch(fetchAuthQuery(api.discovery.getTrendingEvents, { limit: 10 }))
+  return (
+    <EventCarousel
+      title="Trending"
+      events={result.data ?? []}
+      emptyMessage={result.error ? "Unable to load events" : "No trending events right now"}
+    />
+  )
 }
 
 async function LocationSection() {
-  const profileResult = await fetchAuthQuery(api.profiles.getCurrent)
-  const profile = profileResult.data
+  const profileResult = await tryCatch(fetchAuthQuery(api.profiles.getCurrent))
+  const profile = profileResult.data?.data
   if (!profile?.location) return null
 
-  const events = await fetchAuthQuery(api.discovery.getEventsByLocation, {
-    city: profile.location.city,
-    country: profile.location.country,
-    limit: 10,
-  })
+  const eventsResult = await tryCatch(
+    fetchAuthQuery(api.discovery.getEventsByLocation, {
+      city: profile.location.city,
+      country: profile.location.country,
+      limit: 10,
+    })
+  )
 
+  const events = eventsResult.data
   if (!events?.length) return null
 
   return (
@@ -45,10 +55,10 @@ async function LocationSection() {
 }
 
 async function CategorySection() {
-  const categories = await fetchAuthQuery(api.categories.list)
-  if (!categories?.length) return null
+  const result = await tryCatch(fetchAuthQuery(api.categories.list))
+  if (!result.data?.length) return null
 
-  return <CategoryTabs categories={categories} />
+  return <CategoryTabs categories={result.data} />
 }
 
 function CategorySectionSkeleton() {
