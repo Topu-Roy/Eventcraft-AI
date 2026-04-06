@@ -36,7 +36,7 @@ type EventWizardData = {
   venue: Venue | null
   startDatetime: string
   endDatetime: string
-  capacity: number | null
+  capacity: number | undefined
 }
 
 const initialWizardData: EventWizardData = {
@@ -52,7 +52,7 @@ const initialWizardData: EventWizardData = {
   venue: null,
   startDatetime: "",
   endDatetime: "",
-  capacity: null,
+  capacity: undefined,
 }
 
 // Pipeline selection

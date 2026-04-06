@@ -55,8 +55,8 @@ function formatEventTime(timestamp: number): string {
   })
 }
 
-function formatCapacity(capacity: number | null, count: number): string {
-  if (capacity === null) return `${count} registered`
+function formatCapacity(capacity: number | undefined, count: number): string {
+  if (capacity === undefined) return `${count} registered`
   const remaining = capacity - count
   if (remaining <= 0) return "Sold out"
   if (remaining <= 5) return `${remaining} spots left`
@@ -65,7 +65,7 @@ function formatCapacity(capacity: number | null, count: number): string {
 
 export function EventCard({ event, variant = "default", now, isRegistered }: EventCardProps) {
   const isPast = event.startDatetime < (now ?? 0)
-  const isFull = event.capacity !== null && event.registrationCount >= event.capacity
+  const isFull = event.capacity !== undefined && event.registrationCount >= event.capacity
 
   if (variant === "compact") {
     return (

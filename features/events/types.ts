@@ -15,7 +15,7 @@ export type EditableFields = {
   }
   startDatetime: string
   endDatetime: string
-  capacity: number | null
+  capacity: number | undefined
   coverPhoto: Doc<"events">["coverPhoto"]
 }
 

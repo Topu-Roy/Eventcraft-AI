@@ -102,7 +102,9 @@ export function EventWizardVenueScheduleStep() {
           min={1}
           placeholder="Leave empty for unlimited"
           value={wizardData.capacity ?? ""}
-          onChange={e => dispatchUpdateWizardData({ capacity: e.target.value ? Number(e.target.value) : null })}
+          onChange={e =>
+            dispatchUpdateWizardData({ capacity: e.target.value ? Number(e.target.value) : undefined })
+          }
         />
       </div>
     </div>

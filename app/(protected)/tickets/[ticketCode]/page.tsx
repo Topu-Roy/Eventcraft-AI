@@ -1,7 +1,18 @@
 import { api } from "@/convex/_generated/api"
+import type { Doc } from "@/convex/_generated/dataModel"
 import { TicketDetailClient } from "@/features/scanner/components/TicketDetailClient"
 import { redirect } from "next/navigation"
 import { fetchAuthQuery } from "@/lib/auth-server"
+
+type TicketRegistration = Doc<"registrations">
+type TicketEvent = Doc<"events">
+
+type RegistrationResponse = {
+  error: boolean
+  message: string | null
+  cause: string | null
+  data: { registration: TicketRegistration; event: TicketEvent } | null
+}
 
 function getCheckInBadgeVariant(status: string): "default" | "destructive" | "secondary" | "outline" {
   switch (status) {
@@ -37,13 +48,13 @@ export default async function TicketDetailPage({ params }: PageProps<"/tickets/[
     fetchAuthQuery(api.registrations.getByTicketCode, { ticketCode }),
   ])
 
-  const profileId = (profile as any).data?._id
+  const profileId = profile.data?._id
   if (!profileId) {
     redirect("/sign-in")
   }
 
-  const response = (registrationData as any).data
-  if (!response || response.error) {
+  const response = registrationData.data as RegistrationResponse | null
+  if (!response || response.error || !response.data) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="space-y-4 text-center">
@@ -54,19 +65,8 @@ export default async function TicketDetailPage({ params }: PageProps<"/tickets/[
     )
   }
 
-  const registration = response.data?.registration
-  const event = response.data?.event
-
-  if (!registration || !event) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="space-y-4 text-center">
-          <h1 className="text-xl font-semibold">Ticket not found</h1>
-          <p className="text-muted-foreground">This ticket does not exist or has been removed.</p>
-        </div>
-      </div>
-    )
-  }
+  const registration: TicketRegistration = response.data.registration
+  const event: TicketEvent = response.data.event
 
   if (registration.profileId !== profileId) {
     return (

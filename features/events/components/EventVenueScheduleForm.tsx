@@ -89,7 +89,7 @@ export function EventVenueScheduleForm({ formData, onFieldChange, onVenueChange 
             min={1}
             placeholder="Leave empty for unlimited"
             value={formData.capacity ?? ""}
-            onChange={e => onFieldChange("capacity", e.target.value ? Number(e.target.value) : null)}
+            onChange={e => onFieldChange("capacity", e.target.value ? Number(e.target.value) : undefined)}
           />
         </div>
       </CardContent>

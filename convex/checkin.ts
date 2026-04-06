@@ -372,7 +372,7 @@ export const getEventAnalytics = query({
 
     if (!analytics) return null
 
-    const capacityRemaining = event.capacity === null ? "Unlimited" : event.capacity - event.registrationCount
+    const capacityRemaining = event.capacity === undefined ? "Unlimited" : event.capacity - event.registrationCount
     const engagementRate =
       analytics.totalRegistrations > 0 ? (analytics.totalCheckedIn / analytics.totalRegistrations) * 100 : 0
 
@@ -381,7 +381,7 @@ export const getEventAnalytics = query({
       totalCheckedIn: analytics.totalCheckedIn,
       engagementRate: Math.round(engagementRate * 100) / 100,
       capacityRemaining,
-      dailyCounts: analytics.dailyCounts as Record<string, number>,
+      dailyCounts: analytics.dailyCounts,
       timezone: profile.timezone,
     }
   },

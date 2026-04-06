@@ -107,7 +107,7 @@ function TicketCard({
           <div className="flex items-center gap-2">
             <Users className="size-4 shrink-0" />
             <span>
-              {event.capacity === null
+              {event.capacity === undefined
                 ? "Unlimited capacity"
                 : `${event.registrationCount}/${event.capacity} registered`}
             </span>
@@ -189,7 +189,7 @@ async function TicketList() {
   const currentTimestamp = await getCurrentTimestamp()
   const result = await tryCatch(fetchAuthQuery(api.registrations.getMyRegistrations))
 
-  if (result.error || (result.data as any)?.error) {
+  if (result.error || (result.data)?.error) {
     return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
@@ -199,7 +199,7 @@ async function TicketList() {
     )
   }
 
-  const registrations: TicketRegistration[] = (result.data as any)?.data ?? []
+  const registrations: TicketRegistration[] = (result.data)?.data ?? []
   const validRegistrations = registrations?.filter((reg): reg is TicketRegistration => reg.event != null)
 
   if (!validRegistrations?.length) {

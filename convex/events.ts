@@ -91,7 +91,7 @@ export const create = mutation({
     }),
     startDatetime: v.number(),
     endDatetime: v.number(),
-    capacity: v.union(v.null(), v.number()),
+    capacity: v.optional(v.number()),
     coverPhoto: v.optional(v.id("_storage")),
     themeColor: v.optional(v.string()),
   },

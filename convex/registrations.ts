@@ -67,7 +67,7 @@ export const register = mutation({
         cause: "organizer_cannot_register" as const,
         data: null,
       }
-    if (event.capacity !== null && event.registrationCount >= event.capacity) {
+    if (event.capacity !== undefined && event.registrationCount >= event.capacity) {
       return { error: true, message: "This event is full", cause: "event_full" as const, data: null }
     }
 
@@ -98,8 +98,8 @@ export const register = mutation({
       status: "active",
       checkInStatus: "pending",
       checkedIn: false,
-      checkedInAt: null,
-      cancelledAt: null,
+      checkedInAt: undefined,
+      cancelledAt: undefined,
     })
 
     await ctx.db.patch("events", event._id, { registrationCount: event.registrationCount + 1 })
@@ -111,7 +111,7 @@ export const register = mutation({
 
     if (analytics) {
       const today = new Date().toISOString().split("T")[0]
-      const dailyCounts = analytics.dailyCounts as Record<string, number>
+      const dailyCounts = analytics.dailyCounts
       dailyCounts[today] = (dailyCounts[today] ?? 0) + 1
       await ctx.db.patch("eventAnalytics", analytics._id, {
         totalRegistrations: analytics.totalRegistrations + 1,
@@ -179,7 +179,7 @@ export const cancelRegistration = mutation({
 
     if (analytics) {
       const today = new Date().toISOString().split("T")[0]
-      const dailyCounts = analytics.dailyCounts as Record<string, number>
+      const dailyCounts = analytics.dailyCounts
       dailyCounts[today] = Math.max(0, (dailyCounts[today] ?? 1) - 1)
       await ctx.db.patch("eventAnalytics", analytics._id, {
         totalRegistrations: Math.max(0, analytics.totalRegistrations - 1),

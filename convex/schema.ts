@@ -40,7 +40,7 @@ export const tables = {
     }),
     startDatetime: v.number(),
     endDatetime: v.number(),
-    capacity: v.union(v.null(), v.number()),
+    capacity: v.optional(v.number()),
     registrationCount: v.number(),
     isFeatured: v.boolean(),
     theme: v.optional(
@@ -67,8 +67,8 @@ export const tables = {
     status: v.union(v.literal("active"), v.literal("cancelled")),
     checkInStatus: v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected")),
     checkedIn: v.boolean(),
-    checkedInAt: v.optional(v.union(v.null(), v.number())),
-    cancelledAt: v.optional(v.union(v.null(), v.number())),
+    checkedInAt: v.optional(v.number()),
+    cancelledAt: v.optional(v.number()),
   })
     .index("by_profileId_status", ["profileId", "status"])
     .index("by_eventId_status", ["eventId", "status"])
@@ -77,7 +77,7 @@ export const tables = {
 
   eventAnalytics: defineTable({
     eventId: v.id("events"),
-    dailyCounts: v.any(),
+    dailyCounts: v.record(v.string(), v.number()),
     totalRegistrations: v.number(),
     totalCheckedIn: v.number(),
   }).index("by_event", ["eventId"]),

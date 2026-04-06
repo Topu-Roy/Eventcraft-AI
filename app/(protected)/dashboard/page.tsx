@@ -22,7 +22,7 @@ function EventSummaryCard({ event, now }: { event: Doc<"events">; now: number })
   const status = statusLabels[event.status] ?? { label: event.status, variant: "outline" }
   const isPast = event.startDatetime < now
   const capacityInfo =
-    event.capacity === null
+    event.capacity === undefined
       ? "Unlimited"
       : event.capacity - event.registrationCount <= 0
         ? "Sold out"

@@ -330,7 +330,7 @@ export function EventEditForm({ eventId, event }: EventEditFormProps) {
                     min={1}
                     placeholder="Unlimited"
                     value={field.state.value ?? ""}
-                    onChange={e => field.handleChange(e.target.value ? Number(e.target.value) : null)}
+                    onChange={e => field.handleChange(e.target.value ? Number(e.target.value) : undefined)}
                   />
                   <FieldError errors={field.state.meta.errors} />
                 </Field>
