@@ -1,11 +1,10 @@
 "use client"
 
 import { api } from "@/convex/_generated/api"
-import type { Doc } from "@/convex/_generated/dataModel"
 import { useQuery } from "convex/react"
 import { useRouter, useSearchParams } from "next/navigation"
 
-export function CategoryTabs(_props: { categories: Doc<"categories">[] }) {
+export function CategoryTabs() {
   const categories = useQuery(api.categories.list)
   const router = useRouter()
   const searchParams = useSearchParams()

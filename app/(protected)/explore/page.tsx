@@ -32,7 +32,6 @@ async function TrendingSection() {
 async function LocationSection() {
   const profileResult = await fetchAuthQuery(api.profiles.getCurrent)
   const profile = profileResult.data
-
   if (!profile?.location) return null
 
   const eventsResult = await tryCatch(
@@ -43,13 +42,12 @@ async function LocationSection() {
     })
   )
 
-  const events = eventsResult.data
-  if (!events?.length) return null
+  if (!eventsResult.data?.length) return null
 
   return (
     <EventCarousel
       title={`Near ${profile.location.city}, ${profile.location.country}`}
-      events={events}
+      events={eventsResult.data}
       emptyMessage="No events near you"
     />
   )
@@ -59,7 +57,7 @@ async function CategorySection() {
   const result = await tryCatch(fetchAuthQuery(api.categories.list))
   if (!result.data?.length) return null
 
-  return <CategoryTabs categories={result.data} />
+  return <CategoryTabs />
 }
 
 function CategorySectionSkeleton() {
