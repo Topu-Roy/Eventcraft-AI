@@ -155,7 +155,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ ticketC
         <Card className="overflow-hidden">
           <div
             className="aspect-video w-full"
-            style={{ backgroundColor: event.coverPhoto?.dominantColor ?? "hsl(var(--muted))" }}
+            style={{ backgroundColor: event.themeColor ?? "hsl(var(--muted))" }}
           />
           <CardContent className="space-y-6 p-6">
             <div className="space-y-1 text-center">

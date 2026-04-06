@@ -67,7 +67,7 @@ function TicketCard({
     <Card className="group overflow-hidden transition-all hover:border-primary/50 hover:shadow-sm">
       <div
         className="relative aspect-video w-full"
-        style={{ backgroundColor: event.coverPhoto?.dominantColor ?? "hsl(var(--muted))" }}
+        style={{ backgroundColor: event.themeColor ?? "hsl(var(--muted))" }}
       >
         {isPastEvent ? (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60">

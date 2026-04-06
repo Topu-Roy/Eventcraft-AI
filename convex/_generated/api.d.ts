@@ -22,6 +22,7 @@ import type * as onboarding from "../onboarding.js";
 import type * as profiles from "../profiles.js";
 import type * as registrations from "../registrations.js";
 import type * as seed from "../seed.js";
+import type * as storage from "../storage.js";
 
 import type {
   ApiFromModules,
@@ -44,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   profiles: typeof profiles;
   registrations: typeof registrations;
   seed: typeof seed;
+  storage: typeof storage;
 }>;
 
 /**

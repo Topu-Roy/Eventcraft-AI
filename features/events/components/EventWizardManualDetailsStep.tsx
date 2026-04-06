@@ -5,6 +5,7 @@ import { api } from "@/convex/_generated/api"
 import { updateWizardData, wizardDataAtom } from "@/features/events/eventWizard"
 import { useQuery } from "convex/react"
 import { useAtom } from "jotai"
+import { CoverImage } from "@/components/CoverImage"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,8 +31,21 @@ export function EventWizardManualDetailsStep() {
     dispatchUpdateWizardData({ tags: wizardData.tags.filter(tag => tag !== tagToRemove) })
   }
 
+  const hasCoverPhoto = wizardData.coverPhoto?.storageId ?? wizardData.coverPhoto?.previewUrl
+
   return (
     <div className="space-y-6">
+      {hasCoverPhoto && (
+        <div className="relative aspect-video overflow-hidden rounded-lg border">
+          <CoverImage
+            storageId={wizardData.coverPhoto?.storageId ?? null}
+            themeColor={wizardData.themeColor}
+            alt="Cover preview"
+            className="h-full w-full"
+          />
+        </div>
+      )}
+
       <div>
         <Label htmlFor="event-title">Event Title</Label>
         <Input

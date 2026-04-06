@@ -1,3 +1,4 @@
+import type { Id } from "@/convex/_generated/dataModel"
 import { atom } from "jotai"
 
 type AiWizardStep = "ai-prompt" | "ai-review" | "cover-photo" | "venue-schedule"
@@ -5,10 +6,8 @@ type ManualWizardStep = "details" | "cover-photo" | "venue-schedule"
 type Pipeline = "ai" | "manual" | null
 
 type CoverPhoto = {
-  url: string
-  dominantColor: string
-  photographerName: string
-  photographerUrl: string
+  storageId: Id<"_storage"> | null
+  previewUrl: string | null
 }
 
 type Venue = {
@@ -33,6 +32,7 @@ type EventWizardData = {
   category: string
   tags: string[]
   coverPhoto: CoverPhoto | null
+  themeColor: string
   venue: Venue | null
   startDatetime: string
   endDatetime: string
@@ -44,7 +44,11 @@ const initialWizardData: EventWizardData = {
   description: "",
   category: "",
   tags: [],
-  coverPhoto: null,
+  coverPhoto: {
+    storageId: null,
+    previewUrl: null,
+  } as CoverPhoto,
+  themeColor: "",
   venue: null,
   startDatetime: "",
   endDatetime: "",

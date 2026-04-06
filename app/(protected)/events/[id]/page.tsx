@@ -5,6 +5,7 @@ import { RegistrationCTA } from "@/features/events/components/RegistrationCTA"
 import { Calendar, Check, Clock, MapPin, Share2, Tag, Users } from "lucide-react"
 import { notFound } from "next/navigation"
 import { fetchAuthQuery } from "@/lib/auth-server"
+import { EventCoverImage } from "@/components/EventCoverImage"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -77,8 +78,14 @@ function EventHeader({
     <div className="relative">
       <div
         className={`aspect-video w-full overflow-hidden rounded-lg ${isCancelled ? "opacity-50 saturate-0" : ""}`}
-        style={{ backgroundColor: event.coverPhoto?.dominantColor ?? "hsl(var(--muted))" }}
-      />
+      >
+        <EventCoverImage
+          storageId={event.coverPhoto}
+          themeColor={event.themeColor}
+          title={event.title}
+          className="h-full w-full"
+        />
+      </div>
       <div className="absolute top-4 left-4 flex flex-wrap gap-2">
         {getCategoryBadge(event.category)}
         {isCancelled ? <Badge variant="destructive">Cancelled</Badge> : null}

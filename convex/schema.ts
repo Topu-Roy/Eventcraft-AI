@@ -27,14 +27,8 @@ export const tables = {
     description: v.string(),
     category: v.string(),
     tags: v.array(v.string()),
-    coverPhoto: v.optional(
-      v.object({
-        url: v.string(),
-        dominantColor: v.string(),
-        photographerName: v.string(),
-        photographerUrl: v.string(),
-      })
-    ),
+    coverPhoto: v.optional(v.id("_storage")),
+    themeColor: v.optional(v.string()),
     status: v.union(v.literal("draft"), v.literal("published"), v.literal("completed"), v.literal("cancelled")),
     venue: v.object({
       name: v.string(),

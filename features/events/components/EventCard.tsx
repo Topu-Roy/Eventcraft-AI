@@ -1,6 +1,7 @@
 import type { Doc } from "@/convex/_generated/dataModel"
 import { CalendarDays, MapPin, Ticket, Users } from "lucide-react"
 import Link from "next/link"
+import { CoverImage } from "@/components/CoverImage"
 import { Badge } from "@/components/ui/badge"
 
 type EventCardProps = {
@@ -73,18 +74,12 @@ export function EventCard({ event, variant = "default", now, isRegistered }: Eve
         className="group relative flex w-64 shrink-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-sm"
       >
         <div className="relative aspect-video overflow-hidden bg-muted">
-          {event.coverPhoto ? (
-            <div
-              className="flex h-full w-full items-center justify-center transition-transform group-hover:scale-105"
-              style={{ backgroundColor: event.coverPhoto.dominantColor ?? "hsl(var(--muted))" }}
-            >
-              <span className="text-sm text-primary-foreground/80">{event.title}</span>
-            </div>
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-muted">
-              <span className="text-sm text-muted-foreground">{event.title}</span>
-            </div>
-          )}
+          <CoverImage
+            storageId={event.coverPhoto}
+            themeColor={event.themeColor}
+            alt={event.title}
+            className="h-full w-full transition-transform group-hover:scale-105"
+          />
           {isPast && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/60">
               <span className="text-xs font-medium text-muted-foreground">Ended</span>
@@ -129,14 +124,12 @@ export function EventCard({ event, variant = "default", now, isRegistered }: Eve
           </div>
         )}
         <div className="relative aspect-square h-24 shrink-0 overflow-hidden bg-muted">
-          {event.coverPhoto ? (
-            <div
-              className="flex h-full w-full items-center justify-center transition-transform group-hover:scale-105"
-              style={{ backgroundColor: event.coverPhoto.dominantColor ?? "hsl(var(--muted))" }}
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-muted" />
-          )}
+          <CoverImage
+            storageId={event.coverPhoto}
+            themeColor={event.themeColor}
+            alt={event.title}
+            className="h-full w-full transition-transform group-hover:scale-105"
+          />
         </div>
         <div className="flex min-w-0 flex-1 flex-col justify-between">
           <div>
@@ -171,18 +164,12 @@ export function EventCard({ event, variant = "default", now, isRegistered }: Eve
       className="group relative flex w-72 shrink-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-sm"
     >
       <div className="relative aspect-video overflow-hidden bg-muted">
-        {event.coverPhoto ? (
-          <div
-            className="flex h-full w-full items-center justify-center transition-transform group-hover:scale-105"
-            style={{ backgroundColor: event.coverPhoto.dominantColor ?? "hsl(var(--muted))" }}
-          >
-            <span className="text-sm text-primary-foreground/80">{event.title}</span>
-          </div>
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-muted">
-            <span className="text-sm text-muted-foreground">{event.title}</span>
-          </div>
-        )}
+        <CoverImage
+          storageId={event.coverPhoto}
+          themeColor={event.themeColor}
+          alt={event.title}
+          className="h-full w-full"
+        />
         <div className="absolute top-2 left-2 flex gap-1.5">{getCategoryBadge(event.category)}</div>
         {isPast && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60">

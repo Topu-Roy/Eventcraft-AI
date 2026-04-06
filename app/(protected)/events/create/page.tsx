@@ -99,12 +99,8 @@ export default function CreateEventPage() {
           }
         : { name: "TBD", address: "TBD", city: "TBD", country: "TBD", lat: 0, lng: 0 }
 
-      const coverPhotoPayload = wizardFormData.coverPhoto ?? {
-        url: "/placeholders/tech.svg",
-        dominantColor: "#3B82F6",
-        photographerName: "Placeholder",
-        photographerUrl: "#",
-      }
+      const coverPhotoStorageId = wizardFormData.coverPhoto?.storageId ?? null
+      const themeColor = wizardFormData.themeColor || ""
 
       const createResult = await createEventMutation({
         title: wizardFormData.title,
@@ -115,7 +111,8 @@ export default function CreateEventPage() {
         startDatetime: startTimestamp,
         endDatetime: endTimestamp,
         capacity: wizardFormData.capacity,
-        coverPhoto: coverPhotoPayload,
+        coverPhoto: coverPhotoStorageId ?? undefined,
+        themeColor: themeColor || undefined,
       })
 
       if (createResult.error) {
@@ -159,12 +156,8 @@ export default function CreateEventPage() {
         lng: wizardFormData.venue.lng ?? 0,
       }
 
-      const coverPhotoPayload = wizardFormData.coverPhoto ?? {
-        url: "/placeholders/tech.svg",
-        dominantColor: "#3B82F6",
-        photographerName: "Placeholder",
-        photographerUrl: "#",
-      }
+      const coverPhotoStorageId = wizardFormData.coverPhoto?.storageId ?? null
+      const themeColor = wizardFormData.themeColor || ""
 
       const createResult = await createEventMutation({
         title: wizardFormData.title,
@@ -175,7 +168,8 @@ export default function CreateEventPage() {
         startDatetime: startTimestamp,
         endDatetime: endTimestamp,
         capacity: wizardFormData.capacity,
-        coverPhoto: coverPhotoPayload,
+        coverPhoto: coverPhotoStorageId ?? undefined,
+        themeColor: themeColor || undefined,
       })
 
       if (createResult.error) {

@@ -77,12 +77,8 @@ export const create = mutation({
     startDatetime: v.number(),
     endDatetime: v.number(),
     capacity: v.union(v.null(), v.number()),
-    coverPhoto: v.object({
-      url: v.string(),
-      dominantColor: v.string(),
-      photographerName: v.string(),
-      photographerUrl: v.string(),
-    }),
+    coverPhoto: v.optional(v.id("_storage")),
+    themeColor: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()
@@ -114,6 +110,7 @@ export const create = mutation({
       category: args.category,
       tags: args.tags,
       coverPhoto: args.coverPhoto,
+      themeColor: args.themeColor,
       status: "draft",
       venue: args.venue,
       startDatetime: args.startDatetime,
@@ -159,14 +156,8 @@ export const update = mutation({
     startDatetime: v.optional(v.number()),
     endDatetime: v.optional(v.number()),
     capacity: v.optional(v.union(v.null(), v.number())),
-    coverPhoto: v.optional(
-      v.object({
-        url: v.string(),
-        dominantColor: v.string(),
-        photographerName: v.string(),
-        photographerUrl: v.string(),
-      })
-    ),
+    coverPhoto: v.optional(v.id("_storage")),
+    themeColor: v.optional(v.string()),
     theme: v.optional(
       v.object({
         accentColor: v.string(),
@@ -205,6 +196,7 @@ export const update = mutation({
     if (args.endDatetime !== undefined) updates.endDatetime = args.endDatetime
     if (args.capacity !== undefined) updates.capacity = args.capacity
     if (args.coverPhoto !== undefined) updates.coverPhoto = args.coverPhoto
+    if (args.themeColor !== undefined) updates.themeColor = args.themeColor
     if (args.theme !== undefined) updates.theme = args.theme
 
     if (args.title || args.description || args.tags) {

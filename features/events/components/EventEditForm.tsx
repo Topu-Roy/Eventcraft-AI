@@ -4,7 +4,6 @@ import { useCallback } from "react"
 import { useForm } from "@tanstack/react-form"
 import { api } from "@/convex/_generated/api"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
-import { PLACEHOLDER_PHOTOS } from "@/features/events/constants"
 import { eventEditSchema, type EventEditInput } from "@/features/events/schemas"
 import { eventToFormData } from "@/features/events/types"
 import type { EditableFields } from "@/features/events/types"
@@ -12,7 +11,7 @@ import { useMutation, useQuery } from "convex/react"
 import { Calendar, ImageIcon, MapPin, Save, X } from "lucide-react"
 import { toast } from "sonner"
 import { tryCatch } from "@/lib/try-catch"
-import { Badge } from "@/components/ui/badge"
+import { CoverImage } from "@/components/CoverImage"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
@@ -63,6 +62,7 @@ export function EventEditForm({ eventId, event }: EventEditFormProps) {
           endDatetime: endMs,
           capacity: value.capacity,
           coverPhoto: event.coverPhoto ?? undefined,
+          themeColor: event.themeColor ?? undefined,
         })
       )
 
@@ -218,39 +218,16 @@ export function EventEditForm({ eventId, event }: EventEditFormProps) {
             <ImageIcon className="size-5" />
             Cover Photo
           </CardTitle>
-          <CardDescription>Select a cover image for your event.</CardDescription>
+          <CardDescription>Current event cover photo.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-            {PLACEHOLDER_PHOTOS.map(photo => {
-              const isSelected = event.coverPhoto?.url === photo.url
-              return (
-                <button
-                  key={photo.url}
-                  type="button"
-                  className={`relative aspect-video overflow-hidden rounded-lg border-2 transition-all ${
-                    isSelected
-                      ? "border-primary ring-2 ring-primary/20"
-                      : "border-transparent hover:border-muted-foreground/50"
-                  }`}
-                  disabled
-                >
-                  <div
-                    className="absolute inset-0 flex items-center justify-center"
-                    style={{ backgroundColor: photo.dominantColor }}
-                  >
-                    <ImageIcon className="size-6 text-primary-foreground/80" aria-hidden="true" />
-                  </div>
-                  {isSelected ? (
-                    <div className="absolute top-1 right-1">
-                      <Badge variant="default" className="px-1 py-0 text-[10px]">
-                        ✓
-                      </Badge>
-                    </div>
-                  ) : null}
-                </button>
-              )
-            })}
+          <div className="relative aspect-video overflow-hidden rounded-lg border">
+            <CoverImage
+              storageId={event.coverPhoto}
+              themeColor={event.themeColor}
+              alt={event.title}
+              className="h-full w-full"
+            />
           </div>
           <p className="mt-3 text-center text-xs text-muted-foreground">Cover photo editing coming soon.</p>
         </CardContent>
