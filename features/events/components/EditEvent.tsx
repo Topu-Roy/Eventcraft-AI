@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
 
 const STATUS_LABELS: Record<
   string,
@@ -44,53 +43,49 @@ export function EditEvent({ eventId }: { eventId: string }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const router = useRouter()
-  const event = useQuery(api.events.getById, eventId ? { eventId: eventId as Id<"events"> } : "skip")
+  const eventQuery = useQuery(api.events.getById, eventId ? { eventId: eventId as Id<"events"> } : "skip")
+  const event = eventQuery?.data ?? null
+  const hasError = eventQuery?.error ?? false
   const publishEvent = useMutation(api.events.publish)
   const cancelEvent = useMutation(api.events.cancel)
 
-  async function handlePublish() {
-    if (!eventId) return
-    const result = await tryCatch(publishEvent({ eventId: eventId as Id<"events"> }))
-    if (result.error) {
-      toast.error(result.error.message)
-    } else if (result.data?.error) {
-      toast.error(result.data.cause)
-    } else {
-      toast.success("Event published!")
-      router.push(`/events/${eventId}`)
-    }
-  }
-
-  async function handleCancel() {
-    if (!eventId) return
-    const result = await tryCatch(cancelEvent({ eventId: eventId as Id<"events"> }))
-    if (result.error) {
-      toast.error(result.error.message)
-    } else if (result.data?.error) {
-      toast.error(result.data.cause)
-    } else {
-      toast.success("Event cancelled")
-      router.push(`/events/${eventId}`)
-    }
-  }
-
-  if (!event && eventId) {
+  if (!event || hasError) {
     return (
-      <div className="min-h-screen p-4 md:p-8">
-        <div className="mx-auto max-w-3xl space-y-6">
-          <Skeleton className="h-8 w-32" />
-          <Skeleton className="h-64 w-full rounded-lg" />
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="space-y-2 text-center">
+          <p className="text-muted-foreground">Unable to load event</p>
+          <Button variant="outline" onClick={() => router.back()}>
+            Go Back
+          </Button>
         </div>
       </div>
     )
   }
 
-  if (!event) {
-    return null
-  }
-
   const status = STATUS_LABELS[event.status] ?? { label: event.status, variant: "outline" as const }
   const statusDescription = STATUS_DESCRIPTIONS[event.status] ?? ""
+
+  async function handlePublish() {
+    if (!eventId) return
+    const result = await tryCatch(publishEvent({ eventId: eventId as Id<"events"> }))
+    if (result.error || result.data?.error) {
+      toast.error(result.data?.message ?? "Failed to publish")
+    } else {
+      toast.success("Event published!")
+    }
+  }
+
+  async function handleCancel() {
+    if (!eventId) return
+    setShowDeleteDialog(false)
+    const result = await tryCatch(cancelEvent({ eventId: eventId as Id<"events"> }))
+    if (result.error || result.data?.error) {
+      toast.error(result.data?.message ?? "Failed to cancel event")
+    } else {
+      toast.success("Event cancelled")
+      router.push("/dashboard")
+    }
+  }
 
   return (
     <div className="min-h-screen p-4 md:p-8">

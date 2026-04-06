@@ -60,8 +60,14 @@ async function getNow(): Promise<number> {
 
 export default async function DashboardPage() {
   const now = await getNow()
-  const events = await fetchAuthQuery(api.events.getMyEvents)
-  const planUsage = await fetchAuthQuery(api.events.getPlanUsage)
+
+  const [eventsResult, planUsageResult] = await Promise.all([
+    fetchAuthQuery(api.events.getMyEvents),
+    fetchAuthQuery(api.events.getPlanUsage),
+  ])
+
+  const events = eventsResult.data ?? []
+  const planUsage = planUsageResult.data
 
   const activeEvents = events?.filter(e => e.status === "published" || e.status === "draft") ?? []
   const totalRegistrations = events?.reduce((sum, e) => sum + e.registrationCount, 0) ?? 0
