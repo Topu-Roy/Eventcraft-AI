@@ -1,29 +1,53 @@
 import { v } from "convex/values"
 import { query } from "./_generated/server"
 
+const MAX_STRING_LENGTH = 100
+const MAX_LIMIT = 100
+
+function sanitizeString(str: string): string {
+  return str.trim().slice(0, MAX_STRING_LENGTH)
+}
+
+function validateLimit(limit: number | undefined): number {
+  if (!limit || limit < 1) return 20
+  return Math.min(limit, MAX_LIMIT)
+}
+
 /**
  * Returns personalized events matching the profile's interest categories.
  */
 export const getPersonalizedEvents = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, { limit = 20 }) => {
+    const safeLimit = validateLimit(limit)
+
     const identity = await ctx.auth.getUserIdentity()
-    if (!identity) return []
+    if (!identity) {
+      return { error: true, message: "Not authenticated", cause: "unauthenticated" as const, data: null }
+    }
 
     const profile = await ctx.db
       .query("profile")
       .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
 
-    if (!profile?.interests.length) return []
+    if (!profile) {
+      return { error: true, message: "Profile not found", cause: "profile_not_found" as const, data: null }
+    }
+
+    if (!profile.interests.length) {
+      return { error: true, message: "No interests set", cause: "no_interests" as const, data: [] }
+    }
 
     const now = Date.now()
     const allEvents = await ctx.db.query("events").collect()
 
-    return allEvents
+    const filtered = allEvents
       .filter(e => e.status === "published" && e.startDatetime >= now && profile.interests.includes(e.category))
       .sort((a, b) => a.startDatetime - b.startDatetime)
-      .slice(0, limit)
+      .slice(0, safeLimit)
+
+    return { error: false, message: null, cause: null, data: filtered }
   },
 })
 
@@ -37,19 +61,25 @@ export const getEventsByLocation = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, { city, country, limit = 20 }) => {
+    const safeLimit = validateLimit(limit)
+    const safeCity = sanitizeString(city)
+    const safeCountry = sanitizeString(country)
+
     const now = Date.now()
     const allEvents = await ctx.db.query("events").collect()
 
-    return allEvents
+    const filtered = allEvents
       .filter(
         e =>
           e.status === "published" &&
           e.startDatetime >= now &&
-          e.venue.city.toLowerCase() === city.toLowerCase() &&
-          e.venue.country.toLowerCase() === country.toLowerCase()
+          e.venue.city.toLowerCase() === safeCity.toLowerCase() &&
+          e.venue.country.toLowerCase() === safeCountry.toLowerCase()
       )
       .sort((a, b) => a.startDatetime - b.startDatetime)
-      .slice(0, limit)
+      .slice(0, safeLimit)
+
+    return { error: false, message: null, cause: null, data: filtered }
   },
 })
 
@@ -62,13 +92,18 @@ export const getEventsByCategory = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, { category, limit = 20 }) => {
+    const safeLimit = validateLimit(limit)
+    const safeCategory = sanitizeString(category)
+
     const now = Date.now()
 
-    return await ctx.db
+    const events = await ctx.db
       .query("events")
-      .withIndex("by_category_status_date", q => q.eq("category", category).eq("status", "published"))
+      .withIndex("by_category_status_date", q => q.eq("category", safeCategory).eq("status", "published"))
       .filter(q => q.gte(q.field("startDatetime"), now))
-      .take(limit)
+      .take(safeLimit)
+
+    return { error: false, message: null, cause: null, data: events }
   },
 })
 
@@ -78,6 +113,7 @@ export const getEventsByCategory = query({
 export const getTrendingEvents = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, { limit = 20 }) => {
+    const safeLimit = validateLimit(limit)
     const now = Date.now()
     const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000
 
@@ -91,14 +127,16 @@ export const getTrendingEvents = query({
         })
       })
       .sort((a, b) => b.totalRegistrations - a.totalRegistrations)
-      .slice(0, limit)
+      .slice(0, safeLimit)
 
     const eventIds = trending.map(a => a.eventId)
     const events = await Promise.all(eventIds.map(id => ctx.db.get("events", id)))
 
-    return events.filter(
+    const filtered = events.filter(
       (e): e is NonNullable<typeof e> => e !== null && e.status === "published" && e.startDatetime >= now
     )
+
+    return { error: false, message: null, cause: null, data: filtered }
   },
 })
 
@@ -109,8 +147,9 @@ export const getEventDetail = query({
   args: { eventId: v.id("events") },
   handler: async (ctx, { eventId }) => {
     const event = await ctx.db.get("events", eventId)
-    if (!event) return null
-    if (event.status === "draft") return null
+    if (!event) {
+      return { error: true, message: "Event not found", cause: "event_not_found" as const, data: null }
+    }
 
     const identity = await ctx.auth.getUserIdentity()
     let profile = null
@@ -125,7 +164,9 @@ export const getEventDetail = query({
       ? event.organizerId === profile._id || event.coOrganizers.includes(profile._id)
       : false
 
-    if (event.status !== "published" && !isOrganizer) return null
+    if (event.status !== "published" && !isOrganizer) {
+      return { error: true, message: "Event not found", cause: "event_not_found" as const, data: null }
+    }
 
     const organizer = await ctx.db.get("profile", event.organizerId)
 
@@ -138,7 +179,12 @@ export const getEventDetail = query({
       isRegistered = registration?.status === "active"
     }
 
-    return { event, organizer, isOrganizer, isRegistered }
+    return {
+      error: false,
+      message: null,
+      cause: null,
+      data: { event, organizer, isOrganizer, isRegistered },
+    }
   },
 })
 
@@ -151,11 +197,18 @@ export const searchEvents = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, { query: searchQuery, limit = 20 }) => {
-    if (!searchQuery.trim()) return []
+    const safeLimit = validateLimit(limit)
+    const safeQuery = sanitizeString(searchQuery)
 
-    return await ctx.db
+    if (!safeQuery) {
+      return { error: false, message: null, cause: null, data: [] }
+    }
+
+    const events = await ctx.db
       .query("events")
-      .withSearchIndex("search_events", q => q.search("searchableText", searchQuery).eq("status", "published"))
-      .take(limit)
+      .withSearchIndex("search_events", q => q.search("searchableText", safeQuery).eq("status", "published"))
+      .take(safeLimit)
+
+    return { error: false, message: null, cause: null, data: events }
   },
 })

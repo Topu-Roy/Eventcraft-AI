@@ -9,22 +9,30 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 async function PersonalizedSection() {
   const result = await tryCatch(fetchAuthQuery(api.discovery.getPersonalizedEvents, { limit: 10 }))
+  const events = result.data?.data ?? []
   return (
     <EventCarousel
       title="For You"
-      events={result.data ?? []}
-      emptyMessage={result.error ? "Unable to load events" : "Complete onboarding to see personalized events"}
+      events={events}
+      emptyMessage={
+        result.data?.error
+          ? (result.data.message ?? "Unable to load events")
+          : "Complete onboarding to see personalized events"
+      }
     />
   )
 }
 
 async function TrendingSection() {
   const result = await tryCatch(fetchAuthQuery(api.discovery.getTrendingEvents, { limit: 10 }))
+  const events = result.data?.data ?? []
   return (
     <EventCarousel
       title="Trending"
-      events={result.data ?? []}
-      emptyMessage={result.error ? "Unable to load events" : "No trending events right now"}
+      events={events}
+      emptyMessage={
+        result.data?.error ? (result.data.message ?? "Unable to load events") : "No trending events right now"
+      }
     />
   )
 }
@@ -42,12 +50,13 @@ async function LocationSection() {
     })
   )
 
-  if (!eventsResult.data?.length) return null
+  const events = eventsResult.data?.data ?? []
+  if (!events.length) return null
 
   return (
     <EventCarousel
       title={`Near ${profile.location.city}, ${profile.location.country}`}
-      events={eventsResult.data}
+      events={events}
       emptyMessage="No events near you"
     />
   )

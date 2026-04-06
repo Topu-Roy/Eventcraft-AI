@@ -46,7 +46,8 @@ export function SearchInput() {
     debouncedQuery.trim().length >= 2 ? { query: debouncedQuery, limit: 8 } : "skip"
   )
 
-  const hasResults = results && results.length > 0
+  const events = results?.data ?? []
+  const hasResults = events.length > 0
 
   return (
     <div className="relative">
@@ -72,7 +73,7 @@ export function SearchInput() {
           <CardContent className="p-2">
             {hasResults ? (
               <div className="space-y-1">
-                {results.map(event => (
+                {events.map(event => (
                   <SearchResultItem key={event._id} event={event} />
                 ))}
               </div>
