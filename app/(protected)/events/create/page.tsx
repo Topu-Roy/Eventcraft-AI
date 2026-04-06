@@ -50,6 +50,10 @@ function getStepLabel(
   return steps.find(s => s.key === step)?.label ?? ""
 }
 
+/**
+ * Event creation page with dual-pipeline wizard (AI-assisted or manual).
+ * Manages wizard state through Jotai atoms and coordinates with Convex mutations.
+ */
 export default function CreateEventPage() {
   const [selectedPipeline] = useAtom(selectedPipelineAtom)
   const [aiStep] = useAtom(aiWizardStepAtom)
