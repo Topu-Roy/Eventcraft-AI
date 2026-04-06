@@ -1,15 +1,22 @@
 import { api } from "@/convex/_generated/api"
+import type { Doc } from "@/convex/_generated/dataModel"
 import { Calendar, LayoutDashboard, Plus, Search, Ticket } from "lucide-react"
 import Link from "next/link"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
+import { tryCatch } from "@/lib/try-catch"
 import { Button } from "@/components/ui/button"
 import { LogoutButton } from "./LogoutButton"
 import { MobileMenu } from "./MobileMenu"
 
 export async function Header() {
-  const authed = await isAuthenticated()
-  const profileResult = authed ? await fetchAuthQuery(api.profiles.getCurrent) : null
-  const profile = profileResult?.data ?? null
+  const authResult = await tryCatch(isAuthenticated())
+  const authed = authResult.data ?? false
+
+  let profile: Doc<"profile"> | null = null
+  if (authed) {
+    const profileResult = await fetchAuthQuery(api.profiles.getCurrent)
+    profile = profileResult.data ?? null
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">

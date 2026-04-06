@@ -1,9 +1,13 @@
 "use client"
 
 import { useState } from "react"
+import { useMutation } from "@tanstack/react-query"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { Calendar, LayoutDashboard, LogOut, Menu, Plus, Search, Ticket, User } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { authClient } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 
@@ -14,6 +18,28 @@ type MobileMenuProps = {
 
 export function MobileMenu({ authed, profile }: MobileMenuProps) {
   const [open, setOpen] = useState(false)
+
+  const router = useRouter()
+  const { mutate: signOut, isPending } = useMutation({
+    mutationFn: () => authClient.signOut(),
+  })
+
+  const handleSignOut = async () => {
+    signOut(undefined, {
+      onError(error) {
+        if (error instanceof Error) {
+          toast.error(error.message ?? "Failed to sign out")
+        }
+      },
+      onSuccess() {
+        router.refresh()
+      },
+    })
+  }
+
+  function closeMenu() {
+    setOpen(false)
+  }
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -32,7 +58,7 @@ export function MobileMenu({ authed, profile }: MobileMenuProps) {
         </SheetHeader>
 
         <nav className="mt-6 flex flex-col gap-2">
-          <Link href="/explore" onClick={() => setOpen(false)}>
+          <Link href="/explore" onClick={closeMenu}>
             <Button variant="ghost" className="w-full justify-start">
               <Search className="mr-2 size-4" />
               Explore
@@ -41,19 +67,19 @@ export function MobileMenu({ authed, profile }: MobileMenuProps) {
 
           {authed && (
             <>
-              <Link href="/dashboard" onClick={() => setOpen(false)}>
+              <Link href="/dashboard" onClick={closeMenu}>
                 <Button variant="ghost" className="w-full justify-start">
                   <LayoutDashboard className="mr-2 size-4" />
                   Dashboard
                 </Button>
               </Link>
-              <Link href="/events/create" onClick={() => setOpen(false)}>
+              <Link href="/events/create" onClick={closeMenu}>
                 <Button variant="ghost" className="w-full justify-start">
                   <Plus className="mr-2 size-4" />
                   Create Event
                 </Button>
               </Link>
-              <Link href="/tickets" onClick={() => setOpen(false)}>
+              <Link href="/tickets" onClick={closeMenu}>
                 <Button variant="ghost" className="w-full justify-start">
                   <Ticket className="mr-2 size-4" />
                   My Tickets
@@ -64,7 +90,7 @@ export function MobileMenu({ authed, profile }: MobileMenuProps) {
 
           {authed ? (
             <div className="mt-4 space-y-2 border-t pt-4">
-              <Link href="/profile" onClick={() => setOpen(false)}>
+              <Link href="/profile" onClick={closeMenu}>
                 <Button variant="ghost" className="w-full justify-start">
                   <User className="mr-2 size-4" />
                   {profile?.name ?? "Profile"}
@@ -73,18 +99,16 @@ export function MobileMenu({ authed, profile }: MobileMenuProps) {
               <Button
                 variant="ghost"
                 className="w-full justify-start text-destructive hover:text-destructive"
-                onClick={() => {
-                  setOpen(false)
-                  void import("@/lib/auth-client").then(m => m.authClient.signOut())
-                }}
+                onClick={handleSignOut}
+                disabled={isPending}
               >
                 <LogOut className="mr-2 size-4" />
-                Sign Out
+                {isPending ? "Signing out..." : "Sign Out"}
               </Button>
             </div>
           ) : (
             <div className="mt-4 space-y-2 border-t pt-4">
-              <Link href="/sign-in" onClick={() => setOpen(false)}>
+              <Link href="/sign-in" onClick={closeMenu}>
                 <Button variant="outline" className="w-full">
                   Sign In
                 </Button>

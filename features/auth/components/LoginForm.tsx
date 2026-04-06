@@ -19,15 +19,34 @@ function signInWithProvider(provider: SocialProvider) {
 export function LoginForm() {
   const router = useRouter()
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: (provider: SocialProvider) => signInWithProvider(provider),
-    onSuccess: () => {
-      router.push("/onboarding")
-    },
-    onError: error => {
-      toast.error(error.message ?? "Failed to login")
-    },
+  const { mutate: githubMutation, isPending: isSignInWithGithubPending } = useMutation({
+    mutationFn: () => signInWithProvider("github"),
   })
+
+  const { mutate: googleMutation, isPending: isSignInWithGooglePending } = useMutation({
+    mutationFn: () => signInWithProvider("google"),
+  })
+
+  function signInWithGithub() {
+    githubMutation(undefined, {
+      onError(error) {
+        toast.error(error.message ?? "Failed to login")
+      },
+      onSuccess() {
+        router.push("/onboarding")
+      },
+    })
+  }
+  function signInWithGoogle() {
+    googleMutation(undefined, {
+      onError(error) {
+        toast.error(error.message ?? "Failed to login")
+      },
+      onSuccess() {
+        router.push("/onboarding")
+      },
+    })
+  }
 
   return (
     <Card className="w-[350px]">
@@ -36,11 +55,21 @@ export function LoginForm() {
         <CardDescription>Sign in with your preferred provider.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <Button onClick={() => mutate("github")} className="w-full" variant="outline" disabled={isPending}>
-          {isPending ? "Signing in..." : "Sign in with GitHub"}
+        <Button
+          onClick={signInWithGithub}
+          className="w-full"
+          variant="outline"
+          disabled={isSignInWithGithubPending}
+        >
+          {isSignInWithGithubPending ? "Signing in..." : "Sign in with GitHub"}
         </Button>
-        <Button onClick={() => mutate("google")} className="w-full" variant="outline" disabled={isPending}>
-          {isPending ? "Signing in..." : "Sign in with Google"}
+        <Button
+          onClick={signInWithGoogle}
+          className="w-full"
+          variant="outline"
+          disabled={isSignInWithGooglePending}
+        >
+          {isSignInWithGooglePending ? "Signing in..." : "Sign in with Google"}
         </Button>
       </CardContent>
     </Card>
