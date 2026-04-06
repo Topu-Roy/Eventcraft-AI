@@ -1,4 +1,3 @@
-import { Suspense } from "react"
 import { api } from "@/convex/_generated/api"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { EventSelector } from "@/features/events/components/EventSelector"
@@ -162,9 +161,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <Suspense>
-          <EventSelector events={events} />
-        </Suspense>
+        <EventSelector events={events} />
       </div>
     </div>
   )
