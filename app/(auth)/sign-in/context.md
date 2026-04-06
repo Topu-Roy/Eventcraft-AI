@@ -2,15 +2,16 @@
 
 ## Route: `/sign-in`
 
-### Purpose
+### Metadata
 
-Authentication entry point. GitHub OAuth via BetterAuth.
+- **Title:** Sign In — EventCraft AI
+- **Description:** Sign in to EventCraft AI to create and discover events.
 
 ### Layout Chain
 
 ```
 app/layout.tsx                          → Root (providers, Header)
-  └── app/(auth)/layout.tsx             → AuthGuard(requireAuth=false, requireOnboardingComplete=false)
+  └── app/(auth)/layout.tsx             → AuthGuard(requireAuth=false)
         └── app/(auth)/sign-in/page.tsx
 ```
 
@@ -22,30 +23,25 @@ app/layout.tsx                          → Root (providers, Header)
 
 ### Auth Flow
 
-1. User clicks "Sign In with GitHub"
+1. User clicks "Sign in with GitHub"
 2. BetterAuth redirects to GitHub OAuth
 3. GitHub redirects back with code
-4. BetterAuth creates session + user in BetterAuth user table
-5. Profile created on first login (via `api.profiles.create`)
-6. Redirect: if profile has `onboardingComplete` → `/explore`, else → `/onboarding`
-
-### Convex Functions Used
-
-- `api.profiles.getCurrent` — query, checks if profile exists and onboarding status
+4. BetterAuth creates session + user
+5. Profile created on first login (`api.profiles.create`)
+6. Redirect: onboarding complete → `/explore`, else → `/onboarding`
 
 ### Redirect Logic
 
-- Already authenticated + onboarding complete → `/explore`
-- Already authenticated + onboarding incomplete → `/onboarding`
+- Authenticated + onboarding complete → `/explore`
+- Authenticated + incomplete → `/onboarding`
 - Not authenticated → show login form
 
 ### Auth Provider
 
-- GitHub OAuth only
-- Client ID/Secret configured via Convex env vars
+- GitHub OAuth via BetterAuth
 
 ### Edge Cases
 
-- Already logged in → redirect away from sign-in
+- Already logged in → redirect away
 - OAuth fails → error toast
-- Network error during profile check → redirect to onboarding (fail open)
+- Network error → redirect to onboarding (fail open)

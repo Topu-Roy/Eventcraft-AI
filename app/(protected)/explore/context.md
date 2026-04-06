@@ -2,58 +2,49 @@
 
 ## Route: `/explore`
 
-### Purpose
+### Metadata
 
-Discovery engine — the main landing page after onboarding. Shows personalized, location-based, and trending event carousels with category filtering and global search.
+- **Title:** Explore Events — EventCraft AI
+- **Description:** Discover events happening around you.
 
 ### Layout Chain
 
 ```
-app/layout.tsx                          → Root (providers, Header)
-  └── app/(protected)/layout.tsx        → AuthGuard(requireAuth=true, requireOnboardingComplete=true)
+app/layout.tsx
+  └── app/(protected)/layout.tsx        → AuthGuard(requireAuth=true)
         └── app/(protected)/explore/page.tsx
 ```
 
 ### Key Components
 
-| Component               | File                                              | Type   |
-| ----------------------- | ------------------------------------------------- | ------ |
-| `EventCarousel`         | `features/discovery/components/EventCarousel.tsx` | Client |
-| `EventCarouselSkeleton` | `features/discovery/components/EventCarousel.tsx` | Client |
-| `CategoryTabs`          | `features/discovery/components/CategoryTabs.tsx`  | Client |
-| `SearchInput`           | `features/discovery/components/SearchInput.tsx`   | Client |
+| Component       | File                                              | Type   |
+| --------------- | ------------------------------------------------- | ------ |
+| `EventCarousel` | `features/discovery/components/EventCarousel.tsx` | Client |
+| `CategoryTabs`  | `features/discovery/components/CategoryTabs.tsx`  | Client |
+| `SearchInput`   | `features/discovery/components/SearchInput.tsx`   | Client |
 
-### Convex Functions Used
+### Convex Functions
 
-- `api.discovery.getPersonalizedEvents` — events matching profile's interests, sorted by startDatetime
-- `api.discovery.getTrendingEvents` — most-registered events in past 7 days
-- `api.discovery.getEventsByLocation` — events in profile's saved city/country
-- `api.discovery.getEventsByCategory` — events filtered by category slug
-- `api.discovery.searchEvents` — full-text search on title/description/tags
-- `api.categories.list` — all categories for tabs
-- `api.profiles.getCurrent` — profile data for location-based results
+- `api.discovery.getPersonalizedEvents` — matching interests
+- `api.discovery.getTrendingEvents` — most registered past 7 days
+- `api.discovery.getEventsByLocation` — by city/country
+- `api.discovery.getEventsByCategory` — by slug
+- `api.discovery.searchEvents` — full-text search
+- `api.categories.list` — all categories
+- `api.profiles.getCurrent` — profile for location
 
-### Personalization Logic
+### Personalization
 
-- **Authenticated with interests** → Personalized carousel (matching categories)
-- **Unauthenticated or no interests** → Trending carousel (most registrations past 7 days)
-- **Location-based** → Events in profile's saved city/country
-- **Category tabs** → Horizontal scrollable tabs, selecting adds `?category=` to URL
-
-### Search
-
-- 300ms debounce on input
-- Results in floating dropdown panel
-- All queries sanitized server-side
+- Authenticated + interests → Personalized carousel
+- No interests → Trending carousel
+- Location-based → Events in saved city/country
 
 ### URL Parameters
 
-- `?category=<slug>` — filters all carousels by category
-- `?city=<city>` — overrides profile's saved location for location carousel
+- `?category=<slug>` — filter by category
+- `?city=<city>` — override location
 
-### Edge Cases
+### Search
 
-- No categories in DB → empty tabs (seed script should be run first)
-- Profile has no interests → trending carousel shown instead
-- Location not set → global feed shown
-- Search returns 0 results → "No events found" empty state
+- 300ms debounce
+- Results in floating dropdown

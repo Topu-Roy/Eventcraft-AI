@@ -2,17 +2,18 @@
 
 ## Route: `/onboarding`
 
-### Purpose
+### Metadata
 
-3-step wizard that collects user interests and location before granting access to the app. Gated by `AuthGuard` in the parent layout — requires auth, does NOT require onboarding complete.
+- **Title:** Get Started — EventCraft AI
+- **Description:** Set up your preferences to discover events tailored to you.
 
 ### Layout Chain
 
 ```
-app/layout.tsx                          → Root (providers, Header)
+app/layout.tsx
   └── app/(protected)/layout.tsx        → AuthGuard(requireAuth=true, requireOnboardingComplete=true)
         └── app/(protected)/onboarding/layout.tsx → AuthGuard(requireAuth=true, requireOnboardingComplete=false)
-              └── app/(protected)/onboarding/page.tsx
+              └── app/(auth)/onboarding/page.tsx
 ```
 
 ### Key Components
@@ -25,54 +26,42 @@ app/layout.tsx                          → Root (providers, Header)
 | `StepTwoLocation`  | `features/onboarding/components/StepTwoLocation.tsx`  | Client |
 | `StepThreeWelcome` | `features/onboarding/components/StepThreeWelcome.tsx` | Client |
 
-### State Management (Jotai Atoms)
+### State (Jotai)
 
-- `currentStepAtom` — tracks active step (1, 2, or 3)
+- `currentStepAtom` — step 1, 2, or 3
 - `stepOneDataAtom` — `{ interests: string[] }`
 - `stepTwoDataAtom` — `{ city, country, countryCode, lat, lng, timezone }`
-- `isSubmittingAtom` — blocks double-submission on step 3
+- `isSubmittingAtom` — blocks step 3 double-submit
 
-### Convex Functions Used
-
-- `api.categories.list` — query, no auth, returns all categories sorted by name
-- `api.onboarding.get` — query, requires auth, returns onboarding doc or null
-- `api.onboarding.saveStepOne` — mutation, saves interests + marks step 1 complete
-- `api.onboarding.saveStepTwo` — mutation, saves location + marks step 2 complete
-- `api.profiles.completeOnboarding` — mutation, writes interests/location/timezone to profile, sets `onboardingComplete: true`
-
-### Step Flow
+### Steps
 
 **Step 1 — Interests**
 
-- Fetches categories from Convex
-- Grid of selectable cards (icon + name)
-- Multi-select with checkmark overlay
-- Min 1 selection required to enable Continue
-- Saves to `onboarding` document immediately on Next via `saveStepOne`
+- "What are you interested in?"
+- Grid of category cards, multi-select
+- Saves to `onboarding` doc on Next
 
 **Step 2 — Location**
 
-- Primary: "Use My Location" button using `navigator.geolocation` (5s timeout)
-- Manual: debounced city search (300ms) using Nominatim OpenStreetMap API
-- Captures city, country, countryCode, lat, lng, timezone
-- Saves to `onboarding` document immediately on Next via `saveStepTwo`
+- "Where are you located?"
+- Use My Location or manual search
+- Saves to `onboarding` doc on Next
 
 **Step 3 — Welcome**
 
-- Summary of selected interests and location
-- "Explore Events" button triggers `completeOnboarding` mutation
-- On success → redirects to `/explore`
+- "You're all set!"
+- "Explore Events" → `completeOnboarding` → redirect `/explore`
 
 ### Resume Logic
 
-When `OnboardingWizard` mounts, loads existing `onboarding` document, pre-fills completed steps, sets current step to first incomplete step.
+Loads existing `onboarding` doc, pre-fills completed steps.
 
 ### External APIs
 
-- **Nominatim OpenStreetMap** — geocoding (reverse geocode + city search), free, no API key
+- **Nominatim OpenStreetMap** — geocoding, free, no API key
 
 ### Edge Cases
 
-- Geolocation denied → auto-shows manual input
-- Network error on save → toast error, user stays on current step
-- Double-submit on step 3 → blocked by `isSubmittingAtom`
+- Geolocation denied → auto-show manual input
+- Network error → toast error, stay on step
+- Double-submit → blocked by `isSubmittingAtom`

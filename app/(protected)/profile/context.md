@@ -2,15 +2,16 @@
 
 ## Route: `/profile`
 
-### Purpose
+### Metadata
 
-User profile management — update name, avatar, and view account info.
+- **Title:** Profile — EventCraft AI
+- **Description:** Manage your account settings and preferences.
 
 ### Layout Chain
 
 ```
-app/layout.tsx                          → Root (providers, Header)
-  └── app/(protected)/layout.tsx        → AuthGuard(requireAuth=true, requireOnboardingComplete=true)
+app/layout.tsx
+  └── app/(protected)/layout.tsx        → AuthGuard(requireAuth=true)
         └── app/(protected)/profile/page.tsx
 ```
 
@@ -22,23 +23,15 @@ app/layout.tsx                          → Root (providers, Header)
 | `PasskeyManager` | `features/auth/PasskeyManager.tsx` | Client |
 | `SessionManager` | `features/auth/SessionManager.tsx` | Client |
 
-### Convex Functions Used
-
-- `auth.getUserInfo` — BetterAuth query, returns current user info
-- `auth.updateUser` — BetterAuth mutation, updates profile fields
-- `auth.listUserSessions` — BetterAuth query, active sessions
-- `auth.revokeUserSessions` — BetterAuth mutation, revoke sessions
-- `auth.createPasskey` / `auth.deletePasskey` — BetterAuth mutations
-
 ### Features
 
-- Edit name and avatar URL
+- Edit name, avatar URL
 - View email (read-only)
 - Passkey management (register, delete)
-- Session management (view active sessions, revoke)
+- Session management (view, revoke)
 
 ### Edge Cases
 
-- Session expired → redirect to sign-in
+- Session expired → redirect sign-in
 - Update fails → toast error
-- Passkey not supported by browser → graceful message
+- Passkey not supported → graceful message

@@ -2,46 +2,40 @@
 
 ## Route: `/tickets/[ticketCode]`
 
-### Purpose
+### Metadata
 
-Full-screen ticket display designed for phone screens. Shows QR code, event info, and cancellation option.
+- **Title:** `{event.title} Ticket — EventCraft AI` (dynamic)
+- **Description:** Your ticket for {event.title}
 
 ### Layout Chain
 
 ```
-app/layout.tsx                          → Root (providers, Header)
-  └── app/(protected)/layout.tsx        → AuthGuard(requireAuth=true, requireOnboardingComplete=true)
+app/layout.tsx
+  └── app/(protected)/layout.tsx        → AuthGuard(requireAuth=true)
         └── app/(protected)/tickets/[ticketCode]/page.tsx
 ```
 
-### Key Components
+### Convex Functions
 
-| Component      | File                                            | Type   |
-| -------------- | ----------------------------------------------- | ------ |
-| `TicketDetail` | `app/(protected)/tickets/[ticketCode]/page.tsx` | Client |
-
-### Convex Functions Used
-
-- `api.registrations.getByTicketCode` — query, returns registration + event by ticket code
-- `api.registrations.cancelRegistration` — mutation, cancels registration (if > 1hr before event)
+- `api.registrations.getByTicketCode` — registration + event by code
+- `api.registrations.cancelRegistration` — cancel (if > 1hr before event)
 
 ### Features
 
-- **QR Code** — generated with `qrcode` library, rendered as SVG
-- **Screen Wake Lock** — keeps screen on while viewing ticket
-- **Cancellation** — hidden within 1 hour of event start
-- **Status badges** — Active, Checked In, Cancelled
+- QR code (SVG via `qrcode`)
+- Screen Wake Lock
+- Cancellation hidden within 1hr of event
+- Status badges: Active, Checked In, Cancelled
 
 ### Layout
 
-- Centered card with event cover photo background
-- Large QR code for scanning
+- Centered card, event cover background
+- Large QR code
 - Event details: title, date, time, venue
-- Cancel registration button (conditional)
 
 ### Edge Cases
 
 - Ticket not found → error state
-- Registration belongs to different profile → null (not authorized)
-- Event cancelled → desaturated display
-- Within 1hr of event → cancel button hidden
+- Wrong profile → null
+- Event cancelled → desaturated
+- Within 1hr → cancel hidden

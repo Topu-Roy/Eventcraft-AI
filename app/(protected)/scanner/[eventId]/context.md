@@ -2,65 +2,47 @@
 
 ## Route: `/scanner/[eventId]`
 
-### Purpose
+### Metadata
 
-Camera-based QR code scanner for event check-in with manual code fallback.
+- **Title:** Check-In Scanner — EventCraft AI
+- **Description:** Scan attendee tickets for quick check-in.
 
 ### Layout Chain
 
 ```
-app/layout.tsx                          → Root (providers, Header)
-  └── app/(protected)/layout.tsx        → AuthGuard(requireAuth=true, requireOnboardingComplete=true)
-        └── app/(protected)/scanner/[eventId]/page.tsx
+app/layout.tsx
+  └── app/(protected)/layout.tsx        → AuthGuard(requireAuth=true)
+        └── app/(protected)/scanner/layout.tsx
+              └── app/(protected)/scanner/[eventId]/page.tsx
 ```
 
-### Key Components
+### Convex Functions
 
-| Component                | File                                         | Type   |
-| ------------------------ | -------------------------------------------- | ------ |
-| `ScannerResultBanner`    | `app/(protected)/scanner/[eventId]/page.tsx` | Client |
-| `ScannerSettingsPanel`   | `app/(protected)/scanner/[eventId]/page.tsx` | Client |
-| `ScannerCameraView`      | `app/(protected)/scanner/[eventId]/page.tsx` | Client |
-| `ScannerManualEntryForm` | `app/(protected)/scanner/[eventId]/page.tsx` | Client |
-
-### Convex Functions Used
-
-- `api.checkin.checkIn` — mutation, checks in attendee by ticket code
-- `api.checkin.manualCheckIn` — mutation, same as checkIn but for manual entry
+- `api.checkin.checkIn` — mutation, checks in by ticket code
+- `api.checkin.manualCheckIn` — mutation, manual entry
 
 ### Check-In Outcomes
 
 - **Success** (green) → "Checked in: {name}"
 - **Already checked in** (yellow) → "Already checked in"
-- **Invalid** (red) → reason (ticket not found, wrong event, cancelled, unauthorized)
+- **Invalid** (red) → reason (not found, wrong event, cancelled, unauthorized)
 
 ### Camera States
 
-- **Granted** → live video feed with scan overlay
-- **Denied** → "Camera access denied" with "Try Again" button
-- **Dismissed** → "No camera found" message
-- **Not started** → "Start Camera" button
+- Granted → live video feed
+- Denied → "Camera access denied" + "Try Again"
+- Dismissed → "No camera found"
 
 ### Deduplication
 
-- `lastScanRef` tracks last scan timestamp per ticket code
-- Same code within `autoResetMs` (default 3s) is ignored
-- Prevents double check-ins from continuous camera scanning
-
-### Manual Entry
-
-- Tab-based fallback when camera unavailable
-- Text input for ticket code
-- Same check-in mutation path as camera
+- Same code within 3s ignored
 
 ### Settings
 
-- Auto-reset timing toggle: Standard (3s) / Fast (1.5s)
-- Stored in `localStorage` for persistence
+- Auto-reset toggle: 3s / 1.5s (localStorage)
 
 ### Edge Cases
 
-- No camera permission → manual entry tab active
-- Ticket belongs to different event → "invalid" result
-- Organizer not authorized → "Not authorized" result
-- Registration cancelled → "Registration cancelled" result
+- No permission → manual entry
+- Wrong event → "invalid"
+- Cancelled registration → result shown
