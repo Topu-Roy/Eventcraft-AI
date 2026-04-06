@@ -30,8 +30,9 @@ async function TrendingSection() {
 }
 
 async function LocationSection() {
-  const profileResult = await tryCatch(fetchAuthQuery(api.profiles.getCurrent))
-  const profile = profileResult.data?.data
+  const profileResult = await fetchAuthQuery(api.profiles.getCurrent)
+  const profile = profileResult.data
+
   if (!profile?.location) return null
 
   const eventsResult = await tryCatch(
