@@ -1,16 +1,17 @@
 import { api } from "@/convex/_generated/api"
 import { redirect } from "next/navigation"
 import { fetchAuthQuery } from "@/lib/auth-server"
+import { tryCatch } from "@/lib/try-catch"
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const profileResult = await fetchAuthQuery(api.profiles.getCurrent)
-  const profile = profileResult.data
+  const result = await tryCatch(fetchAuthQuery(api.profiles.getCurrent))
 
-  if (profileResult.cause === "Unauthenticated") {
+  if (result.error || !result.data || result.data.error) {
     redirect("/sign-in")
   }
 
-  if (profile?.onboardingComplete === false) {
+  const profile = result.data.data
+  if (!profile?.onboardingComplete) {
     redirect("/onboarding")
   }
 

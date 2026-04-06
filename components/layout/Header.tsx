@@ -14,8 +14,8 @@ export async function Header() {
 
   let profile: Doc<"profile"> | null = null
   if (authed) {
-    const profileResult = await fetchAuthQuery(api.profiles.getCurrent)
-    profile = profileResult.data ?? null
+    const profileResult = await tryCatch(fetchAuthQuery(api.profiles.getCurrent))
+    profile = profileResult.data?.data ?? null
   }
 
   return (
