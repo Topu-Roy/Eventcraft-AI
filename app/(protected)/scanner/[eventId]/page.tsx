@@ -93,27 +93,34 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
       setIsProcessing(true)
       const result = await tryCatch(scanMutation({ ticketCode, eventId }))
 
-      if (result.error) {
-        setScanState({ type: "error", message: result.message ?? "Unknown error" })
-        toast.error(result.message)
-      } else if (result.cause) {
-        if (result.cause === "already_approved") {
+      if (!result.data) {
+        setScanState({ type: "error", message: "Failed to scan ticket" })
+        setIsProcessing(false)
+        return
+      }
+
+      const data = result.data
+      if (data.error) {
+        setScanState({ type: "error", message: data.message ?? "Unknown error" })
+        toast.error(data.message)
+      } else if (data.cause) {
+        if (data.cause === "already_approved") {
           setScanState({ type: "already_approved", attendeeName: "Attendee", approvedAt: null })
-        } else if (result.cause === "already_rejected") {
+        } else if (data.cause === "already_rejected") {
           setScanState({ type: "already_rejected" })
         } else {
-          setScanState({ type: "error", message: result.message ?? "Unknown error" })
-          toast.error(result.message)
+          setScanState({ type: "error", message: data.message ?? "Unknown error" })
+          toast.error(data.message)
         }
-      } else if (result.data) {
-        const d = result.data.data
+      } else if (data.data) {
+        const attendee = data.data
         setScanState({
           type: "pending",
-          attendeeName: d.attendeeName,
-          attendeeEmail: d.attendeeEmail,
-          registeredAt: d.registeredAt,
-          ticketCode: d.ticketCode,
-          registrationId: d.registrationId,
+          attendeeName: attendee.attendeeName,
+          attendeeEmail: attendee.attendeeEmail,
+          registeredAt: attendee.registeredAt,
+          ticketCode: attendee.ticketCode,
+          registrationId: attendee.registrationId,
         })
       }
 
@@ -128,10 +135,8 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
 
     const result = await tryCatch(approveMutation({ registrationId: scanState.registrationId }))
 
-    if (result.error) {
-      toast.error(result.error.message)
-    } else if (result.data?.error) {
-      toast.error(result.data.cause)
+    if (result.data?.error) {
+      toast.error(result.data.message)
     } else {
       toast.success(`Approved: ${scanState.attendeeName}`)
       setTimeout(() => setScanState({ type: "idle" }), autoResetMs)
@@ -146,10 +151,8 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
 
     const result = await tryCatch(rejectMutation({ registrationId: scanState.registrationId }))
 
-    if (result.error) {
-      toast.error(result.error.message)
-    } else if (result.data?.error) {
-      toast.error(result.data.cause)
+    if (result.data?.error) {
+      toast.error(result.data.message)
     } else {
       toast.success("Registration rejected")
       setTimeout(() => setScanState({ type: "idle" }), autoResetMs)
