@@ -72,14 +72,12 @@ export function EventWizardAiPromptStep() {
       <div className="space-y-2 text-center">
         <Sparkles className="mx-auto size-8 text-primary" />
         <h2 className="text-xl font-semibold">Describe Your Event</h2>
-        <p className="text-sm text-muted-foreground">
-          Tell us about your event and AI will generate the details for you.
-        </p>
+        <p className="text-sm text-muted-foreground">Tell us what you want. AI builds the draft.</p>
       </div>
 
       <div className="space-y-2">
         <Textarea
-          placeholder="e.g., A weekend tech conference in San Francisco about AI and machine learning with 200 attendees..."
+          placeholder="e.g., Tech meetup next Friday, 50 people, Dhaka..."
           className="min-h-32"
           value={promptText}
           maxLength={PROMPT_MAX_LENGTH}

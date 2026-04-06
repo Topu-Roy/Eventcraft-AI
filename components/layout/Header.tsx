@@ -24,7 +24,7 @@ export async function Header() {
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2 text-lg font-bold">
             <Calendar className="size-5 text-primary" />
-            <span>EventAI</span>
+            <span>EventCraft AI</span>
           </Link>
 
           <nav className="hidden items-center gap-4 md:flex">

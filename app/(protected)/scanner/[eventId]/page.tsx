@@ -241,8 +241,8 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
       <div className="mx-auto max-w-2xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">QR Scanner</h1>
-            <p className="mt-1 text-muted-foreground">Scan tickets and approve attendees.</p>
+            <h1 className="text-2xl font-bold tracking-tight">Check-In Scanner</h1>
+            <p className="mt-1 text-muted-foreground">Scan attendee tickets for quick check-in.</p>
           </div>
           <Button
             variant="ghost"

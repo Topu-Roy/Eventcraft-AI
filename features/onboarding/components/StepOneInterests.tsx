@@ -52,7 +52,9 @@ export function StepOneInterests({ onNext }: StepOneInterestsProps) {
       <div className="space-y-6">
         <div className="space-y-2">
           <h2 className="text-2xl font-semibold tracking-tight">What are you interested in?</h2>
-          <p className="text-muted-foreground">Select at least one category to personalize your experience.</p>
+          <p className="text-muted-foreground">
+            Pick categories you're interested in. You'll see events like these.
+          </p>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -72,7 +74,9 @@ export function StepOneInterests({ onNext }: StepOneInterestsProps) {
       <div className="space-y-6">
         <div className="space-y-2">
           <h2 className="text-2xl font-semibold tracking-tight">What are you interested in?</h2>
-          <p className="text-muted-foreground">Select at least one category to personalize your experience.</p>
+          <p className="text-muted-foreground">
+            Pick categories you're interested in. You'll see events like these.
+          </p>
         </div>
         <div className="rounded-lg border border-dashed p-8 text-center">
           <p className="font-medium">No categories available</p>
@@ -105,7 +109,9 @@ export function StepOneInterests({ onNext }: StepOneInterestsProps) {
     <div className="space-y-6">
       <div className="space-y-2">
         <h2 className="text-2xl font-semibold tracking-tight">What are you interested in?</h2>
-        <p className="text-muted-foreground">Select at least one category to personalize your experience.</p>
+        <p className="text-muted-foreground">
+          Pick categories you're interested in. You'll see events like these.
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">

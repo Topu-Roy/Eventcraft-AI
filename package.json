@@ -1,6 +1,6 @@
 {
-  "name": "ai-event-manager",
-  "version": "0.1.0",
+  "name": "eventcraft-ai",
+  "version": "0.1.9",
   "type": "module",
   "private": true,
   "scripts": {

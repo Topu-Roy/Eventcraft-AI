@@ -42,7 +42,7 @@ export function EventWizardLanding(_props: EventWizardLandingProps) {
         <div>
           <h3 className="text-lg font-semibold">Create with AI</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Describe your event in natural language and let AI set it up for you.
+            Describe your event in natural language. AI builds the draft.
           </p>
         </div>
         <Button className="w-full">
@@ -67,11 +67,11 @@ export function EventWizardLanding(_props: EventWizardLandingProps) {
           <Pencil className="size-7 text-primary" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold">Create Manually</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Fill in all the details yourself step by step.</p>
+          <h3 className="text-lg font-semibold">Start from scratch</h3>
+          <p className="mt-2 text-sm text-muted-foreground">Full control. Every field. Your rules.</p>
         </div>
         <Button variant="outline" className="w-full">
-          Create Manually
+          Start from scratch
           <ArrowRight className="ml-2 size-4" />
         </Button>
       </Card>
