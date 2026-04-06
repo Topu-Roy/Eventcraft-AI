@@ -16,7 +16,7 @@ export default async function EditEventPage({ params }: PageProps) {
   const { id } = await params
 
   if (!isValidEventId(id)) {
-    redirect("/events")
+    redirect("/events/create")
   }
 
   const profile = await fetchAuthQuery(api.profiles.getCurrent)
@@ -26,7 +26,7 @@ export default async function EditEventPage({ params }: PageProps) {
   }
 
   const event = await fetchAuthQuery(api.events.getById, { eventId: id as Id<"events"> })
-  if (!event || event.organizerId !== userId) {
+  if (event?.organizerId !== userId) {
     redirect(`/events/${id}`)
   }
 
