@@ -102,7 +102,7 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
         } else if (result.data.cause === "Already rejected") {
           setScanState({ type: "already_rejected" })
         } else {
-          setScanState({ type: "error", message: result.data.cause })
+          setScanState({ type: "error", message: result.data.cause ?? "Unknown error" })
           toast.error(result.data.cause)
         }
       } else if (result.data?.data) {
