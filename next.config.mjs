@@ -9,6 +9,10 @@ const nextConfig = {
         hostname: "honorable-loris-606.convex.cloud",
         pathname: "/api/storage/**",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.convex.cloud",
+      },
     ],
   },
 }
