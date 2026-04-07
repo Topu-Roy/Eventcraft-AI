@@ -5,7 +5,6 @@ import { EventCarousel, EventCarouselSkeleton } from "@/features/discovery/compo
 import { SearchInput } from "@/features/discovery/components/SearchInput"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
 import { tryCatch } from "@/lib/try-catch"
-import { FadeIn } from "@/components/ui/animations"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export const metadata = {
@@ -92,33 +91,25 @@ export default function ExplorePage() {
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl space-y-8 px-4 py-8">
-        <FadeIn>
-          <div className="space-y-4">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Explore Events</h1>
-              <p className="mt-1 text-muted-foreground">Discover events happening around you.</p>
-            </div>
-            <SearchInput />
+        <div className="space-y-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Explore Events</h1>
+            <p className="mt-1 text-muted-foreground">Discover events happening around you.</p>
           </div>
+          <SearchInput />
+        </div>
 
-          <div className="pt-4">
-            <Suspense fallback={<CategorySectionSkeleton />}>
-              <CategorySection />
-            </Suspense>
-          </div>
-        </FadeIn>
+        <Suspense fallback={<CategorySectionSkeleton />}>
+          <CategorySection />
+        </Suspense>
 
-        <FadeIn delay={0.1}>
-          <Suspense fallback={<EventCarouselSkeleton />}>
-            <PersonalizedOrTrending />
-          </Suspense>
-        </FadeIn>
+        <Suspense fallback={<EventCarouselSkeleton />}>
+          <PersonalizedOrTrending />
+        </Suspense>
 
-        <FadeIn delay={0.2}>
-          <Suspense fallback={<EventCarouselSkeleton />}>
-            <LocationSection />
-          </Suspense>
-        </FadeIn>
+        <Suspense fallback={<EventCarouselSkeleton />}>
+          <LocationSection />
+        </Suspense>
       </div>
     </div>
   )

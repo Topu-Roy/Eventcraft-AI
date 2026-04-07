@@ -9,7 +9,7 @@ type FadeInProps = {
   delay?: number
 }
 
-export function FadeIn({ children, className = "", delay = 0 }: FadeInProps) {
+export function FadeIn({ children, className = "relative z-0", delay = 0 }: FadeInProps) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
