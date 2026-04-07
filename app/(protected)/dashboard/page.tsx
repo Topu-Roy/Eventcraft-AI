@@ -7,6 +7,7 @@ import { fetchAuthQuery } from "@/lib/auth-server"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { DashboardAnimations } from "@/components/ui/DashboardAnimations"
 
 export const metadata = {
   title: "Dashboard — EventCraft AI",
@@ -34,7 +35,7 @@ function EventSummaryCard({ event, now }: { event: Doc<"events">; now: number })
         : `${event.capacity - event.registrationCount} spots left`
 
   return (
-    <Link href={`/events/${event._id}/edit`} className="block">
+    <Link href={`/events/${event._id}/edit`} className="dash-event-card block">
       <Card className="group transition-all hover:border-primary/50 hover:shadow-sm">
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-3">
@@ -105,75 +106,79 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="mx-auto max-w-7xl space-y-8 px-4 py-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="mt-1 text-muted-foreground">Manage your events and track performance.</p>
+    <DashboardAnimations>
+      <div className="min-h-screen">
+        <div className="mx-auto max-w-7xl space-y-8 px-4 py-8">
+          <div className="dash-header flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+              <p className="mt-1 text-muted-foreground">Manage your events and track performance.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              {planUsage && (
+                <span className="text-sm text-muted-foreground">
+                  {planUsage.activeCount} of {planUsage.limit === Infinity ? "∞" : planUsage.limit} events used
+                </span>
+              )}
+              <Button asChild>
+                <Link href="/events/create">
+                  <Plus className="mr-2 size-4" />
+                  Create Event
+                </Link>
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            {planUsage && (
-              <span className="text-sm text-muted-foreground">
-                {planUsage.activeCount} of {planUsage.limit === Infinity ? "∞" : planUsage.limit} events used
-              </span>
-            )}
-            <Button asChild>
-              <Link href="/events/create">
-                <Plus className="mr-2 size-4" />
-                Create Event
-              </Link>
-            </Button>
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Card className="dash-stat">
+              <CardContent className="flex items-center gap-4 p-4">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                  <BarChart3 className="size-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{activeEvents.length}</p>
+                  <p className="text-xs text-muted-foreground">Active events</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="dash-stat">
+              <CardContent className="flex items-center gap-4 p-4">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                  <Ticket className="size-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{totalRegistrations}</p>
+                  <p className="text-xs text-muted-foreground">Total registrations</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="dash-stat">
+              <CardContent className="flex items-center gap-4 p-4">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                  <BarChart3 className="size-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{events.length}</p>
+                  <p className="text-xs text-muted-foreground">All events</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="dash-section space-y-4">
+            <h2 className="text-lg font-semibold">Your Events</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {events.map(event => (
+                <EventSummaryCard key={event._id} event={event} now={now} />
+              ))}
+            </div>
+          </div>
+
+          <div className="dash-section">
+            <EventSelector events={events} />
           </div>
         </div>
-
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                <BarChart3 className="size-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{activeEvents.length}</p>
-                <p className="text-xs text-muted-foreground">Active events</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                <Ticket className="size-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{totalRegistrations}</p>
-                <p className="text-xs text-muted-foreground">Total registrations</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                <BarChart3 className="size-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{events.length}</p>
-                <p className="text-xs text-muted-foreground">All events</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Your Events</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {events.map(event => (
-              <EventSummaryCard key={event._id} event={event} now={now} />
-            ))}
-          </div>
-        </div>
-
-        <EventSelector events={events} />
       </div>
-    </div>
+    </DashboardAnimations>
   )
 }
