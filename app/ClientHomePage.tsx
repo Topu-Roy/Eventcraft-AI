@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import gsap from "gsap"
-import { ArrowDown, ArrowRight, CheckCircle, Smartphone, Sparkles, Ticket } from "lucide-react"
+import { ArrowRight, CheckCircle, Smartphone, Sparkles, Ticket } from "lucide-react"
 import Link from "next/link"
 
 const steps = [
@@ -38,7 +38,6 @@ export function ClientHomePage() {
   const titleRef = useRef<HTMLHeadingElement>(null)
   const descRef = useRef<HTMLParagraphElement>(null)
   const buttonsRef = useRef<HTMLDivElement>(null)
-  const stepsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -96,6 +95,15 @@ export function ClientHomePage() {
         stagger: 0.15,
         delay: 1.6,
         ease: "back.out(1.7)",
+      })
+
+      gsap.from(".connector-line", {
+        scaleX: 0,
+        opacity: 0,
+        duration: 0.4,
+        stagger: 0.1,
+        delay: 2.2,
+        ease: "power2.out",
       })
 
       gsap.to(blob1Ref.current, {
@@ -171,12 +179,13 @@ export function ClientHomePage() {
 
             <div className="relative hidden lg:block">
               <div className="absolute inset-0 -rotate-6 rounded-3xl bg-linear-to-br from-primary/30 to-primary/5 blur-2xl" />
-              <div ref={stepsRef} className="relative flex flex-col items-center">
+              <div className="relative flex flex-col items-center">
                 {steps.map((step, index) => {
                   const Icon = STEP_ICONS[index]
+                  const isLast = index === steps.length - 1
                   return (
-                    <div key={index} className="step-card relative w-full">
-                      <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
+                    <div key={index} className="step-wrapper relative w-full">
+                      <div className="step-card flex items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
                         <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
                           <Icon className="size-6 text-primary" />
                         </div>
@@ -185,9 +194,9 @@ export function ClientHomePage() {
                           <p className="text-sm text-muted-foreground">{step.description}</p>
                         </div>
                       </div>
-                      {index < steps.length - 1 && (
-                        <div className="flex justify-center py-3">
-                          <ArrowDown className="size-6 text-primary/50" />
+                      {!isLast && (
+                        <div className="flex h-6 items-center justify-center">
+                          <div className="connector-line h-full w-0.5 rounded-full bg-gradient-to-b from-primary/50 to-primary" />
                         </div>
                       )}
                     </div>
