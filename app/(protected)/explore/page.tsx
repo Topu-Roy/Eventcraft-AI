@@ -100,21 +100,21 @@ export default function ExplorePage() {
             </div>
             <SearchInput />
           </div>
+
+          <div className="pt-4">
+            <Suspense fallback={<CategorySectionSkeleton />}>
+              <CategorySection />
+            </Suspense>
+          </div>
         </FadeIn>
 
         <FadeIn delay={0.1}>
-          <Suspense fallback={<CategorySectionSkeleton />}>
-            <CategorySection />
-          </Suspense>
-        </FadeIn>
-
-        <FadeIn delay={0.2}>
           <Suspense fallback={<EventCarouselSkeleton />}>
             <PersonalizedOrTrending />
           </Suspense>
         </FadeIn>
 
-        <FadeIn delay={0.3}>
+        <FadeIn delay={0.2}>
           <Suspense fallback={<EventCarouselSkeleton />}>
             <LocationSection />
           </Suspense>

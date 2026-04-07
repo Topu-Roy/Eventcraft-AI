@@ -50,7 +50,7 @@ export function SearchInput() {
   const hasResults = events.length > 0
 
   return (
-    <div className="relative">
+    <div className="relative z-50">
       <div className="relative">
         <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -68,7 +68,7 @@ export function SearchInput() {
         />
       </div>
 
-      {isOpen && debouncedQuery.trim().length >= 2 && (
+      {isOpen && debouncedQuery.trim().length >= 2 ? (
         <Card className="absolute top-full right-0 left-0 z-50 mt-2 shadow-lg">
           <CardContent className="p-2">
             {hasResults ? (
@@ -82,7 +82,7 @@ export function SearchInput() {
             )}
           </CardContent>
         </Card>
-      )}
+      ) : null}
     </div>
   )
 }
