@@ -33,15 +33,30 @@ export function ClientHomePage() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // 1. Floating Background Blobs
-      gsap.to(".bg-blob", {
-        x: "random(-40, 40)",
+      // 1. Floating Background Blobs - different speeds for different sizes
+      gsap.to(".bg-blob:nth-child(1)", {
+        x: "random(-50, 50)",
+        y: "random(-30, 30)",
+        duration: 8,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+      })
+      gsap.to(".bg-blob:nth-child(2)", {
+        x: "random(-30, 30)",
         y: "random(-40, 40)",
         duration: 6,
         repeat: -1,
         yoyo: true,
         ease: "sine.inOut",
-        stagger: 0.5,
+      })
+      gsap.to(".bg-blob:nth-child(3)", {
+        x: "random(-20, 20)",
+        y: "random(-25, 25)",
+        duration: 5,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
       })
 
       // 2. Main Entrance Timeline
@@ -84,6 +99,27 @@ export function ClientHomePage() {
         repeat: -1,
         ease: "none",
       })
+
+      // 4. Subtle icon hover effect
+      gsap.set(".step-icon-wrapper", { scale: 1 })
+      gsap.set(".step-card", { scale: 1 })
+
+      // 5. Footer links stagger
+      gsap.from("footer a", {
+        y: 10,
+        opacity: 0,
+        duration: 0.4,
+        stagger: 0.05,
+        delay: 2.5,
+        ease: "power2.out",
+      })
+
+      // 6. Add hover animations for buttons
+      gsap.to(".btn-primary", {
+        scale: 1,
+        duration: 0.2,
+        ease: "power2.out",
+      })
     }, containerRef)
 
     return () => ctx.revert()
@@ -92,11 +128,14 @@ export function ClientHomePage() {
   return (
     <div ref={containerRef} className="relative min-h-svh overflow-x-hidden bg-background text-foreground">
       {/* Background Ambience */}
-      <div className="pointer-events-none absolute top-[5%] -left-[5%] opacity-20">
-        <div className="bg-blob size-[400px] rounded-full bg-primary/30 blur-[100px]" />
+      <div className="pointer-events-none absolute inset-0 top-[10%] -left-[10%] opacity-50">
+        <div className="bg-blob size-[500px] rounded-full bg-primary/20 blur-[120px]" />
       </div>
-      <div className="pointer-events-none absolute -right-[5%] bottom-[5%] opacity-20">
-        <div className="bg-blob size-[400px] rounded-full bg-blue-500/20 blur-[100px]" />
+      <div className="pointer-events-none absolute inset-0 -right-[15%] bottom-[20%] opacity-30">
+        <div className="bg-blob size-[350px] rounded-full bg-primary/20 blur-[100px]" />
+      </div>
+      <div className="pointer-events-none absolute inset-0 top-[20%] left-[60%] opacity-30">
+        <div className="bg-blob size-[850px] rounded-full bg-primary/20 blur-[90px]" />
       </div>
 
       <div className="relative z-10 flex min-h-svh flex-col">
@@ -124,16 +163,16 @@ export function ClientHomePage() {
               <div className="hero-elem flex flex-col gap-4 pt-4 sm:flex-row">
                 <Link
                   href="/sign-in"
-                  className="group inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-foreground px-8 text-base font-semibold text-background transition-all hover:bg-foreground/90 active:scale-95"
+                  className="group btn-primary inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-foreground px-8 text-base font-semibold text-background transition-all hover:bg-foreground/90 active:scale-95"
                 >
                   Get Started
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="btn-arrow size-4 transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link
                   href="/sign-in"
-                  className="inline-flex h-14 items-center justify-center gap-2 rounded-xl border border-border bg-background/50 px-8 text-base font-medium backdrop-blur-sm transition-all hover:bg-muted"
+                  className="btn-secondary group inline-flex h-14 items-center justify-center gap-2 rounded-xl border border-border bg-background/50 px-8 text-base font-medium backdrop-blur-sm transition-all hover:bg-muted"
                 >
-                  View Demo
+                  <span className="transition-transform group-hover:scale-105">View Demo</span>
                 </Link>
               </div>
             </div>
