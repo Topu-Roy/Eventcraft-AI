@@ -121,7 +121,6 @@ export const create = mutation({
       category: sanitizeString(args.category),
       tags: args.tags.slice(0, MAX_TAGS).map(t => sanitizeString(t, 50)),
       coverPhoto: args.coverPhoto,
-      themeColor: args.themeColor ? sanitizeString(args.themeColor, 20) : undefined,
       status: "draft",
       venue: args.venue,
       startDatetime: args.startDatetime,

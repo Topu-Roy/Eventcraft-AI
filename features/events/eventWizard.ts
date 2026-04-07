@@ -32,7 +32,6 @@ type EventWizardData = {
   category: string
   tags: string[]
   coverPhoto: CoverPhoto | null
-  themeColor: string
   venue: Venue | null
   startDatetime: string
   endDatetime: string
@@ -48,7 +47,6 @@ const initialWizardData: EventWizardData = {
     storageId: null,
     previewUrl: null,
   } as CoverPhoto,
-  themeColor: "",
   venue: null,
   startDatetime: "",
   endDatetime: "",

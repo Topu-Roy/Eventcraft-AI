@@ -8,15 +8,14 @@ import Image from "next/image"
 
 type CoverImageProps = {
   storageId: Id<"_storage"> | null | undefined
-  themeColor: string | null | undefined
   alt: string
   className?: string
 }
 
-export function CoverImage({ storageId, themeColor, alt, className }: CoverImageProps) {
+export function CoverImage({ storageId, alt, className }: CoverImageProps) {
   const imageUrl = useQuery(api.storage.getUrl, storageId ? { storageId } : "skip")
 
-  if (!storageId && !themeColor) {
+  if (!storageId) {
     return (
       <div className={`flex items-center justify-center bg-muted ${className}`}>
         <Camera className="size-8 text-muted-foreground" />
@@ -26,10 +25,7 @@ export function CoverImage({ storageId, themeColor, alt, className }: CoverImage
 
   if (!storageId || !imageUrl) {
     return (
-      <div
-        className={`flex items-center justify-center ${className}`}
-        style={{ backgroundColor: themeColor ?? "hsl(var(--muted))" }}
-      >
+      <div className={`flex items-center justify-center ${className}`}>
         <Camera className="size-8 text-primary-foreground/50" />
       </div>
     )

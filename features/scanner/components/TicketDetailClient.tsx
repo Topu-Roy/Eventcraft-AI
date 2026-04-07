@@ -142,10 +142,7 @@ export function TicketDetailClient({
         </button>
 
         <Card className="overflow-hidden">
-          <div
-            className="aspect-video w-full"
-            style={{ backgroundColor: event.themeColor ?? "hsl(var(--muted))" }}
-          />
+          <div className="aspect-video w-full" />
           <CardContent className="space-y-6 p-6">
             <div className="space-y-1 text-center">
               <h1 className="text-xl font-bold">{event.title}</h1>

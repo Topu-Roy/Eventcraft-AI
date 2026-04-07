@@ -62,7 +62,6 @@ export function EventEditForm({ eventId, event }: EventEditFormProps) {
           endDatetime: endMs,
           capacity: value.capacity,
           coverPhoto: event.coverPhoto ?? undefined,
-          themeColor: event.themeColor ?? undefined,
         })
       )
 
@@ -224,7 +223,6 @@ export function EventEditForm({ eventId, event }: EventEditFormProps) {
           <div className="relative aspect-video overflow-hidden rounded-lg border">
             <CoverImage
               storageId={event.coverPhoto}
-              themeColor={event.themeColor}
               alt={event.title}
               className="h-full w-full"
             />

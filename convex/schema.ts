@@ -28,7 +28,6 @@ export const tables = {
     category: v.string(),
     tags: v.array(v.string()),
     coverPhoto: v.optional(v.id("_storage")),
-    themeColor: v.optional(v.string()),
     status: v.union(v.literal("draft"), v.literal("published"), v.literal("completed"), v.literal("cancelled")),
     venue: v.object({
       name: v.string(),
@@ -43,12 +42,6 @@ export const tables = {
     capacity: v.optional(v.number()),
     registrationCount: v.number(),
     isFeatured: v.boolean(),
-    theme: v.optional(
-      v.object({
-        accentColor: v.string(),
-        layoutVariant: v.union(v.literal("default"), v.literal("minimal"), v.literal("bold")),
-      })
-    ),
     coOrganizers: v.array(v.id("profile")),
     searchableText: v.string(),
   })

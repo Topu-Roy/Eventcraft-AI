@@ -76,7 +76,6 @@ export function EventCard({ event, variant = "default", now, isRegistered }: Eve
         <div className="relative aspect-video overflow-hidden bg-muted">
           <CoverImage
             storageId={event.coverPhoto}
-            themeColor={event.themeColor}
             alt={event.title}
             className="h-full w-full transition-transform group-hover:scale-105"
           />
@@ -126,7 +125,6 @@ export function EventCard({ event, variant = "default", now, isRegistered }: Eve
         <div className="relative aspect-square h-24 shrink-0 overflow-hidden bg-muted">
           <CoverImage
             storageId={event.coverPhoto}
-            themeColor={event.themeColor}
             alt={event.title}
             className="h-full w-full transition-transform group-hover:scale-105"
           />
@@ -164,12 +162,7 @@ export function EventCard({ event, variant = "default", now, isRegistered }: Eve
       className="group relative flex w-72 shrink-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-sm"
     >
       <div className="relative aspect-video overflow-hidden bg-muted">
-        <CoverImage
-          storageId={event.coverPhoto}
-          themeColor={event.themeColor}
-          alt={event.title}
-          className="h-full w-full"
-        />
+        <CoverImage storageId={event.coverPhoto} alt={event.title} className="h-full w-full" />
         <div className="absolute top-2 left-2 flex gap-1.5">{getCategoryBadge(event.category)}</div>
         {isPast && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60">

@@ -39,7 +39,6 @@ export function EventWizardManualDetailsStep() {
         <div className="relative aspect-video overflow-hidden rounded-lg border">
           <CoverImage
             storageId={wizardData.coverPhoto?.storageId ?? null}
-            themeColor={wizardData.themeColor}
             alt="Cover preview"
             className="h-full w-full"
           />

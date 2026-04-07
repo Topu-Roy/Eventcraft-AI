@@ -5,7 +5,7 @@ import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { updateWizardData, wizardDataAtom } from "@/features/events/eventWizard"
 import { useMutation, useQuery } from "convex/react"
-import { useAtom } from "jotai"
+import { useAtomValue, useSetAtom } from "jotai"
 import { Camera, Loader2, Upload, X } from "lucide-react"
 import Image from "next/image"
 import { toast } from "sonner"
@@ -14,30 +14,9 @@ import { Button } from "@/components/ui/button"
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"]
 const MAX_SIZE_MB = 10
 
-function getDominantColor(file: File): Promise<string> {
-  return new Promise(resolve => {
-    const img = new window.Image()
-    img.onload = () => {
-      const canvas = document.createElement("canvas")
-      canvas.width = 1
-      canvas.height = 1
-      const ctx = canvas.getContext("2d")
-      if (!ctx) {
-        resolve("#3B82F6")
-        return
-      }
-      ctx.drawImage(img, 0, 0, 1, 1)
-      const data = ctx.getImageData(0, 0, 1, 1).data
-      resolve(`rgb(${data[0]}, ${data[1]}, ${data[2]})`)
-    }
-    img.onerror = () => resolve("#3B82F6")
-    img.src = URL.createObjectURL(file)
-  })
-}
-
 export function EventWizardCoverPhotoStep() {
-  const wizardData = useAtom(wizardDataAtom)[0]
-  const [, dispatchUpdateWizardData] = useAtom(updateWizardData)
+  const wizardData = useAtomValue(wizardDataAtom)
+  const dispatchUpdateWizardData = useSetAtom(updateWizardData)
   const generateUploadUrl = useMutation(api.storage.generateUploadUrl)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
@@ -58,14 +37,12 @@ export function EventWizardCoverPhotoStep() {
 
       setIsUploading(true)
       const previewUrl = URL.createObjectURL(file)
-      const dominantColor = await getDominantColor(file)
 
       dispatchUpdateWizardData({
         coverPhoto: {
           storageId: null,
           previewUrl,
         },
-        themeColor: dominantColor,
       })
 
       try {
@@ -84,7 +61,6 @@ export function EventWizardCoverPhotoStep() {
             storageId,
             previewUrl: null,
           },
-          themeColor: dominantColor,
         })
         toast.success("Cover photo uploaded!")
       } catch {
@@ -94,7 +70,6 @@ export function EventWizardCoverPhotoStep() {
             storageId: null,
             previewUrl,
           },
-          themeColor: dominantColor,
         })
       } finally {
         setIsUploading(false)
@@ -118,7 +93,6 @@ export function EventWizardCoverPhotoStep() {
         storageId: null,
         previewUrl: null,
       },
-      themeColor: "",
     })
   }
 
@@ -148,10 +122,7 @@ export function EventWizardCoverPhotoStep() {
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           ) : (
-            <div
-              className="flex size-full items-center justify-center"
-              style={{ backgroundColor: wizardData.themeColor || "hsl(var(--muted))" }}
-            >
+            <div className="flex size-full items-center justify-center">
               <Camera className="size-12 text-primary-foreground/50" />
             </div>
           )}

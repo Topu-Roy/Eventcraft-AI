@@ -72,10 +72,7 @@ function TicketCard({
 
   return (
     <Card className="group overflow-hidden transition-all hover:border-primary/50 hover:shadow-sm">
-      <div
-        className="relative aspect-video w-full"
-        style={{ backgroundColor: event.themeColor ?? "hsl(var(--muted))" }}
-      >
+      <div className="relative aspect-video w-full">
         {isPastEvent ? (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60">
             <span className="text-xs font-medium text-muted-foreground">Ended</span>

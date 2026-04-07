@@ -104,7 +104,6 @@ export default function CreateEventPage() {
         : { name: "TBD", address: "TBD", city: "TBD", country: "TBD", lat: 0, lng: 0 }
 
       const coverPhotoStorageId = wizardFormData.coverPhoto?.storageId ?? null
-      const themeColor = wizardFormData.themeColor || ""
 
       const createResult = await createEventMutation({
         title: wizardFormData.title,
@@ -116,7 +115,6 @@ export default function CreateEventPage() {
         endDatetime: endTimestamp,
         capacity: wizardFormData.capacity,
         coverPhoto: coverPhotoStorageId ?? undefined,
-        themeColor: themeColor || undefined,
       })
 
       if (createResult.error) {
@@ -161,7 +159,6 @@ export default function CreateEventPage() {
       }
 
       const coverPhotoStorageId = wizardFormData.coverPhoto?.storageId ?? null
-      const themeColor = wizardFormData.themeColor || ""
 
       const createResult = await createEventMutation({
         title: wizardFormData.title,
@@ -173,7 +170,6 @@ export default function CreateEventPage() {
         endDatetime: endTimestamp,
         capacity: wizardFormData.capacity,
         coverPhoto: coverPhotoStorageId ?? undefined,
-        themeColor: themeColor || undefined,
       })
 
       if (createResult.error) {

@@ -38,7 +38,7 @@ export default async function EditEventPage({ params }: PageProps<"/events/[id]/
   const { id } = await params
 
   if (!isValidEventId(id)) {
-    redirect("/events/create")
+    notFound()
   }
 
   const { data, error } = await tryCatch(
@@ -59,6 +59,8 @@ export default async function EditEventPage({ params }: PageProps<"/events/[id]/
   }
 
   if (eventResult.error) {
+    console.log(eventResult.error)
+
     redirect(`/events/${id}`)
   }
 
