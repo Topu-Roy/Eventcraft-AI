@@ -7,10 +7,10 @@ export const metadata = {
 
 export default function AdminPage() {
   return (
-    <div className="container mx-auto space-y-8 px-4 py-10">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-muted-foreground">Manage users, roles, and administrative tasks.</p>
+    <div className="mx-auto max-w-7xl space-y-8 px-4 py-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+        <p className="mt-1 text-muted-foreground">Manage users, roles, and administrative tasks.</p>
       </div>
 
       <UsersTable />

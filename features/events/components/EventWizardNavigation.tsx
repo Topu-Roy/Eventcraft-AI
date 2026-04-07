@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useAtomValue } from "jotai"
 import { ArrowLeft, ArrowRight, Rocket, Save } from "lucide-react"
 import {
   AlertDialog,
@@ -13,6 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { selectedPipelineAtom } from "../eventWizard"
 
 type EventWizardNavigationProps = {
   currentStepIndex: number
@@ -37,6 +39,7 @@ export function EventWizardNavigation({
   onPublish,
   onBackToLanding,
 }: EventWizardNavigationProps) {
+  const selectedMethod = useAtomValue(selectedPipelineAtom)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const isLastStep = currentStepIndex === totalSteps - 1
   const isFirstStep = currentStepIndex === 0
@@ -60,7 +63,7 @@ export function EventWizardNavigation({
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleBackClick} disabled={isSubmitting || isSaving}>
             <ArrowLeft className="mr-1 size-4" />
-            {isFirstStep ? "Change Mode" : "Back"}
+            {selectedMethod === "ai" ? "Manual Mode" : "AI Mode"}
           </Button>
           <Button variant="outline" onClick={onSaveDraft} disabled={isSubmitting || isSaving}>
             <Save className="mr-1 size-4" />

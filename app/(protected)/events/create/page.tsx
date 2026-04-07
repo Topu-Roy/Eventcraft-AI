@@ -30,7 +30,7 @@ import {
   type ManualWizardStep,
 } from "@/features/events/eventWizard"
 import { useMutation } from "convex/react"
-import { useAtom } from "jotai"
+import { useAtomValue, useSetAtom } from "jotai"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -55,15 +55,15 @@ function getStepLabel(
  * Manages wizard state through Jotai atoms and coordinates with Convex mutations.
  */
 export default function CreateEventPage() {
-  const [selectedPipeline] = useAtom(selectedPipelineAtom)
-  const [aiStep] = useAtom(aiWizardStepAtom)
-  const [manualStep] = useAtom(manualWizardStepAtom)
-  const [wizardFormData] = useAtom(wizardDataAtom)
-  const [, dispatchSetWizardEventId] = useAtom(setWizardEventId)
-  const [, dispatchSetIsSavingDraft] = useAtom(setIsSavingDraft)
-  const [, dispatchSetAiStep] = useAtom(setAiWizardStep)
-  const [, dispatchSetManualStep] = useAtom(setManualWizardStep)
-  const [, dispatchResetWizard] = useAtom(resetWizard)
+  const selectedPipeline = useAtomValue(selectedPipelineAtom)
+  const aiStep = useAtomValue(aiWizardStepAtom)
+  const manualStep = useAtomValue(manualWizardStepAtom)
+  const wizardFormData = useAtomValue(wizardDataAtom)
+  const dispatchSetWizardEventId = useSetAtom(setWizardEventId)
+  const dispatchSetIsSavingDraft = useSetAtom(setIsSavingDraft)
+  const dispatchSetAiStep = useSetAtom(setAiWizardStep)
+  const dispatchSetManualStep = useSetAtom(setManualWizardStep)
+  const dispatchResetWizard = useSetAtom(resetWizard)
 
   const createEventMutation = useMutation(api.events.create)
   const publishEventMutation = useMutation(api.events.publish)
@@ -256,10 +256,10 @@ export default function CreateEventPage() {
 
   if (!selectedPipeline) {
     return (
-      <div className="min-h-screen p-4 md:p-8">
-        <div className="mx-auto max-w-2xl space-y-8">
+      <div className="min-h-screen">
+        <div className="mx-auto max-w-2xl space-y-8 px-4 py-8">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Create Event</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Create Event</h1>
             <p className="mt-1 text-muted-foreground">Choose how you want to create your event.</p>
           </div>
 
@@ -270,10 +270,10 @@ export default function CreateEventPage() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="mx-auto max-w-2xl space-y-8">
+    <div className="min-h-screen">
+      <div className="mx-auto max-w-2xl space-y-8 px-4 py-8">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Create Event</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Create Event</h1>
           <p className="mt-1 text-muted-foreground">Build your event step by step.</p>
         </div>
 

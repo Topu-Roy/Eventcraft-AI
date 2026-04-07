@@ -17,10 +17,13 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto max-w-4xl space-y-8 px-4 py-10">
-      <h1 className="text-3xl font-bold">Account Settings</h1>
+    <div className="mx-auto max-w-4xl space-y-8 px-4 py-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
+        <p className="mt-1 text-muted-foreground">Manage your account settings and preferences.</p>
+      </div>
 
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+      <div className="grid gap-8 md:grid-cols-2">
         <div className="space-y-8">
           <ProfileForm />
           <PasskeyManager />

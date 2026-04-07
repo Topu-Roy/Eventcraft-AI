@@ -88,8 +88,8 @@ export function EditEvent({ eventId }: { eventId: string }) {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="mx-auto max-w-3xl space-y-6">
+    <div className="min-h-screen">
+      <div className="mx-auto max-w-3xl space-y-8 px-4 py-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" onClick={() => router.back()}>
@@ -98,7 +98,7 @@ export function EditEvent({ eventId }: { eventId: string }) {
             </Button>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold tracking-tight">Edit Event</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Edit Event</h1>
                 <Badge variant={status.variant}>{status.label}</Badge>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">{statusDescription}</p>

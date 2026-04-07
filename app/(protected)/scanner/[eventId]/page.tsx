@@ -237,11 +237,11 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="mx-auto max-w-2xl space-y-6">
+    <div className="min-h-screen">
+      <div className="mx-auto max-w-2xl space-y-8 px-4 py-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Check-In Scanner</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Check-In Scanner</h1>
             <p className="mt-1 text-muted-foreground">Scan attendee tickets for quick check-in.</p>
           </div>
           <Button
