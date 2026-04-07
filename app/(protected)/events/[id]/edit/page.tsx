@@ -49,23 +49,21 @@ export default async function EditEventPage({ params }: PageProps<"/events/[id]/
   )
 
   if (!data || error) {
-    notFound()
+    notFound() // error ui
   }
 
   const [profileResult, eventResult] = data
-  const userId = profileResult.data?.userId
-  if (!userId) {
+  const profileId = profileResult.data?._id
+  if (!profileId) {
     redirect("/sign-in")
   }
 
   if (eventResult.error) {
-    console.log(eventResult.error)
-
-    redirect(`/events/${id}`)
+    redirect(`/events/${id}`) // error ui
   }
 
   if (eventResult) {
-    if (eventResult.cause === "event_not_found" || eventResult.cause === "not_authorized") {
+    if (eventResult.cause === "event_not_found") {
       notFound()
     } else if (eventResult.cause === "profile_not_found") {
       redirect("/onboarding")
@@ -73,7 +71,7 @@ export default async function EditEventPage({ params }: PageProps<"/events/[id]/
   }
 
   const event = eventResult.data
-  if (!event?.organizerId || event.organizerId !== userId) {
+  if (!event?.organizerId || event.organizerId !== profileId) {
     redirect(`/events/${id}`)
   }
 
