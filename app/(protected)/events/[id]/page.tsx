@@ -1,5 +1,6 @@
 import { api } from "@/convex/_generated/api"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
+import { fetchQuery } from "convex/nextjs"
 import { ArrowLeft, Calendar, Globe, ImageIcon, MapPin, Pencil, Ticket, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -43,10 +44,12 @@ function formatTime(timestamp: number) {
   })
 }
 
-function EventContent({ data }: { data: EventData }) {
+async function EventContent({ data }: { data: EventData }) {
   const { event, organizer, isOrganizer, isRegistered } = data
   const status = statusLabels[event.status] ?? { label: event.status, variant: "outline" as const }
-
+  const coverPhotoUrl = await fetchQuery(api.storage.getUrl, {
+    storageId: data.event.coverPhoto ?? ("" as Id<"_storage">),
+  })
   const backLink = isOrganizer ? `/dashboard` : `/explore`
 
   return (
@@ -82,12 +85,7 @@ function EventContent({ data }: { data: EventData }) {
         <div className="space-y-6">
           {event.coverPhoto ? (
             <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
-              <Image
-                src={`https://cdn.convex.cloud/${event._id}/${event.coverPhoto}`}
-                alt={event.title}
-                fill
-                className="object-cover"
-              />
+              <Image src={coverPhotoUrl ?? ""} alt={event.title} fill className="object-cover" />
             </div>
           ) : (
             <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg bg-muted">
