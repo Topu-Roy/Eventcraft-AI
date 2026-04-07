@@ -1,8 +1,31 @@
 import { api } from "@/convex/_generated/api"
-import { ArrowRight, QrCode, Sparkles, Ticket } from "lucide-react"
+import { ArrowDown, ArrowRight, CheckCircle, Smartphone, Sparkles, Ticket } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
+
+const STEPS = [
+  {
+    icon: Sparkles,
+    title: "Create with AI",
+    description: "Describe your event in plain language. AI builds the draft.",
+  },
+  {
+    icon: Ticket,
+    title: "Get Ticket",
+    description: "Attendees receive instant QR-coded tickets on their phone.",
+  },
+  {
+    icon: Smartphone,
+    title: "Scan Ticket",
+    description: "Scan tickets directly from attendee phones at the door.",
+  },
+  {
+    icon: CheckCircle,
+    title: "Verify Check-in",
+    description: "Real-time verification. Instant check-in. No paper needed.",
+  },
+]
 
 export const metadata = {
   title: "EventCraft AI — Events at the speed of thought",
@@ -67,45 +90,25 @@ export default async function HomePage() {
 
             <div className="relative hidden lg:block">
               <div className="absolute inset-0 -rotate-6 rounded-3xl bg-linear-to-br from-primary/30 to-primary/5 blur-2xl" />
-              <div className="relative rounded-2xl border border-border bg-card/80 p-6 shadow-2xl backdrop-blur">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="h-4 w-32 animate-pulse rounded-full bg-muted" />
-                    <div className="h-8 w-3/4 rounded-lg bg-foreground/10" />
+              <div className="relative flex flex-col items-center">
+                {STEPS.map((step, index) => (
+                  <div key={index} className="relative w-full">
+                    <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+                      <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                        <step.icon className="size-6 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-base font-semibold">{step.title}</p>
+                        <p className="text-sm text-muted-foreground">{step.description}</p>
+                      </div>
+                    </div>
+                    {index < STEPS.length - 1 && (
+                      <div className="flex justify-center py-3">
+                        <ArrowDown className="size-6 text-primary/50" />
+                      </div>
+                    )}
                   </div>
-                  <div className="space-y-1">
-                    <div className="h-3 w-full rounded bg-muted" />
-                    <div className="h-3 w-5/6 rounded bg-muted" />
-                    <div className="h-3 w-4/6 rounded bg-muted" />
-                  </div>
-                  <div className="flex items-center gap-3 rounded-lg border border-border p-3">
-                    <div className="flex size-10 items-center justify-center rounded-md bg-primary/10">
-                      <Sparkles className="size-5 text-primary" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="h-3 w-24 rounded bg-muted" />
-                      <div className="h-2 w-16 rounded bg-muted/60" />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 rounded-lg border border-border p-3">
-                    <div className="flex size-10 items-center justify-center rounded-md bg-primary/10">
-                      <Ticket className="size-5 text-primary" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="h-3 w-24 rounded bg-muted" />
-                      <div className="h-2 w-16 rounded bg-muted/60" />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 rounded-lg border border-border p-3">
-                    <div className="flex size-10 items-center justify-center rounded-md bg-primary/10">
-                      <QrCode className="size-5 text-primary" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="h-3 w-24 rounded bg-muted" />
-                      <div className="h-2 w-16 rounded bg-muted/60" />
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
