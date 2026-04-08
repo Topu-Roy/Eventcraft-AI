@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react"
 import gsap from "gsap"
 import { ArrowRight, CheckCircle, Smartphone, Sparkles, Ticket } from "lucide-react"
 import Link from "next/link"
+import { Button } from "./ui/button"
 
 const steps = [
   {
@@ -146,7 +147,7 @@ export function ClientHomePage() {
   }, [])
 
   return (
-    <div className="relative overflow-hidden bg-background text-foreground">
+    <div className="relative bg-background text-foreground lg:overflow-hidden">
       <div ref={globRef} className="overflow-hidden">
         <div className="pointer-events-none absolute inset-0 top-[10%] -left-[10%] opacity-50">
           <div className="bg-blob size-[500px] rounded-full bg-primary/20 blur-[120px]" />
@@ -161,11 +162,11 @@ export function ClientHomePage() {
 
       <main
         ref={containerRef}
-        className="mx-auto flex h-[85dvh] w-full max-w-7xl flex-1 flex-col items-center justify-center px-6 py-12 lg:px-12"
+        className="mx-auto flex w-full max-w-7xl flex-1 flex-col items-center justify-center px-6 py-12 lg:h-[85dvh] lg:px-12"
       >
-        <div className="grid w-full items-start gap-16 lg:grid-cols-2 lg:gap-12">
+        <div className="grid w-full items-start gap-16 text-center lg:grid-cols-2 lg:gap-12 lg:text-left">
           {/* Left: Content */}
-          <div className="flex flex-col justify-center space-y-8 py-10">
+          <div className="flex flex-col items-center justify-center space-y-8 py-10 lg:items-start">
             <div className="hero-elem inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary backdrop-blur-md">
               <Sparkles className="size-4" />
               AI-powered event creation
@@ -183,19 +184,20 @@ export function ClientHomePage() {
               Describe your event in plain language. AI builds the draft. Tweak. Publish. Done in seconds.
             </p>
 
-            <div className="hero-elem flex flex-col gap-4 pt-4 sm:flex-row">
-              <Link
-                href="/sign-in"
-                className="group btn-primary inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-foreground px-8 text-base font-semibold text-background transition-all hover:bg-foreground/90 active:scale-95"
-              >
-                Get Started
-                <ArrowRight className="btn-arrow size-4 transition-transform group-hover:translate-x-1" />
+            <div className="hero-elem flex w-full max-w-xl flex-col gap-4 pt-4 sm:flex-row">
+              <Link href="/sign-in" className="w-full">
+                <Button className="group btn-primary flex h-14 w-full flex-1 items-center justify-center gap-2 px-8 text-base font-semibold transition-all active:scale-95">
+                  Get Started
+                  <ArrowRight className="btn-arrow size-4 transition-transform group-hover:translate-x-1" />
+                </Button>
               </Link>
-              <Link
-                href="/sign-in"
-                className="btn-secondary group inline-flex h-14 items-center justify-center gap-2 rounded-xl border border-border bg-background/50 px-8 text-base font-medium backdrop-blur-sm transition-all hover:bg-muted"
-              >
-                <span className="transition-transform group-hover:scale-105">Sign In</span>
+              <Link href="/sign-in" className="w-full">
+                <Button
+                  variant={"outline"}
+                  className="btn-secondary group flex h-14 w-full flex-1 items-center justify-center gap-2 px-8 text-base font-medium backdrop-blur-sm transition-all"
+                >
+                  <span className="transition-transform group-hover:scale-105">Sign In</span>
+                </Button>
               </Link>
             </div>
           </div>
