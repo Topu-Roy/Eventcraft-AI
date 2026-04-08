@@ -11,6 +11,8 @@ import { tryCatch } from "@/lib/try-catch"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type EventData = {
   event: Doc<"events">
@@ -59,7 +61,7 @@ async function EventContent({ data }: { data: EventData }) {
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto max-w-5xl px-3 py-6 sm:px-4 sm:py-8">
+      <div className="mx-auto max-w-4xl px-3 py-6 sm:px-4 sm:py-8">
         <div className="flex justify-between gap-3">
           <Button variant="ghost" size="sm" asChild>
             <Link href={backLink}>
@@ -87,7 +89,7 @@ async function EventContent({ data }: { data: EventData }) {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px] lg:gap-8">
+        <div className="mt-6 gap-6 lg:gap-8">
           <div className="space-y-6">
             <div>
               {event.coverPhoto ? (
@@ -134,6 +136,19 @@ async function EventContent({ data }: { data: EventData }) {
               </div>
             </div>
 
+            <div className="lg:sticky lg:top-8 lg:h-fit">
+              <EventRegistrationCard
+                eventId={event._id}
+                isOrganizer={isOrganizer}
+                isRegistered={isRegistered}
+                isFull={event.capacity !== undefined && event.registrationCount >= event.capacity}
+                isPast={event.endDatetime < getToday()}
+                isCancelled={event.status === "cancelled"}
+              />
+            </div>
+
+            <Separator />
+
             {event.description && (
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold">About</h2>
@@ -179,17 +194,6 @@ async function EventContent({ data }: { data: EventData }) {
               </div>
             )}
           </div>
-
-          <div className="lg:sticky lg:top-8 lg:h-fit">
-            <EventRegistrationCard
-              eventId={event._id}
-              isOrganizer={isOrganizer}
-              isRegistered={isRegistered}
-              isFull={event.capacity !== undefined && event.registrationCount >= event.capacity}
-              isPast={event.endDatetime < getToday()}
-              isCancelled={event.status === "cancelled"}
-            />
-          </div>
         </div>
       </div>
     </div>
@@ -218,8 +222,76 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
   }
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<EventPageSkeleton />}>
       <EventContent data={response.data} />
     </Suspense>
+  )
+}
+
+function EventPageSkeleton() {
+  return (
+    <div className="min-h-screen">
+      <div className="mx-auto max-w-5xl px-3 py-6 sm:px-4 sm:py-8">
+        <div className="flex justify-between gap-3">
+          <Skeleton className="h-8 w-16" />
+          <Skeleton className="h-8 w-24" />
+        </div>
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px] lg:gap-8">
+          <div className="space-y-6">
+            <Skeleton className="aspect-video w-full rounded-lg" />
+
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-5 w-20" />
+              </div>
+
+              <Skeleton className="h-8 w-3/4" />
+
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-4">
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-20" />
+              <div className="flex items-center gap-3">
+                <Skeleton className="size-10 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-40" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:sticky lg:top-8 lg:h-fit">
+            <div className="space-y-4 rounded-lg border bg-card p-4 shadow-sm sm:p-6">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }

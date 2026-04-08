@@ -35,7 +35,7 @@ function EventSummaryCard({ event, now }: { event: Doc<"events">; now: number })
         : `${event.capacity - event.registrationCount} spots left`
 
   return (
-    <Link href={`/events/${event._id}/edit`} className="dash-event-card block">
+    <Link href={`/events/${event._id}`} className="dash-event-card block">
       <Card className="group transition-all hover:border-primary/50 hover:shadow-sm">
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-3">

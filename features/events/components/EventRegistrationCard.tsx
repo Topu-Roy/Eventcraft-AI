@@ -4,7 +4,7 @@ import { useState } from "react"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { useMutation } from "convex/react"
-import { Ban, Check, Loader2, Settings2, Ticket } from "lucide-react"
+import { Ban, Check, LayoutDashboard, Loader2, Search, Settings2, Ticket } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { tryCatch } from "@/lib/try-catch"
@@ -40,8 +40,16 @@ export function EventRegistrationCard({
 
   if (isCancelled) {
     return (
-      <div className="rounded-lg border bg-card p-4 shadow-sm sm:p-6">
-        <Button variant="outline" className="w-full" disabled>
+      <div className="flex flex-col items-center justify-between gap-4 rounded-lg shadow-sm md:flex-row">
+        <Button
+          variant="outline"
+          className="w-full flex-1 py-2"
+          onClick={() => router.push(`/events/${eventId}/edit`)}
+        >
+          <Search className="mr-2 size-4" />
+          Explore more
+        </Button>
+        <Button variant="outline" className="w-full flex-1 py-2" disabled>
           <Ban className="mr-2 size-4" />
           Event Cancelled
         </Button>
@@ -51,13 +59,13 @@ export function EventRegistrationCard({
 
   if (isPast) {
     return (
-      <div className="rounded-lg border bg-card p-4 shadow-sm sm:p-6">
+      <div className="flex flex-col items-center justify-between gap-4 rounded-lg shadow-sm md:flex-row">
         <div className="space-y-4">
-          <Button variant="outline" className="w-full" disabled>
+          <Button variant="outline" className="w-full flex-1 py-2" disabled>
             Event Ended
           </Button>
           {hasRegistered && (
-            <Button variant="secondary" className="w-full" onClick={() => router.push("/tickets")}>
+            <Button variant="secondary" className="w-full flex-1 py-2" onClick={() => router.push("/tickets")}>
               <Ticket className="mr-2 size-4" />
               View My Tickets
             </Button>
@@ -69,8 +77,20 @@ export function EventRegistrationCard({
 
   if (isOrganizer) {
     return (
-      <div className="rounded-lg border bg-card p-4 shadow-sm sm:p-6">
-        <Button variant="outline" className="w-full" onClick={() => router.push(`/events/${eventId}/edit`)}>
+      <div className="flex flex-col items-center justify-between gap-4 rounded-lg shadow-sm md:flex-row">
+        <Button
+          variant="outline"
+          className="w-full flex-1 py-2"
+          onClick={() => router.push(`/events/${eventId}/edit`)}
+        >
+          <LayoutDashboard className="mr-2 size-4" />
+          Dashboard
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full flex-1 py-2"
+          onClick={() => router.push(`/events/${eventId}/edit`)}
+        >
           <Settings2 className="mr-2 size-4" />
           Manage Event
         </Button>
