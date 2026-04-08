@@ -1,7 +1,7 @@
 import { api } from "@/convex/_generated/api"
 import { redirect } from "next/navigation"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
-import { ClientHomePage } from "./ClientHomePage"
+import { ClientHomePage } from "@/components/ClientHomePage"
 
 export const metadata = {
   title: "EventCraft AI — Events at the speed of thought",

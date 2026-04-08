@@ -5,8 +5,8 @@ import Link from "next/link"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
 import { tryCatch } from "@/lib/try-catch"
 import { Button } from "@/components/ui/button"
-import { LogoutButton } from "./LogoutButton"
 import { MobileMenu } from "./MobileMenu"
+import { ProfileMenu } from "./ProfileMenu"
 
 export async function Header() {
   const authResult = await tryCatch(isAuthenticated())
@@ -69,14 +69,7 @@ export async function Header() {
 
         <div className="hidden items-center gap-2 md:flex">
           {authed ? (
-            <div className="flex items-center gap-2">
-              <Link href="/profile">
-                <Button variant="ghost" size="sm">
-                  {profile?.name ?? "Profile"}
-                </Button>
-              </Link>
-              <LogoutButton />
-            </div>
+            <ProfileMenu profile={profile} />
           ) : (
             <Link href="/sign-in">
               <Button size="sm">Sign In</Button>
