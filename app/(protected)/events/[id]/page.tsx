@@ -1,6 +1,7 @@
+import { Suspense } from "react"
 import { api } from "@/convex/_generated/api"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
-import { fetchQuery } from "convex/nextjs"
+import { EventRegistrationCard } from "@/features/events/components/EventRegistrationCard"
 import { ArrowLeft, Calendar, Globe, ImageIcon, MapPin, Pencil, Ticket, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -16,6 +17,10 @@ type EventData = {
   organizer: Doc<"profile"> | null
   isOrganizer: boolean
   isRegistered: boolean
+}
+
+function getToday() {
+  return Date.now()
 }
 
 const statusLabels: Record<
@@ -47,15 +52,15 @@ function formatTime(timestamp: number) {
 async function EventContent({ data }: { data: EventData }) {
   const { event, organizer, isOrganizer, isRegistered } = data
   const status = statusLabels[event.status] ?? { label: event.status, variant: "outline" as const }
-  const coverPhotoUrl = await fetchQuery(api.storage.getUrl, {
+  const coverPhotoUrl = await fetchAuthQuery(api.storage.getUrl, {
     storageId: data.event.coverPhoto ?? ("" as Id<"_storage">),
   })
   const backLink = isOrganizer ? `/dashboard` : `/explore`
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto max-w-3xl space-y-6 px-3 py-6 sm:space-y-8 sm:px-4 sm:py-8">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto max-w-5xl px-3 py-6 sm:px-4 sm:py-8">
+        <div className="flex justify-between gap-3">
           <Button variant="ghost" size="sm" asChild>
             <Link href={backLink}>
               <ArrowLeft className="mr-2 size-4" />
@@ -82,92 +87,109 @@ async function EventContent({ data }: { data: EventData }) {
           </div>
         </div>
 
-        <div className="space-y-6">
-          {event.coverPhoto ? (
-            <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
-              <Image src={coverPhotoUrl ?? ""} alt={event.title} fill className="object-cover" />
-            </div>
-          ) : (
-            <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg bg-muted">
-              <ImageIcon className="size-12 text-muted-foreground/50" />
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <Badge variant={status.variant}>{status.label}</Badge>
-              {isRegistered && <Badge variant="outline">Registered</Badge>}
-            </div>
-
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{event.title}</h1>
-
-            <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="size-4 shrink-0" />
-                <span className="text-xs sm:text-sm">
-                  {formatDate(event.startDatetime)} · {formatTime(event.startDatetime)} -{" "}
-                  {formatTime(event.endDatetime)}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="size-4 shrink-0" />
-                <span className="text-xs sm:text-sm">
-                  {event.venue.city}, {event.venue.country}
-                </span>
-              </div>
-              {event.capacity != null && (
-                <div className="flex items-center gap-2">
-                  <Users className="size-4 shrink-0" />
-                  <span className="text-xs sm:text-sm">
-                    {event.registrationCount} / {event.capacity} registered
-                  </span>
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px] lg:gap-8">
+          <div className="space-y-6">
+            <div>
+              {event.coverPhoto ? (
+                <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
+                  <Image src={coverPhotoUrl ?? ""} alt={event.title} fill className="object-cover" />
+                </div>
+              ) : (
+                <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg bg-muted">
+                  <ImageIcon className="size-12 text-muted-foreground/50" />
                 </div>
               )}
             </div>
+
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <Badge variant={status.variant}>{status.label}</Badge>
+                {isRegistered && <Badge variant="outline">Registered</Badge>}
+              </div>
+
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{event.title}</h1>
+
+              <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-4">
+                <div className="flex items-center gap-2">
+                  <Calendar className="size-4 shrink-0" />
+                  <span className="text-xs sm:text-sm">
+                    {formatDate(event.startDatetime)} · {formatTime(event.startDatetime)} -{" "}
+                    {formatTime(event.endDatetime)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="size-4 shrink-0" />
+                  <span className="text-xs sm:text-sm">
+                    {event.venue.city}, {event.venue.country}
+                  </span>
+                </div>
+                {event.capacity != null && (
+                  <div className="flex items-center gap-2">
+                    <Users className="size-4 shrink-0" />
+                    <span className="text-xs sm:text-sm">
+                      {event.registrationCount} / {event.capacity} registered
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {event.description && (
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold">About</h2>
+                <p className="text-sm whitespace-pre-wrap text-muted-foreground sm:text-base">
+                  {event.description}
+                </p>
+              </div>
+            )}
+
+            {event.venue.address && (
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold">Location</h2>
+                <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <MapPin className="mt-0.5 size-4 shrink-0" />
+                  <div>
+                    <p>{event.venue.address}</p>
+                    <p>
+                      {event.venue.city}, {event.venue.country}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {organizer && (
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold">Organizer</h2>
+                <div className="flex items-center gap-3">
+                  <Avatar>
+                    <AvatarImage src={organizer.avatarUrl ?? undefined} />
+                    <AvatarFallback>{organizer.name?.charAt(0) ?? "O"}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{organizer.name}</p>
+                    {organizer.location && (
+                      <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Globe className="size-3" />
+                        {organizer.location.city}, {organizer.location.country}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {event.description && (
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold">About</h2>
-              <p className="text-sm whitespace-pre-wrap text-muted-foreground sm:text-base">{event.description}</p>
-            </div>
-          )}
-
-          {event.venue.address && (
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold">Location</h2>
-              <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                <MapPin className="mt-0.5 size-4 shrink-0" />
-                <div>
-                  <p>{event.venue.address}</p>
-                  <p>
-                    {event.venue.city}, {event.venue.country}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {organizer && (
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold">Organizer</h2>
-              <div className="flex items-center gap-3">
-                <Avatar>
-                  <AvatarImage src={organizer.avatarUrl ?? undefined} />
-                  <AvatarFallback>{organizer.name?.charAt(0) ?? "O"}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium">{organizer.name}</p>
-                  {organizer.location && (
-                    <p className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Globe className="size-3" />
-                      {organizer.location.city}, {organizer.location.country}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+          <div className="lg:sticky lg:top-8 lg:h-fit">
+            <EventRegistrationCard
+              eventId={event._id}
+              isOrganizer={isOrganizer}
+              isRegistered={isRegistered}
+              isFull={event.capacity !== undefined && event.registrationCount >= event.capacity}
+              isPast={event.endDatetime < getToday()}
+              isCancelled={event.status === "cancelled"}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -195,5 +217,9 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
     notFound()
   }
 
-  return <EventContent data={response.data} />
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EventContent data={response.data} />
+    </Suspense>
+  )
 }

@@ -190,7 +190,7 @@ export default function CreateEventPage() {
       await publishEventMutation({ eventId: createdEventId })
       dispatchResetWizard()
       toast.success("Event published!")
-      router.push(`/events/${createdEventId}/edit`)
+      router.push(`/events/${createdEventId}`)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to publish event")
     } finally {
