@@ -27,7 +27,7 @@ export function EventWizardVenueScheduleStep() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="space-y-2">
         <Label htmlFor="venue-name">Venue Name</Label>
         <Input
           id="venue-name"
@@ -37,7 +37,7 @@ export function EventWizardVenueScheduleStep() {
         />
       </div>
 
-      <div>
+      <div className="space-y-2">
         <Label htmlFor="venue-address">Address</Label>
         <Input
           id="venue-address"
@@ -48,7 +48,7 @@ export function EventWizardVenueScheduleStep() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="venue-city">City</Label>
           <Input
             id="venue-city"
@@ -57,7 +57,7 @@ export function EventWizardVenueScheduleStep() {
             onChange={e => handleUpdateVenue({ city: e.target.value })}
           />
         </div>
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="venue-country">Country</Label>
           <Input
             id="venue-country"
@@ -69,7 +69,7 @@ export function EventWizardVenueScheduleStep() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="start-datetime">Start Date & Time</Label>
           <Input
             id="start-datetime"
@@ -79,7 +79,7 @@ export function EventWizardVenueScheduleStep() {
             onChange={e => dispatchUpdateWizardData({ startDatetime: e.target.value })}
           />
         </div>
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="end-datetime">End Date & Time</Label>
           <Input
             id="end-datetime"
@@ -94,7 +94,7 @@ export function EventWizardVenueScheduleStep() {
         </div>
       </div>
 
-      <div>
+      <div className="space-y-2">
         <Label htmlFor="capacity">Capacity (optional)</Label>
         <Input
           id="capacity"

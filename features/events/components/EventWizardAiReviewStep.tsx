@@ -122,12 +122,12 @@ export function EventWizardAiReviewStep() {
       </div>
 
       <div className="space-y-4">
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="review-title">Title</Label>
           <Input id="review-title" value={editableTitle} onChange={e => setEditableTitle(e.target.value)} />
         </div>
 
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="review-description">Description</Label>
           <Textarea
             id="review-description"
@@ -137,7 +137,7 @@ export function EventWizardAiReviewStep() {
           />
         </div>
 
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="review-category">Category</Label>
           <Select value={editableCategory} onValueChange={setEditableCategory}>
             <SelectTrigger id="review-category">
@@ -153,7 +153,7 @@ export function EventWizardAiReviewStep() {
           </Select>
         </div>
 
-        <div>
+        <div className="space-y-2">
           <Label>Tags</Label>
           <div className="mt-2 flex flex-wrap gap-2">
             {editableTags.map(tag => (
