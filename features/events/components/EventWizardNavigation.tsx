@@ -59,25 +59,31 @@ export function EventWizardNavigation({
 
   return (
     <>
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleBackClick} disabled={isSubmitting || isSaving}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            onClick={handleBackClick}
+            disabled={isSubmitting || isSaving}
+            className="min-h-10"
+          >
             <ArrowLeft className="mr-1 size-4" />
-            {selectedMethod === "ai" ? "Manual Mode" : "AI Mode"}
+            <span className="hidden sm:inline">{selectedMethod === "ai" ? "Manual Mode" : "AI Mode"}</span>
+            <span className="sm:hidden">Back</span>
           </Button>
-          <Button variant="outline" onClick={onSaveDraft} disabled={isSubmitting || isSaving}>
+          <Button variant="outline" onClick={onSaveDraft} disabled={isSubmitting || isSaving} className="min-h-10">
             <Save className="mr-1 size-4" />
-            Save Draft
+            <span className="hidden sm:inline">Save Draft</span>
           </Button>
         </div>
 
         {isLastStep ? (
-          <Button onClick={onPublish} disabled={isSubmitting || isSaving}>
+          <Button onClick={onPublish} disabled={isSubmitting || isSaving} className="min-h-10">
             <Rocket className="mr-1 size-4" />
             {isSubmitting ? "Publishing..." : "Publish Event"}
           </Button>
         ) : (
-          <Button onClick={onNext} disabled={isSubmitting || isSaving}>
+          <Button onClick={onNext} disabled={isSubmitting || isSaving} className="min-h-10">
             Next
             <ArrowRight className="ml-1 size-4" />
           </Button>

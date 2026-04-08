@@ -71,7 +71,7 @@ export function EventCard({ event, variant = "default", now, isRegistered }: Eve
     return (
       <Link
         href={`/events/${event._id}`}
-        className="group relative flex w-64 shrink-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-sm"
+        className="group relative flex w-56 shrink-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-sm sm:w-64"
       >
         <div className="relative aspect-video overflow-hidden bg-muted">
           <CoverImage
@@ -159,7 +159,7 @@ export function EventCard({ event, variant = "default", now, isRegistered }: Eve
   return (
     <Link
       href={`/events/${event._id}`}
-      className="group relative flex w-72 shrink-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-sm"
+      className="group relative flex w-64 shrink-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-sm max-md:w-56"
     >
       <div className="relative aspect-video overflow-hidden bg-muted">
         <CoverImage storageId={event.coverPhoto} alt={event.title} className="h-full w-full" />

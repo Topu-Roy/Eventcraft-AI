@@ -81,11 +81,13 @@ export default async function DashboardPage() {
   if (!events?.length) {
     return (
       <div className="min-h-screen">
-        <div className="mx-auto max-w-7xl space-y-8 px-4 py-8">
+        <div className="mx-auto max-w-7xl space-y-6 px-3 py-6 sm:space-y-8 sm:px-4 sm:py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-              <p className="mt-1 text-muted-foreground">Manage your events and track performance.</p>
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Dashboard</h1>
+              <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+                Manage your events and track performance.
+              </p>
             </div>
           </div>
 
@@ -108,19 +110,21 @@ export default async function DashboardPage() {
   return (
     <DashboardAnimations>
       <div className="min-h-screen">
-        <div className="mx-auto max-w-7xl space-y-8 px-4 py-8">
-          <div className="dash-header flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto max-w-7xl space-y-6 px-3 py-6 sm:space-y-8 sm:px-4 sm:py-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-              <p className="mt-1 text-muted-foreground">Manage your events and track performance.</p>
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Dashboard</h1>
+              <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+                Manage your events and track performance.
+              </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
               {planUsage && (
                 <span className="text-sm text-muted-foreground">
                   {planUsage.activeCount} of {planUsage.limit === Infinity ? "∞" : planUsage.limit} events used
                 </span>
               )}
-              <Button asChild>
+              <Button asChild className="min-h-10">
                 <Link href="/events/create">
                   <Plus className="mr-2 size-4" />
                   Create Event
@@ -129,36 +133,36 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Card className="dash-stat">
-              <CardContent className="flex items-center gap-4 p-4">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                  <BarChart3 className="size-5 text-primary" />
+              <CardContent className="flex items-center gap-3 p-4 sm:gap-4 sm:p-4">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 sm:size-10">
+                  <BarChart3 className="size-4 text-primary sm:size-5" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{activeEvents.length}</p>
+                  <p className="text-xl font-bold sm:text-2xl">{activeEvents.length}</p>
                   <p className="text-xs text-muted-foreground">Active events</p>
                 </div>
               </CardContent>
             </Card>
             <Card className="dash-stat">
-              <CardContent className="flex items-center gap-4 p-4">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                  <Ticket className="size-5 text-primary" />
+              <CardContent className="flex items-center gap-3 p-4 sm:gap-4 sm:p-4">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 sm:size-10">
+                  <Ticket className="size-4 text-primary sm:size-5" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{totalRegistrations}</p>
+                  <p className="text-xl font-bold sm:text-2xl">{totalRegistrations}</p>
                   <p className="text-xs text-muted-foreground">Total registrations</p>
                 </div>
               </CardContent>
             </Card>
             <Card className="dash-stat">
-              <CardContent className="flex items-center gap-4 p-4">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                  <BarChart3 className="size-5 text-primary" />
+              <CardContent className="flex items-center gap-3 p-4 sm:gap-4 sm:p-4">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 sm:size-10">
+                  <BarChart3 className="size-4 text-primary sm:size-5" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{events.length}</p>
+                  <p className="text-xl font-bold sm:text-2xl">{events.length}</p>
                   <p className="text-xs text-muted-foreground">All events</p>
                 </div>
               </CardContent>

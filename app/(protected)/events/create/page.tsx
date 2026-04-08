@@ -31,8 +31,10 @@ import {
 } from "@/features/events/eventWizard"
 import { useMutation } from "convex/react"
 import { useAtomValue, useSetAtom } from "jotai"
+import { ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 function getStepDescription(pipeline: "ai" | "manual", step: AiWizardStep | ManualWizardStep): string {
@@ -253,10 +255,12 @@ export default function CreateEventPage() {
   if (!selectedPipeline) {
     return (
       <div className="min-h-screen">
-        <div className="mx-auto max-w-2xl space-y-8 px-4 py-8">
+        <div className="mx-auto max-w-2xl space-y-6 px-3 py-6 sm:space-y-8 sm:px-4 sm:py-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Create Event</h1>
-            <p className="mt-1 text-muted-foreground">Choose how you want to create your event.</p>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Create Event</h1>
+            <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+              Choose how you want to create your event.
+            </p>
           </div>
 
           <EventWizardLanding />
@@ -267,20 +271,29 @@ export default function CreateEventPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto max-w-2xl space-y-8 px-4 py-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Create Event</h1>
-          <p className="mt-1 text-muted-foreground">Build your event step by step.</p>
+      <div className="mx-auto max-w-2xl space-y-6 px-3 py-6 sm:space-y-8 sm:px-4 sm:py-8">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <Button variant="ghost" size="sm" onClick={handleBackToLanding} className="min-h-9 min-w-9 px-2 sm:px-3">
+            <ArrowLeft className="size-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Create Event</h1>
+            <p className="mt-1 text-sm text-muted-foreground sm:text-base">Build your event step by step.</p>
+          </div>
         </div>
 
         <EventWizardStepIndicator currentStep={currentStep} steps={steps} />
 
         <Card>
-          <CardHeader>
-            <CardTitle>{getStepLabel(selectedPipeline, currentStep, steps)}</CardTitle>
-            <CardDescription>{getStepDescription(selectedPipeline, currentStep)}</CardDescription>
+          <CardHeader className="pb-4 sm:pb-6">
+            <CardTitle className="text-lg sm:text-xl">
+              {getStepLabel(selectedPipeline, currentStep, steps)}
+            </CardTitle>
+            <CardDescription className="text-sm">
+              {getStepDescription(selectedPipeline, currentStep)}
+            </CardDescription>
           </CardHeader>
-          <CardContent>{renderStepContent(currentStep)}</CardContent>
+          <CardContent className="pb-4 sm:pb-6">{renderStepContent(currentStep)}</CardContent>
         </Card>
 
         <EventWizardNavigation

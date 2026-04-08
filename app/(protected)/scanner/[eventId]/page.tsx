@@ -238,17 +238,20 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto max-w-2xl space-y-8 px-4 py-8">
-        <div className="flex items-center justify-between">
+      <div className="mx-auto max-w-2xl space-y-6 px-3 py-6 sm:space-y-8 sm:px-4 sm:py-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Check-In Scanner</h1>
-            <p className="mt-1 text-muted-foreground">Scan attendee tickets for quick check-in.</p>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Check-In Scanner</h1>
+            <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+              Scan attendee tickets for quick check-in.
+            </p>
           </div>
           <Button
             variant="ghost"
             size="icon-sm"
             onClick={() => setShowSettings(!showSettings)}
             aria-label="Toggle settings"
+            className="min-h-10 min-w-10 self-start"
           >
             <Settings className="size-4" />
           </Button>
@@ -261,7 +264,7 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
               <CardDescription>Configure scanner behavior</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-medium">Auto-reset delay</p>
                   <p className="text-sm text-muted-foreground">Time to wait before scanning next</p>
@@ -293,11 +296,13 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
 
         <Tabs value={activeTab} onValueChange={v => setActiveTab(v as "camera" | "manual")}>
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="camera">
+            <TabsTrigger value="camera" className="min-h-10">
               <QrCode className="mr-2 size-4" />
               Camera
             </TabsTrigger>
-            <TabsTrigger value="manual">Manual</TabsTrigger>
+            <TabsTrigger value="manual" className="min-h-10">
+              Manual
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="camera">
@@ -330,12 +335,13 @@ export default function ScannerPage({ params }: { params: Promise<{ eventId: str
                       placeholder="e.g., abc123xyz"
                       value={manualCode}
                       onChange={e => setManualCode(e.target.value)}
+                      className="min-h-11"
                     />
                     <p id="manual-code-description" className="mt-1 text-xs text-muted-foreground">
                       Type or paste the ticket code manually.
                     </p>
                   </div>
-                  <Button type="submit" className="w-full" disabled={isProcessing || !manualCode.trim()}>
+                  <Button type="submit" className="min-h-11 w-full" disabled={isProcessing || !manualCode.trim()}>
                     {isProcessing ? "Processing..." : "Scan Ticket"}
                   </Button>
                 </form>

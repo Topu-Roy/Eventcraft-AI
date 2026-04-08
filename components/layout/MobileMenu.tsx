@@ -44,7 +44,7 @@ export function MobileMenu({ authed, profile }: MobileMenuProps) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon-sm">
+        <Button variant="ghost" size="icon-sm" className="min-h-11 min-w-11">
           <Menu className="size-5" />
           <span className="sr-only">Open menu</span>
         </Button>
@@ -59,7 +59,7 @@ export function MobileMenu({ authed, profile }: MobileMenuProps) {
 
         <nav className="mt-6 flex flex-col gap-2">
           <Link href="/explore" onClick={closeMenu}>
-            <Button variant="ghost" className="w-full justify-start">
+            <Button variant="ghost" className="min-h-11 w-full justify-start">
               <Search className="mr-2 size-4" />
               Explore
             </Button>
@@ -68,19 +68,19 @@ export function MobileMenu({ authed, profile }: MobileMenuProps) {
           {authed && (
             <>
               <Link href="/dashboard" onClick={closeMenu}>
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="ghost" className="min-h-11 w-full justify-start">
                   <LayoutDashboard className="mr-2 size-4" />
                   Dashboard
                 </Button>
               </Link>
               <Link href="/events/create" onClick={closeMenu}>
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="ghost" className="min-h-11 w-full justify-start">
                   <Plus className="mr-2 size-4" />
                   Create Event
                 </Button>
               </Link>
               <Link href="/tickets" onClick={closeMenu}>
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="ghost" className="min-h-11 w-full justify-start">
                   <Ticket className="mr-2 size-4" />
                   My Tickets
                 </Button>
@@ -91,14 +91,14 @@ export function MobileMenu({ authed, profile }: MobileMenuProps) {
           {authed ? (
             <div className="mt-4 space-y-2 border-t pt-4">
               <Link href="/profile" onClick={closeMenu}>
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="ghost" className="min-h-11 w-full justify-start">
                   <User className="mr-2 size-4" />
                   {profile?.name ?? "Profile"}
                 </Button>
               </Link>
               <Button
                 variant="ghost"
-                className="w-full justify-start text-destructive hover:text-destructive"
+                className="min-h-11 w-full justify-start text-destructive hover:text-destructive"
                 onClick={handleSignOut}
                 disabled={isPending}
               >
@@ -109,7 +109,7 @@ export function MobileMenu({ authed, profile }: MobileMenuProps) {
           ) : (
             <div className="mt-4 space-y-2 border-t pt-4">
               <Link href="/sign-in" onClick={closeMenu}>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="min-h-11 w-full">
                   Sign In
                 </Button>
               </Link>

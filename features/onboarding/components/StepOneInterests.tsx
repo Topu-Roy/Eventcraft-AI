@@ -108,8 +108,8 @@ export function StepOneInterests({ onNext }: StepOneInterestsProps) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight">What are you interested in?</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">What are you interested in?</h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
           Pick categories you&apos;re interested in. You&apos;ll see events like these.
         </p>
       </div>
@@ -123,7 +123,7 @@ export function StepOneInterests({ onNext }: StepOneInterestsProps) {
               type="button"
               onClick={() => toggleInterest(category.slug)}
               className={cn(
-                "relative flex flex-col items-center gap-2 rounded-lg border-2 p-4 text-center transition-all",
+                "relative flex min-h-24 flex-col items-center justify-center gap-2 rounded-lg border-2 p-3 text-center transition-all sm:min-h-28 sm:p-4",
                 isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
               )}
             >
@@ -132,14 +132,14 @@ export function StepOneInterests({ onNext }: StepOneInterestsProps) {
                   <Check className="h-4 w-4 text-primary" />
                 </div>
               )}
-              <span className="text-lg">{getCategoryIcon(category.iconName)}</span>
-              <span className="text-sm font-medium">{category.name}</span>
+              <span className="text-xl sm:text-2xl">{getCategoryIcon(category.iconName)}</span>
+              <span className="text-xs font-medium sm:text-sm">{category.name}</span>
             </button>
           )
         })}
       </div>
 
-      <Button onClick={onNext} disabled={!hasSelection} className="w-full">
+      <Button onClick={onNext} disabled={!hasSelection} className="min-h-11 w-full">
         Continue
       </Button>
     </div>

@@ -87,10 +87,10 @@ export function OnboardingWizard(_props: OnboardingWizardProps) {
   const completedSteps = onboardingData?.completedSteps ?? []
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
+    <div className="mx-auto max-w-2xl space-y-6 px-3 sm:space-y-8">
       <StepIndicator currentStep={currentStep} completedSteps={completedSteps} totalSteps={3} />
 
-      <div className="rounded-lg border bg-card p-6 shadow-sm">
+      <div className="rounded-lg border bg-card p-4 shadow-sm sm:p-6">
         {currentStep === 1 ? <StepOneInterests onNext={handleStepOneNext} /> : null}
         {currentStep === 2 ? <StepTwoLocation onNext={handleStepTwoNext} /> : null}
         {currentStep === 3 ? <StepThreeWelcome /> : null}

@@ -30,7 +30,7 @@ export function UsersTable() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle>User Management</CardTitle>
         <CreateUserDialog />
       </CardHeader>
@@ -40,11 +40,11 @@ export function UsersTable() {
             placeholder="Search users by email..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="max-w-sm"
+            className="min-h-10 max-w-sm"
           />
         </div>
 
-        <div className="rounded-md border">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -78,7 +78,7 @@ export function UsersTable() {
                 users.map(user => (
                   <TableRow key={user.id}>
                     <TableCell>
-                      <Avatar>
+                      <Avatar className="size-8">
                         <AvatarImage src={user.image ?? ""} />
                         <AvatarFallback>{user.name?.charAt(0) ?? "U"}</AvatarFallback>
                       </Avatar>
@@ -109,26 +109,30 @@ export function UsersTable() {
           </Table>
         </div>
 
-        <div className="flex items-center justify-end space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
-            Previous
-          </Button>
-          <div className="text-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-muted-foreground">
             Page {page} of {totalPages || 1}
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages || totalPages === 0}
-          >
-            Next
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="min-h-9"
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages || totalPages === 0}
+              className="min-h-9"
+            >
+              Next
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

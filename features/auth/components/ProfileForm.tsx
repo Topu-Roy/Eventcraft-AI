@@ -38,11 +38,11 @@ export function ProfileForm() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Name</label>
-            <Input value={name} onChange={e => setName(e.target.value)} required />
+            <Input value={name} onChange={e => setName(e.target.value)} required className="min-h-10" />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Email</label>
-            <Input value={session?.user?.email ?? ""} disabled className="bg-muted" />
+            <Input value={session?.user?.email ?? ""} disabled className="min-h-10 bg-muted" />
             <p className="text-xs text-muted-foreground">Email cannot be changed.</p>
           </div>
           <div className="space-y-2">
@@ -51,11 +51,12 @@ export function ProfileForm() {
               value={image}
               onChange={e => setImage(e.target.value)}
               placeholder="https://example.com/avatar.png"
+              className="min-h-10"
             />
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading} className="min-h-10">
             {loading ? "Updating..." : "Update Profile"}
           </Button>
         </CardFooter>

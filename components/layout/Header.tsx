@@ -20,16 +20,17 @@ export async function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
-        <div className="flex items-center gap-6">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-4 md:px-6">
+        <div className="flex items-center gap-2 md:gap-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary">
               <Calendar className="size-4 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold tracking-tight">EventCraft AI</span>
+            <span className="hidden text-lg font-bold tracking-tight sm:inline">EventCraft AI</span>
+            <span className="text-lg font-bold tracking-tight sm:hidden">EventAI</span>
           </Link>
 
-          <nav className="hidden items-center gap-4 md:flex">
+          <nav className="hidden items-center gap-2 md:flex lg:gap-4">
             <Link
               href="/explore"
               className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"

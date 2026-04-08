@@ -24,11 +24,11 @@ export function CategoryTabs() {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 overflow-x-auto pb-2">
+      <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-2">
         <button
           type="button"
           onClick={() => selectCategory("")}
-          className="shrink-0 rounded-full border bg-background px-4 py-1.5 text-sm font-medium transition-colors hover:bg-accent"
+          className="min-h-9 shrink-0 rounded-full border bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent"
         >
           All
         </button>
@@ -37,7 +37,7 @@ export function CategoryTabs() {
             key={cat._id}
             type="button"
             onClick={() => selectCategory(cat.slug)}
-            className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+            className={`min-h-9 shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
               activeCategory === cat.slug
                 ? "border-primary bg-primary text-primary-foreground"
                 : "bg-background hover:bg-accent"

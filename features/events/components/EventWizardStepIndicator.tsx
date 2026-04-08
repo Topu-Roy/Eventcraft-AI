@@ -15,16 +15,16 @@ export function EventWizardStepIndicator({ currentStep, steps }: EventWizardStep
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="scrollbar-hide flex items-center justify-between gap-1 overflow-x-auto pb-2 md:gap-2">
         {steps.map((step, index) => {
           const isCurrentStep = step.key === currentStep
           const isCompletedStep = index < currentStepIndex
           const StepIcon = step.icon
 
           return (
-            <div key={step.key} className="flex flex-col items-center gap-2">
+            <div key={step.key} className="flex min-w-0 flex-1 flex-col items-center gap-2">
               <div
-                className={`flex size-10 items-center justify-center rounded-full border-2 transition-all ${
+                className={`flex size-9 shrink-0 items-center justify-center rounded-full border-2 transition-all sm:size-10 ${
                   isCurrentStep
                     ? "border-primary bg-primary text-primary-foreground"
                     : isCompletedStep
@@ -35,7 +35,7 @@ export function EventWizardStepIndicator({ currentStep, steps }: EventWizardStep
                 <StepIcon className="size-4" />
               </div>
               <span
-                className={`text-xs font-medium ${
+                className={`truncate text-[10px] font-medium sm:text-xs ${
                   isCurrentStep ? "text-foreground" : isCompletedStep ? "text-primary" : "text-muted-foreground/50"
                 }`}
               >

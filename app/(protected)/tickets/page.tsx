@@ -87,18 +87,20 @@ function TicketCard({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="line-clamp-2 text-base">{event.title}</CardTitle>
-          <Badge variant={statusBadgeVariant}>{statusText}</Badge>
+          <Badge variant={statusBadgeVariant} className="shrink-0">
+            {statusText}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="space-y-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Calendar className="size-4 shrink-0" />
-            <span>{formatEventDate(event.startDatetime)}</span>
+            <span className="truncate">{formatEventDate(event.startDatetime)}</span>
           </div>
           <div className="flex items-center gap-2">
             <Clock className="size-4 shrink-0" />
-            <span>{formatEventTime(event.startDatetime)}</span>
+            <span className="truncate">{formatEventTime(event.startDatetime)}</span>
           </div>
           <div className="flex items-center gap-2">
             <MapPin className="size-4 shrink-0" />
@@ -108,7 +110,7 @@ function TicketCard({
           </div>
           <div className="flex items-center gap-2">
             <Users className="size-4 shrink-0" />
-            <span>
+            <span className="truncate">
               {event.capacity === undefined
                 ? "Unlimited capacity"
                 : `${event.registrationCount}/${event.capacity} registered`}
@@ -117,14 +119,14 @@ function TicketCard({
         </div>
         <div className="flex gap-2 pt-1">
           <Link href={`/tickets/${registration.ticketCode}`} className="flex-1">
-            <Button variant="default" className="w-full" disabled={registration.status === "cancelled"}>
+            <Button variant="default" className="min-h-10 w-full" disabled={registration.status === "cancelled"}>
               <Ticket className="mr-2 size-4" />
               {registration.status === "cancelled" ? "Cancelled" : "View Ticket"}
             </Button>
           </Link>
           {!isPastEvent && registration.status === "active" ? (
             <Link href={`/events/${event._id}`}>
-              <Button variant="outline" size="icon" aria-label="View event details">
+              <Button variant="outline" size="icon" className="min-h-10 min-w-10" aria-label="View event details">
                 <ArrowRight className="size-4" />
               </Button>
             </Link>
@@ -214,7 +216,7 @@ async function TicketList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
+      <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <span>
           {activeTicketCount} active ticket{activeTicketCount !== 1 ? "s" : ""}
         </span>
@@ -232,10 +234,12 @@ async function TicketList() {
 export default function MyTicketsPage() {
   return (
     <div className="min-h-screen">
-      <div className="mx-auto max-w-7xl space-y-8 px-4 py-8">
+      <div className="mx-auto max-w-7xl space-y-6 px-3 py-6 sm:space-y-8 sm:px-4 sm:py-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Tickets</h1>
-          <p className="mt-1 text-muted-foreground">Manage your event tickets and check-in status.</p>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">My Tickets</h1>
+          <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+            Manage your event tickets and check-in status.
+          </p>
         </div>
 
         <Suspense fallback={<TicketListSkeleton />}>

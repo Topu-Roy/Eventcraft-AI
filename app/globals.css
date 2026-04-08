@@ -129,4 +129,11 @@
 
 @layer utilities {
   /* GSAP animations handled in client components */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

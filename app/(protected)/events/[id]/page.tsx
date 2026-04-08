@@ -54,8 +54,8 @@ async function EventContent({ data }: { data: EventData }) {
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto max-w-3xl space-y-8 px-4 py-8">
-        <div className="flex items-center justify-between gap-4">
+      <div className="mx-auto max-w-3xl space-y-6 px-3 py-6 sm:space-y-8 sm:px-4 sm:py-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Button variant="ghost" size="sm" asChild>
             <Link href={backLink}>
               <ArrowLeft className="mr-2 size-4" />
@@ -94,27 +94,33 @@ async function EventContent({ data }: { data: EventData }) {
           )}
 
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <Badge variant={status.variant}>{status.label}</Badge>
               {isRegistered && <Badge variant="outline">Registered</Badge>}
             </div>
 
-            <h1 className="text-3xl font-bold tracking-tight">{event.title}</h1>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{event.title}</h1>
 
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-4">
               <div className="flex items-center gap-2">
-                <Calendar className="size-4" />
-                {formatDate(event.startDatetime)} · {formatTime(event.startDatetime)} -{" "}
-                {formatTime(event.endDatetime)}
+                <Calendar className="size-4 shrink-0" />
+                <span className="text-xs sm:text-sm">
+                  {formatDate(event.startDatetime)} · {formatTime(event.startDatetime)} -{" "}
+                  {formatTime(event.endDatetime)}
+                </span>
               </div>
               <div className="flex items-center gap-2">
-                <MapPin className="size-4" />
-                {event.venue.city}, {event.venue.country}
+                <MapPin className="size-4 shrink-0" />
+                <span className="text-xs sm:text-sm">
+                  {event.venue.city}, {event.venue.country}
+                </span>
               </div>
               {event.capacity != null && (
                 <div className="flex items-center gap-2">
-                  <Users className="size-4" />
-                  {event.registrationCount} / {event.capacity} registered
+                  <Users className="size-4 shrink-0" />
+                  <span className="text-xs sm:text-sm">
+                    {event.registrationCount} / {event.capacity} registered
+                  </span>
                 </div>
               )}
             </div>
@@ -123,15 +129,15 @@ async function EventContent({ data }: { data: EventData }) {
           {event.description && (
             <div className="space-y-2">
               <h2 className="text-lg font-semibold">About</h2>
-              <p className="whitespace-pre-wrap text-muted-foreground">{event.description}</p>
+              <p className="text-sm whitespace-pre-wrap text-muted-foreground sm:text-base">{event.description}</p>
             </div>
           )}
 
           {event.venue.address && (
             <div className="space-y-2">
               <h2 className="text-lg font-semibold">Location</h2>
-              <div className="flex items-start gap-2 text-muted-foreground">
-                <MapPin className="mt-0.5 size-4" />
+              <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                <MapPin className="mt-0.5 size-4 shrink-0" />
                 <div>
                   <p>{event.venue.address}</p>
                   <p>
