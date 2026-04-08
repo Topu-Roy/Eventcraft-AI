@@ -49,7 +49,7 @@ export function MobileMenu({ authed, profile }: MobileMenuProps) {
           <span className="sr-only">Open menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-72">
+      <SheetContent side="right" className="w-72 px-4">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Calendar className="size-5 text-primary" />
