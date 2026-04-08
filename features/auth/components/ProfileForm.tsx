@@ -30,12 +30,12 @@ export function ProfileForm() {
 
   return (
     <Card className="w-full">
-      <CardHeader>
+      <CardHeader className="px-4 sm:px-6">
         <CardTitle>Profile</CardTitle>
         <CardDescription>Update your personal information.</CardDescription>
       </CardHeader>
       <form onSubmit={handleUpdate}>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-4 sm:px-6">
           <div className="space-y-2">
             <label className="text-sm font-medium">Name</label>
             <Input value={name} onChange={e => setName(e.target.value)} required className="min-h-10" />
@@ -55,7 +55,7 @@ export function ProfileForm() {
             />
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="px-4 sm:px-6">
           <Button type="submit" disabled={loading} className="min-h-10">
             {loading ? "Updating..." : "Update Profile"}
           </Button>
