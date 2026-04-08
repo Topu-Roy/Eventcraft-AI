@@ -147,7 +147,7 @@ export function ClientHomePage() {
   }, [])
 
   return (
-    <div className="relative bg-background text-foreground lg:overflow-hidden">
+    <div className="relative overflow-x-hidden bg-background text-foreground lg:overflow-hidden">
       <div ref={globRef} className="overflow-hidden">
         <div className="pointer-events-none absolute inset-0 top-[10%] -left-[10%] opacity-50">
           <div className="bg-blob size-[500px] rounded-full bg-primary/20 blur-[120px]" />
