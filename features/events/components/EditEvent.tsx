@@ -96,13 +96,6 @@ export function EditEvent({ eventId }: { eventId: string }) {
               <ArrowLeft className="mr-1 size-4" />
               Back
             </Button>
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold tracking-tight">Edit Event</h1>
-                <Badge variant={status.variant}>{status.label}</Badge>
-              </div>
-              <p className="mt-1 text-sm text-muted-foreground">{statusDescription}</p>
-            </div>
           </div>
 
           <div className="flex gap-2">
@@ -118,6 +111,14 @@ export function EditEvent({ eventId }: { eventId: string }) {
               </Button>
             ) : null}
           </div>
+        </div>
+
+        <div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold tracking-tight">Edit Event</h1>
+            <Badge variant={status.variant}>{status.label}</Badge>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">{statusDescription}</p>
         </div>
 
         {eventId ? <EventEditForm eventId={eventId as Id<"events">} event={event} /> : null}
