@@ -1,72 +1,43 @@
 import { Suspense } from "react"
 import { api } from "@/convex/_generated/api"
 import { CategoryTabs } from "@/features/discovery/components/CategoryTabs"
-import { EventCarousel, EventCarouselSkeleton } from "@/features/discovery/components/EventCarousel"
+import { EventGrid, EventGridSkeleton } from "@/features/discovery/components/EventGrid"
 import { SearchInput } from "@/features/discovery/components/SearchInput"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
 import { tryCatch } from "@/lib/try-catch"
-import { Skeleton } from "@/components/ui/skeleton"
 import type { Metadata } from "next"
-import type { Doc } from "@/convex/_generated/dataModel"
 
 export const metadata: Metadata = {
   title: "Explore Events — EventCraft AI",
   description: "Discover events happening around you. Find meetups, conferences, and more.",
 }
 
-async function PersonalizedSection() {
-  const result = await tryCatch(fetchAuthQuery(api.discovery.getPersonalizedEvents, { limit: 10 }))
-  let events: Doc<"events">[] = result.data?.data ?? []
-
-  if (!events.length) {
-    const fallbackResult = await tryCatch(fetchAuthQuery(api.discovery.getPublishedEvents, { limit: 10 }))
-    events = fallbackResult.data?.data ?? []
-  }
-
-  return (
-    <EventCarousel
-      title="For You"
-      events={events}
-      emptyMessage={result.data?.error ? (result.data.message ?? "Unable to load events") : "Complete onboarding to see personalized events"}
-    />
-  )
+async function AllEventsSection() {
+  const result = await tryCatch(fetchAuthQuery(api.discovery.getPublishedEvents, { limit: 100 }))
+  const events = result.data?.data ?? []
+  return <EventGrid title="All Events" events={events} />
 }
 
-async function TrendingSection() {
-  const result = await tryCatch(fetchAuthQuery(api.discovery.getTrendingEvents, { limit: 10 }))
-  let events: Doc<"events">[] = result.data?.data ?? []
+async function PersonalizedOrTrending() {
+  const authed = await isAuthenticated()
 
-  if (!events.length) {
-    const fallbackResult = await tryCatch(fetchAuthQuery(api.discovery.getPublishedEvents, { limit: 10 }))
-    events = fallbackResult.data?.data ?? []
+  if (authed) {
+    const result = await tryCatch(fetchAuthQuery(api.discovery.getPersonalizedEvents, { limit: 50 }))
+    let events = result.data?.data ?? []
+    if (!events.length) {
+      const fallback = await tryCatch(fetchAuthQuery(api.discovery.getPublishedEvents, { limit: 50 }))
+      events = fallback.data?.data ?? []
+    }
+    return <EventGrid title="For You" events={events} showPagination={events.length > 12} />
   }
 
-  return (
-    <EventCarousel
-      title="Trending"
-      events={events}
-      emptyMessage={result.data?.error ? (result.data.message ?? "Unable to load events") : "No trending events right now"}
-    />
-  )
-}
-
-async function LocationSection() {
-  const profileResult = await fetchAuthQuery(api.profiles.getCurrent)
-  const profile = profileResult.data
-  if (!profile?.location) return null
-
-  const eventsResult = await tryCatch(
-    fetchAuthQuery(api.discovery.getEventsByLocation, {
-      city: profile.location.city,
-      country: profile.location.country,
-      limit: 10,
-    })
-  )
-
-  const events = eventsResult.data?.data ?? []
-  if (!events.length) return null
-
-  return <EventCarousel title={`Near ${profile.location.city}, ${profile.location.country}`} events={events} emptyMessage="No events near you" />
+  const result = await tryCatch(fetchAuthQuery(api.discovery.getTrendingEvents, { limit: 50 }))
+  let events = result.data?.data ?? []
+  if (!events.length) {
+    const fallback = await tryCatch(fetchAuthQuery(api.discovery.getPublishedEvents, { limit: 50 }))
+    events = fallback.data?.data ?? []
+  }
+  return <EventGrid title="Trending" events={events} showPagination={events.length > 12} />
 }
 
 async function CategorySection() {
@@ -107,24 +78,14 @@ export default function ExplorePage() {
           <CategorySection />
         </Suspense>
 
-        <Suspense fallback={<EventCarouselSkeleton />}>
+        <Suspense fallback={<EventGridSkeleton />}>
           <PersonalizedOrTrending />
         </Suspense>
 
-        <Suspense fallback={<EventCarouselSkeleton />}>
-          <LocationSection />
+        <Suspense fallback={<EventGridSkeleton />}>
+          <AllEventsSection />
         </Suspense>
       </div>
     </div>
   )
-}
-
-async function PersonalizedOrTrending() {
-  const authed = await isAuthenticated()
-
-  if (authed) {
-    return <PersonalizedSection />
-  }
-
-  return <TrendingSection />
 }

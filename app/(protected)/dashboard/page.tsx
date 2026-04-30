@@ -1,23 +1,19 @@
+"use client"
+
+import { useState } from "react"
 import { api } from "@/convex/_generated/api"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { EventSelector } from "@/features/events/components/EventSelector"
+import { EventGrid } from "@/features/discovery/components/EventGrid"
 import { BarChart3, Plus, Ticket } from "lucide-react"
 import Link from "next/link"
-import { fetchAuthQuery } from "@/lib/auth-server"
+import { useQuery } from "convex/react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DashboardAnimations } from "@/components/ui/DashboardAnimations"
 
-export const metadata = {
-  title: "Dashboard — EventCraft AI",
-  description: "Your events. Your metrics. All in one place.",
-}
-
-const statusLabels: Record<
-  string,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
-> = {
+const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Draft", variant: "secondary" },
   published: { label: "Published", variant: "default" },
   completed: { label: "Completed", variant: "outline" },
@@ -25,14 +21,10 @@ const statusLabels: Record<
 }
 
 function EventSummaryCard({ event, now }: { event: Doc<"events">; now: number }) {
-  const status = statusLabels[event.status] ?? { label: event.status, variant: "outline" }
+  const status = statusLabels[event.status] ?? { label: event.status, variant: "outline" as const }
   const isPast = event.startDatetime < now
   const capacityInfo =
-    event.capacity === undefined
-      ? "Unlimited"
-      : event.capacity - event.registrationCount <= 0
-        ? "Sold out"
-        : `${event.capacity - event.registrationCount} spots left`
+    event.capacity === undefined ? "Unlimited" : event.capacity - event.registrationCount <= 0 ? "Sold out" : `${event.capacity - event.registrationCount} spots left`
 
   return (
     <Link href={`/events/${event._id}`} className="dash-event-card block">
@@ -60,34 +52,25 @@ function EventSummaryCard({ event, now }: { event: Doc<"events">; now: number })
   )
 }
 
-async function getNow(): Promise<number> {
-  return new Date().getTime()
-}
+export default function DashboardPage() {
+  const now = Date.now()
+  const eventsResult = useQuery(api.events.getMyEvents)
+  const planUsageResult = useQuery(api.events.getPlanUsage)
 
-export default async function DashboardPage() {
-  const now = await getNow()
+  const events = eventsResult?.data ?? []
+  const planUsage = planUsageResult?.data
 
-  const [eventsResult, planUsageResult] = await Promise.all([
-    fetchAuthQuery(api.events.getMyEvents),
-    fetchAuthQuery(api.events.getPlanUsage),
-  ])
+  const activeEvents = events.filter(e => e.status === "published" || e.status === "draft")
+  const totalRegistrations = events.reduce((sum, e) => sum + e.registrationCount, 0)
 
-  const events = eventsResult.data ?? []
-  const planUsage = planUsageResult.data
-
-  const activeEvents = events?.filter(e => e.status === "published" || e.status === "draft") ?? []
-  const totalRegistrations = events?.reduce((sum, e) => sum + e.registrationCount, 0) ?? 0
-
-  if (!events?.length) {
+  if (!events.length) {
     return (
       <div className="min-h-screen">
         <div className="mx-auto max-w-7xl space-y-6 px-3 py-6 sm:space-y-8 sm:px-4 sm:py-8">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Dashboard</h1>
-              <p className="mt-1 text-sm text-muted-foreground sm:text-base">
-                Manage your events and track performance.
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground sm:text-base">Manage your events and track performance.</p>
             </div>
           </div>
 
@@ -114,9 +97,7 @@ export default async function DashboardPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Dashboard</h1>
-              <p className="mt-1 text-sm text-muted-foreground sm:text-base">
-                Manage your events and track performance.
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground sm:text-base">Manage your events and track performance.</p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
               {planUsage && (
@@ -169,14 +150,7 @@ export default async function DashboardPage() {
             </Card>
           </div>
 
-          <div className="dash-section space-y-4">
-            <h2 className="text-lg font-semibold">Your Events</h2>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {events.map(event => (
-                <EventSummaryCard key={event._id} event={event} now={now} />
-              ))}
-            </div>
-          </div>
+          <EventGrid title="Your Events" events={events} showPagination={events.length > 12} />
 
           <div className="dash-section">
             <EventSelector events={events} />
