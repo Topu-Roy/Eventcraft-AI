@@ -54,9 +54,13 @@ function formatTime(timestamp: number) {
 async function EventContent({ data }: { data: EventData }) {
   const { event, organizer, isOrganizer, isRegistered } = data
   const status = statusLabels[event.status] ?? { label: event.status, variant: "outline" as const }
-  const coverPhotoUrl = await fetchAuthQuery(api.storage.getUrl, {
-    storageId: data.event.coverPhoto ?? ("" as Id<"_storage">),
-  })
+  
+  let coverPhotoUrl: string | null = null
+  if (event.coverPhoto) {
+    const urlResult = await fetchAuthQuery(api.storage.getUrl, { storageId: event.coverPhoto })
+    coverPhotoUrl = urlResult as string | null
+  }
+  
   const backLink = isOrganizer ? `/dashboard` : `/explore`
 
   return (
