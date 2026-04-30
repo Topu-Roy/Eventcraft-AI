@@ -1,6 +1,6 @@
 import { api } from "@/convex/_generated/api"
 import type { Doc } from "@/convex/_generated/dataModel"
-import { Calendar, LayoutDashboard, Plus, Search, Ticket } from "lucide-react"
+import { Calendar, LayoutDashboard, Plus, Search, Settings, Ticket } from "lucide-react"
 import Link from "next/link"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
 import { tryCatch } from "@/lib/try-catch"
@@ -12,11 +12,13 @@ export async function Header() {
   const authResult = await tryCatch(isAuthenticated())
   const authed = authResult.data ?? false
 
-  let profile: Doc<"profile"> | null = null
+  let profile: (Doc<"profile"> & { role?: string }) | null = null
   if (authed) {
     const profileResult = await tryCatch(fetchAuthQuery(api.profiles.getCurrent))
     profile = profileResult.data?.data ?? null
   }
+
+  const isAdmin = profile?.role === "admin"
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -41,6 +43,15 @@ export async function Header() {
 
             {authed && (
               <>
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    <Settings className="size-3.5" />
+                    Admin
+                  </Link>
+                )}
                 <Link
                   href="/dashboard"
                   className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
