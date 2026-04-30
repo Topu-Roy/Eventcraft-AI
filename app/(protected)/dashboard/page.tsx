@@ -1,59 +1,17 @@
 "use client"
 
-import { useState } from "react"
 import { api } from "@/convex/_generated/api"
-import type { Doc } from "@/convex/_generated/dataModel"
 import { EventSelector } from "@/features/events/components/EventSelector"
 import { EventGrid } from "@/features/discovery/components/EventGrid"
 import { BarChart3, Plus, Ticket } from "lucide-react"
 import Link from "next/link"
 import { useQuery } from "convex/react"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DashboardAnimations } from "@/components/ui/DashboardAnimations"
 
-const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  draft: { label: "Draft", variant: "secondary" },
-  published: { label: "Published", variant: "default" },
-  completed: { label: "Completed", variant: "outline" },
-  cancelled: { label: "Cancelled", variant: "destructive" },
-}
-
-function EventSummaryCard({ event, now }: { event: Doc<"events">; now: number }) {
-  const status = statusLabels[event.status] ?? { label: event.status, variant: "outline" as const }
-  const isPast = event.startDatetime < now
-  const capacityInfo =
-    event.capacity === undefined ? "Unlimited" : event.capacity - event.registrationCount <= 0 ? "Sold out" : `${event.capacity - event.registrationCount} spots left`
-
-  return (
-    <Link href={`/events/${event._id}`} className="dash-event-card block">
-      <Card className="group transition-all hover:border-primary/50 hover:shadow-sm">
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <h3 className="truncate font-medium">{event.title}</h3>
-              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                <span>
-                  {event.venue.city}, {event.venue.country}
-                </span>
-                <span>{event.registrationCount} registered</span>
-                <span>{capacityInfo}</span>
-              </div>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <Badge variant={status.variant}>{status.label}</Badge>
-              {isPast && <Badge variant="outline">Ended</Badge>}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  )
-}
 
 export default function DashboardPage() {
-  const now = Date.now()
   const eventsResult = useQuery(api.events.getMyEvents)
   const planUsageResult = useQuery(api.events.getPlanUsage)
 

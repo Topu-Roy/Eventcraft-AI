@@ -54,7 +54,7 @@ export function EventGrid({ title, events, emptyMessage = "No events found", sho
         <Pagination>
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); if (currentPage > 1) handlePageChange(currentPage - 1) }} disabled={currentPage === 1} />
+              <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); if (currentPage > 1) handlePageChange(currentPage - 1) }} aria-disabled={currentPage === 1} />
             </PaginationItem>
 
             {Array.from({ length: totalPages }).map((_, i) => {
@@ -73,7 +73,7 @@ export function EventGrid({ title, events, emptyMessage = "No events found", sho
             })}
 
             <PaginationItem>
-              <PaginationNext href="#" onClick={(e) => { e.preventDefault(); if (currentPage < totalPages) handlePageChange(currentPage + 1) }} disabled={currentPage === totalPages} />
+              <PaginationNext href="#" onClick={(e) => { e.preventDefault(); if (currentPage < totalPages) handlePageChange(currentPage + 1) }} aria-disabled={currentPage === totalPages} />
             </PaginationItem>
           </PaginationContent>
         </Pagination>
