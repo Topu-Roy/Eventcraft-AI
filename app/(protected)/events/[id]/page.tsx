@@ -58,7 +58,7 @@ async function EventContent({ data }: { data: EventData }) {
   let coverPhotoUrl: string | null = null
   if (event.coverPhoto) {
     const urlResult = await fetchAuthQuery(api.storage.getUrl, { storageId: event.coverPhoto })
-    coverPhotoUrl = urlResult as string | null
+    coverPhotoUrl = urlResult
   }
   
   const backLink = isOrganizer ? `/dashboard` : `/explore`
