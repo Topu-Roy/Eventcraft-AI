@@ -46,7 +46,7 @@ export function SearchInput() {
     debouncedQuery.trim().length >= 2 ? { query: debouncedQuery, limit: 8 } : "skip"
   )
 
-  const events = results?.data ?? []
+  const events: Doc<"events">[] = results?.data ?? []
   const hasResults = events.length > 0
 
   return (

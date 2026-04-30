@@ -130,6 +130,7 @@ export const create = mutation({
       isFeatured: false,
       coOrganizers: [],
       searchableText,
+      isSeed: false,
     })
 
     await ctx.db.insert("eventAnalytics", {

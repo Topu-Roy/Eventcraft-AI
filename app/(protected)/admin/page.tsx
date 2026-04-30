@@ -1,3 +1,4 @@
+import { SeedPanel } from "@/features/admin/components/SeedPanel"
 import { UsersTable } from "@/features/admin/components/UsersTable"
 
 export const metadata = {
@@ -15,6 +16,7 @@ export default function AdminPage() {
         </p>
       </div>
 
+      <SeedPanel />
       <UsersTable />
     </div>
   )

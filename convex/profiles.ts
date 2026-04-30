@@ -1,5 +1,5 @@
 import { v } from "convex/values"
-import { DEFAULT_PLAN } from "../lib/plan.config"
+import { DEFAULT_PLAN } from "@/lib/plan.config"
 import { mutation, query } from "./_generated/server"
 import { authComponent } from "./betterAuth/auth"
 
@@ -27,7 +27,14 @@ export const getCurrent = query({
       .withIndex("by_userId", q => q.eq("userId", identity.subject))
       .first()
 
-    return { error: false, message: null, cause: null, data: profile }
+    if (!profile) {
+      return { error: false, message: null, cause: null, data: null }
+    }
+
+    const baUser = await authComponent.getAuthUser(ctx as never)
+    const role: string = baUser.role ?? "user"
+
+    return { error: false, message: null, cause: null, data: { ...profile, role } }
   },
 })
 

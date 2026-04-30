@@ -32,7 +32,7 @@ export function CategoryTabs() {
         >
           All
         </button>
-        {categories.map(cat => (
+        {categories.map((cat: { _id: string; slug: string; name: string }) => (
           <button
             key={cat._id}
             type="button"

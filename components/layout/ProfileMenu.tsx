@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useMutation } from "@tanstack/react-query"
 import type { Doc } from "@/convex/_generated/dataModel"
-import { LayoutDashboard, LogOut, Plus, Settings, Ticket, User } from "lucide-react"
+import { LayoutDashboard, LogOut, Plus,  Ticket, User } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"

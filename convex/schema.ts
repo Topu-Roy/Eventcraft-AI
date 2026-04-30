@@ -44,10 +44,12 @@ export const tables = {
     isFeatured: v.boolean(),
     coOrganizers: v.array(v.id("profile")),
     searchableText: v.string(),
+    isSeed: v.boolean(),
   })
     .index("by_category_status_date", ["category", "status", "startDatetime"])
     .index("by_location_status", ["venue.city", "venue.country", "status"])
     .index("by_organizer", ["organizerId"])
+    .index("by_isSeed", ["isSeed"])
     .searchIndex("search_events", {
       searchField: "searchableText",
       filterFields: ["status"],

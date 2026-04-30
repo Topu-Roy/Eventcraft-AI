@@ -6,8 +6,9 @@ import { SearchInput } from "@/features/discovery/components/SearchInput"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
 import { tryCatch } from "@/lib/try-catch"
 import { Skeleton } from "@/components/ui/skeleton"
+import type { Metadata } from "next"
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Explore Events — EventCraft AI",
   description: "Discover events happening around you. Find meetups, conferences, and more.",
 }
