@@ -141,6 +141,26 @@ export const getTrendingEvents = query({
 })
 
 /**
+ * Returns all published events (fallback when no personalized events).
+ */
+export const getPublishedEvents = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, { limit = 20 }) => {
+    const safeLimit = validateLimit(limit)
+    const now = Date.now()
+
+    const allEvents = await ctx.db.query("events").collect()
+
+    const filtered = allEvents
+      .filter(e => e.status === "published" && e.startDatetime >= now)
+      .sort((a, b) => a.startDatetime - b.startDatetime)
+      .slice(0, safeLimit)
+
+    return { error: false, message: null, cause: null, data: filtered }
+  },
+})
+
+/**
  * Returns a single published event by ID for the detail page.
  */
 export const getEventDetail = query({

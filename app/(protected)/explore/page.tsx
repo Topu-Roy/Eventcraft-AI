@@ -15,7 +15,14 @@ export const metadata: Metadata = {
 
 async function PersonalizedSection() {
   const result = await tryCatch(fetchAuthQuery(api.discovery.getPersonalizedEvents, { limit: 10 }))
-  const events = result.data?.data ?? []
+  let events = result.data?.data ?? []
+  
+  // If no personalized events, fallback to all published events
+  if (!events.length) {
+    const fallbackResult = await tryCatch(fetchAuthQuery(api.discovery.getPublishedEvents, { limit: 10 }))
+    events = fallbackResult.data?.data ?? []
+  }
+  
   return (
     <EventCarousel
       title="For You"
@@ -31,7 +38,14 @@ async function PersonalizedSection() {
 
 async function TrendingSection() {
   const result = await tryCatch(fetchAuthQuery(api.discovery.getTrendingEvents, { limit: 10 }))
-  const events = result.data?.data ?? []
+  let events = result.data?.data ?? []
+  
+  // If no trending events, fallback to all published events
+  if (!events.length) {
+    const fallbackResult = await tryCatch(fetchAuthQuery(api.discovery.getPublishedEvents, { limit: 10 }))
+    events = fallbackResult.data?.data ?? []
+  }
+  
   return (
     <EventCarousel
       title="Trending"
