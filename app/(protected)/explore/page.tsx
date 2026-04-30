@@ -7,6 +7,7 @@ import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
 import { tryCatch } from "@/lib/try-catch"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Metadata } from "next"
+import type { Doc } from "@/convex/_generated/dataModel"
 
 export const metadata: Metadata = {
   title: "Explore Events — EventCraft AI",
@@ -15,44 +16,36 @@ export const metadata: Metadata = {
 
 async function PersonalizedSection() {
   const result = await tryCatch(fetchAuthQuery(api.discovery.getPersonalizedEvents, { limit: 10 }))
-  let events = result.data?.data ?? []
-  
-  // If no personalized events, fallback to all published events
+  let events: Doc<"events">[] = result.data?.data ?? []
+
   if (!events.length) {
     const fallbackResult = await tryCatch(fetchAuthQuery(api.discovery.getPublishedEvents, { limit: 10 }))
     events = fallbackResult.data?.data ?? []
   }
-  
+
   return (
     <EventCarousel
       title="For You"
       events={events}
-      emptyMessage={
-        result.data?.error
-          ? (result.data.message ?? "Unable to load events")
-          : "Complete onboarding to see personalized events"
-      }
+      emptyMessage={result.data?.error ? (result.data.message ?? "Unable to load events") : "Complete onboarding to see personalized events"}
     />
   )
 }
 
 async function TrendingSection() {
   const result = await tryCatch(fetchAuthQuery(api.discovery.getTrendingEvents, { limit: 10 }))
-  let events = result.data?.data ?? []
-  
-  // If no trending events, fallback to all published events
+  let events: Doc<"events">[] = result.data?.data ?? []
+
   if (!events.length) {
     const fallbackResult = await tryCatch(fetchAuthQuery(api.discovery.getPublishedEvents, { limit: 10 }))
     events = fallbackResult.data?.data ?? []
   }
-  
+
   return (
     <EventCarousel
       title="Trending"
       events={events}
-      emptyMessage={
-        result.data?.error ? (result.data.message ?? "Unable to load events") : "No trending events right now"
-      }
+      emptyMessage={result.data?.error ? (result.data.message ?? "Unable to load events") : "No trending events right now"}
     />
   )
 }
@@ -73,13 +66,7 @@ async function LocationSection() {
   const events = eventsResult.data?.data ?? []
   if (!events.length) return null
 
-  return (
-    <EventCarousel
-      title={`Near ${profile.location.city}, ${profile.location.country}`}
-      events={events}
-      emptyMessage="No events near you"
-    />
-  )
+  return <EventCarousel title={`Near ${profile.location.city}, ${profile.location.country}`} events={events} emptyMessage="No events near you" />
 }
 
 async function CategorySection() {
