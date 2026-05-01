@@ -1,51 +1,50 @@
-import { Suspense } from "react"
+"use client"
+
+import { useState, Suspense } from "react"
 import { api } from "@/convex/_generated/api"
+import { useQuery } from "convex/react"
+import { useSearchParams } from "next/navigation"
 import { CategoryTabs } from "@/features/discovery/components/CategoryTabs"
-import { EventGrid, EventGridSkeleton } from "@/features/discovery/components/EventGrid"
+import { EventGrid } from "@/features/discovery/components/EventGrid"
 import { SearchInput } from "@/features/discovery/components/SearchInput"
-import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
-import { tryCatch } from "@/lib/try-catch"
-import type { Metadata } from "next"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 
-export const metadata: Metadata = {
-  title: "Explore Events — EventCraft AI",
-  description: "Discover events happening around you. Find meetups, conferences, and more.",
-}
-
-async function AllEventsSection() {
-  const result = await tryCatch(fetchAuthQuery(api.discovery.getPublishedEvents, { limit: 100 }))
-  const events = result.data?.data ?? []
+function AllEventsSection() {
+  const result = useQuery(api.discovery.getPublishedEvents, { limit: 100 })
+  const events = result?.data ?? []
   return <EventGrid title="All Events" events={events} />
 }
 
-async function PersonalizedOrTrending() {
-  const authed = await isAuthenticated()
+function PersonalizedSection() {
+  const result = useQuery(api.discovery.getPersonalizedEvents, { limit: 50 })
+  let events = result?.data ?? []
 
-  if (authed) {
-    const result = await tryCatch(fetchAuthQuery(api.discovery.getPersonalizedEvents, { limit: 50 }))
-    let events = result.data?.data ?? []
-    if (!events.length) {
-      const fallback = await tryCatch(fetchAuthQuery(api.discovery.getPublishedEvents, { limit: 50 }))
-      events = fallback.data?.data ?? []
-    }
-    return <EventGrid title="For You" events={events} showPagination={events.length > 12} />
+  if (!events.length || result?.error) {
+    const fallback = useQuery(api.discovery.getPublishedEvents, { limit: 50 })
+    events = fallback?.data ?? []
+    return <EventGrid title="Trending" events={events} showPagination={events.length > 12} />
   }
 
-  const result = await tryCatch(fetchAuthQuery(api.discovery.getTrendingEvents, { limit: 50 }))
-  let events = result.data?.data ?? []
+  return <EventGrid title="For You" events={events} showPagination={events.length > 12} />
+}
+
+function TrendingSection() {
+  const result = useQuery(api.discovery.getTrendingEvents, { limit: 50 })
+  let events = result?.data ?? []
+
   if (!events.length) {
-    const fallback = await tryCatch(fetchAuthQuery(api.discovery.getPublishedEvents, { limit: 50 }))
-    events = fallback.data?.data ?? []
+    const fallback = useQuery(api.discovery.getPublishedEvents, { limit: 50 })
+    events = fallback?.data ?? []
   }
+
   return <EventGrid title="Trending" events={events} showPagination={events.length > 12} />
 }
 
-async function CategorySection() {
-  const result = await tryCatch(fetchAuthQuery(api.categories.list))
-  if (!result.data?.length) return null
-
-  return <CategoryTabs />
+function CategoryEventsSection({ category }: { category: string }) {
+  const result = useQuery(api.discovery.getEventsByCategory, { category, limit: 100 })
+  const events = result?.data ?? []
+  return <EventGrid title="Events" events={events} showPagination={events.length > 12} />
 }
 
 function CategorySectionSkeleton() {
@@ -54,14 +53,39 @@ function CategorySectionSkeleton() {
       <Skeleton className="h-7 w-40" />
       <div className="flex gap-2">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-8 w-24 rounded-full" />
+          <Skeleton key={i} className="h-9 w-24 rounded-full" />
         ))}
       </div>
     </div>
   )
 }
 
+function EventGridSkeleton() {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-7 w-32" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton key={i} className="h-56" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function CategoryContent() {
+  const searchParams = useSearchParams()
+  const category = searchParams.get("category") ?? ""
+  return <CategoryEventsSection category={category} />
+}
+
 export default function ExplorePage() {
+  const [activeTab, setActiveTab] = useState("foryou")
+  const searchParams = useSearchParams()
+  const category = searchParams.get("category")
+
+  const showCategory = !!category
+
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl space-y-6 px-3 py-6 sm:space-y-8 sm:px-4 sm:py-8">
@@ -76,16 +100,33 @@ export default function ExplorePage() {
         </div>
 
         <Suspense fallback={<CategorySectionSkeleton />}>
-          <CategorySection />
+          <CategoryTabs />
         </Suspense>
 
-        <Suspense fallback={<EventGridSkeleton />}>
-          <PersonalizedOrTrending />
-        </Suspense>
+        {showCategory ? (
+          <Suspense fallback={<EventGridSkeleton />}>
+            <CategoryContent />
+          </Suspense>
+        ) : (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="bg-muted/50">
+              <TabsTrigger value="foryou">For You</TabsTrigger>
+              <TabsTrigger value="all">All Events</TabsTrigger>
+            </TabsList>
 
-        <Suspense fallback={<EventGridSkeleton />}>
-          <AllEventsSection />
-        </Suspense>
+            <TabsContent value="foryou" className="space-y-6">
+              <Suspense fallback={<EventGridSkeleton />}>
+                <PersonalizedSection />
+              </Suspense>
+            </TabsContent>
+
+            <TabsContent value="all" className="space-y-6">
+              <Suspense fallback={<EventGridSkeleton />}>
+                <AllEventsSection />
+              </Suspense>
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </div>
   )

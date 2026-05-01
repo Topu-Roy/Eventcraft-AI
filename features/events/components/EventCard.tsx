@@ -71,17 +71,17 @@ export function EventCard({ event, variant = "default", now, isRegistered }: Eve
     return (
       <Link
         href={`/events/${event._id}`}
-        className="group relative flex w-56 shrink-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-sm sm:w-64"
+        className="group relative flex min-w-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-md"
       >
-        <div className="relative aspect-video overflow-hidden bg-muted">
+        <div className="relative aspect-[16/9] overflow-hidden bg-muted">
           <CoverImage
             storageId={event.coverPhoto}
             alt={event.title}
-            className="h-full w-full transition-transform group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform group-hover:scale-105"
           />
           {isPast && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/60">
-              <span className="text-xs font-medium text-muted-foreground">Ended</span>
+              <span className="rounded-full bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground">Ended</span>
             </div>
           )}
           {isRegistered && (
@@ -93,15 +93,17 @@ export function EventCard({ event, variant = "default", now, isRegistered }: Eve
             </div>
           )}
         </div>
-        <div className="space-y-1.5 p-3">
-          <h3 className="truncate text-sm leading-tight font-semibold">{event.title}</h3>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <CalendarDays className="size-3 shrink-0" />
-            <span>{formatEventDate(event.startDatetime)}</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="size-3 shrink-0" />
-            <span className="truncate">{event.venue.city}</span>
+        <div className="flex flex-1 flex-col gap-2 p-3">
+          <h3 className="line-clamp-2 text-sm leading-tight font-semibold">{event.title}</h3>
+          <div className="flex flex-1 flex-col gap-1 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <CalendarDays className="size-3 shrink-0" />
+              <span>{formatEventDate(event.startDatetime)} · {formatEventTime(event.startDatetime)}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <MapPin className="size-3 shrink-0" />
+              <span className="truncate">{event.venue.city}, {event.venue.country}</span>
+            </div>
           </div>
         </div>
       </Link>
