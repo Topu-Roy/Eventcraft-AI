@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useMemo, Suspense } from "react"
+import { Suspense, useMemo, useState } from "react"
 import { api } from "@/convex/_generated/api"
 import type { Doc } from "@/convex/_generated/dataModel"
-import { useQuery } from "convex/react"
-import Link from "next/link"
 import { SearchInput } from "@/features/discovery/components/SearchInput"
 import { EventCard } from "@/features/events/components/EventCard"
+import { useQuery } from "convex/react"
+import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
 
 function EventsList({ events }: { events: Doc<"events">[] }) {
@@ -18,11 +18,7 @@ function EventsList({ events }: { events: Doc<"events">[] }) {
 
     if (search) {
       const q = search.toLowerCase()
-      result = result.filter(
-        e =>
-          e.title.toLowerCase().includes(q) ||
-          e.description?.toLowerCase().includes(q)
-      )
+      result = result.filter(e => e.title.toLowerCase().includes(q) || e.description?.toLowerCase().includes(q))
     }
 
     if (statusFilter !== "all") {
@@ -40,14 +36,12 @@ function EventsList({ events }: { events: Doc<"events">[] }) {
     )
   }
 
-  const EVENT_ANALYTIC_BASE = "/dashboard/analytic/" as const
-
-return (
+  return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {filtered.map(event => (
         <Link
           key={event._id}
-          href={`${EVENT_ANALYTIC_BASE}${event._id}`}
+          href={`/dashboard/analytic/${event._id}`}
           className="transition-transform hover:scale-[1.02]"
         >
           <EventCard event={event} variant="compact" />
@@ -60,8 +54,24 @@ return (
 function EventsListSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <Skeleton key={i} className="h-56" />
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={`event-skelton-${i}`} className="flex flex-1 flex-col gap-2 p-3">
+          <div className="space-y-1.5">
+            <Skeleton className="h-4 w-full rounded-none" />
+            <Skeleton className="h-4 w-2/3 rounded-none" />
+          </div>
+
+          <div className="flex flex-1 flex-col gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <Skeleton className="size-3.5 shrink-0 rounded-none" />
+              <Skeleton className="h-3 w-32 rounded-none" />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Skeleton className="size-3.5 shrink-0 rounded-none" />
+              <Skeleton className="h-3 w-24 rounded-none" />
+            </div>
+          </div>
+        </div>
       ))}
     </div>
   )
@@ -77,9 +87,7 @@ export default function DashboardEventsPage() {
         <div className="space-y-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Your Events</h1>
-            <p className="mt-1 text-sm text-muted-foreground sm:text-base">
-              View and manage all your events.
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground sm:text-base">View and manage all your events.</p>
           </div>
           <SearchInput />
         </div>

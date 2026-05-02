@@ -9,7 +9,9 @@ type EventCardProps = {
   variant?: "default" | "compact" | "list"
   now?: number
   isRegistered?: boolean
+  disableLink?: boolean
 }
+
 
 const categoryColors: Record<string, string> = {
   technology: "bg-blue-500/10 text-blue-500 border-blue-500/20",
@@ -73,7 +75,7 @@ export function EventCard({ event, variant = "default", now, isRegistered }: Eve
         href={`/events/${event._id}`}
         className="group relative flex min-w-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-md"
       >
-        <div className="relative aspect-[16/9] overflow-hidden bg-muted">
+        <div className="relative aspect-video overflow-hidden bg-muted">
           <CoverImage
             storageId={event.coverPhoto}
             alt={event.title}
