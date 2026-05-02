@@ -1,8 +1,11 @@
 "use client"
 
+import { useState, Suspense } from "react"
 import { api } from "@/convex/_generated/api"
-import { EventSelector } from "@/features/events/components/EventSelector"
+import type { Id } from "@/convex/_generated/dataModel"
 import { EventGrid } from "@/features/discovery/components/EventGrid"
+import { DashboardContent, DashboardContentSkeleton } from "@/features/analytics/components/DashboardContent"
+import { RecentEvents } from "@/features/analytics/components/RecentEvents"
 import { BarChart3, Plus, Ticket } from "lucide-react"
 import Link from "next/link"
 import { useQuery } from "convex/react"
@@ -18,8 +21,15 @@ export default function DashboardPage() {
   const events = eventsResult?.data ?? []
   const planUsage = planUsageResult?.data
 
+  const [selectedEventId, setSelectedEventId] = useState<Id<"events"> | undefined>(
+    events.length > 0 ? undefined : undefined
+  )
+
   const activeEvents = events.filter(e => e.status === "published" || e.status === "draft")
   const totalRegistrations = events.reduce((sum, e) => sum + e.registrationCount, 0)
+
+  const recent = [...events].sort((a, b) => b.startDatetime - a.startDatetime).slice(0, 4)
+  const defaultSelected = selectedEventId ?? (recent.length > 0 ? recent[0]._id : undefined)
 
   if (!events.length) {
     return (
@@ -108,10 +118,30 @@ export default function DashboardPage() {
             </Card>
           </div>
 
-          <EventGrid title="Your Events" events={events} showPagination={events.length > 12} />
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold tracking-tight">Recent Events</h2>
+              <Link // @ts-expect-error – typedRoutes expects exact route match
+                href="/dashboard/events" className="text-sm text-primary hover:underline">
+                View all events →
+              </Link>
+            </div>
+            <RecentEvents
+              events={events}
+              selectedId={defaultSelected}
+              onSelect={setSelectedEventId}
+            />
+          </div>
 
-          <div className="dash-section">
-            <EventSelector events={events} />
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold tracking-tight">Analytics</h2>
+            <Suspense fallback={<DashboardContentSkeleton />}>
+              {defaultSelected ? (
+                <DashboardContent eventId={defaultSelected} />
+              ) : (
+                <p className="text-muted-foreground">Select an event to view analytics.</p>
+              )}
+            </Suspense>
           </div>
         </div>
       </div>
