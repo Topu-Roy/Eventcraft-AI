@@ -10,8 +10,8 @@ import { EventCard } from "@/features/events/components/EventCard"
 import { Skeleton } from "@/components/ui/skeleton"
 
 function EventsList({ events }: { events: Doc<"events">[] }) {
-  const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [search] = useState("")
+  const [statusFilter] = useState<string>("all")
 
   const filtered = useMemo(() => {
     let result = [...events].sort((a, b) => b.startDatetime - a.startDatetime)
@@ -40,12 +40,14 @@ function EventsList({ events }: { events: Doc<"events">[] }) {
     )
   }
 
-  return (
+  const EVENT_ANALYTIC_BASE = "/dashboard/analytic/" as const
+
+return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {filtered.map(event => (
         <Link
           key={event._id}
-          href={`/dashboard/analytic/${event._id}` as `/dashboard/analytic/${string}`}
+          href={`${EVENT_ANALYTIC_BASE}${event._id}`}
           className="transition-transform hover:scale-[1.02]"
         >
           <EventCard event={event} variant="compact" />

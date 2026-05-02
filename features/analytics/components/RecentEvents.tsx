@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
 import { EventCard } from "@/features/events/components/EventCard"
 import { cn } from "@/lib/utils"

@@ -14,7 +14,7 @@ export default function DashboardAnalyticPage({ params }: { params: Promise<{ id
   const [eventId, setEventId] = useState<Id<"events"> | null>(null)
 
   useEffect(() => {
-    params.then(resolved => setEventId(resolved.id as Id<"events">))
+    void params.then(resolved => setEventId(resolved.id as Id<"events">))
   }, [params])
 
   const eventResult = useQuery(api.events.getById, eventId ? { eventId } : "skip")

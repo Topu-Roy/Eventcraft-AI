@@ -3,7 +3,6 @@
 import { useState, Suspense } from "react"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { EventGrid } from "@/features/discovery/components/EventGrid"
 import { DashboardContent, DashboardContentSkeleton } from "@/features/analytics/components/DashboardContent"
 import { RecentEvents } from "@/features/analytics/components/RecentEvents"
 import { BarChart3, Plus, Ticket } from "lucide-react"
@@ -121,7 +120,7 @@ export default function DashboardPage() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold tracking-tight">Recent Events</h2>
-              <Link // @ts-expect-error – typedRoutes expects exact route match
+              <Link
                 href="/dashboard/events" className="text-sm text-primary hover:underline">
                 View all events →
               </Link>

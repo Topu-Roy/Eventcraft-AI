@@ -17,28 +17,18 @@ function AllEventsSection() {
 }
 
 function PersonalizedSection() {
-  const result = useQuery(api.discovery.getPersonalizedEvents, { limit: 50 })
-  let events = result?.data ?? []
+  const personalizedResult = useQuery(api.discovery.getPersonalizedEvents, { limit: 50 })
+  const fallbackResult = useQuery(api.discovery.getPublishedEvents, { limit: 50 })
 
-  if (!events.length || result?.error) {
-    const fallback = useQuery(api.discovery.getPublishedEvents, { limit: 50 })
-    events = fallback?.data ?? []
-    return <EventGrid title="Trending" events={events} showPagination={events.length > 12} />
-  }
+  const personalizedEvents = personalizedResult?.data ?? []
+  const fallbackEvents = fallbackResult?.data ?? []
 
-  return <EventGrid title="For You" events={events} showPagination={events.length > 12} />
-}
+  const events = (!personalizedEvents.length || personalizedResult?.error)
+    ? fallbackEvents
+    : personalizedEvents
 
-function TrendingSection() {
-  const result = useQuery(api.discovery.getTrendingEvents, { limit: 50 })
-  let events = result?.data ?? []
-
-  if (!events.length) {
-    const fallback = useQuery(api.discovery.getPublishedEvents, { limit: 50 })
-    events = fallback?.data ?? []
-  }
-
-  return <EventGrid title="Trending" events={events} showPagination={events.length > 12} />
+  const title = personalizedResult?.error ? "Trending" : "For You"
+  return <EventGrid title={title} events={events} showPagination={events.length > 12} />
 }
 
 function CategoryEventsSection({ category }: { category: string }) {
