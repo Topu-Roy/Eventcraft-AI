@@ -44,7 +44,7 @@ function EventsList({ events }: { events: Doc<"events">[] }) {
           href={`/dashboard/analytic/${event._id}`}
           className="transition-transform hover:scale-[1.02]"
         >
-          <EventCard event={event} variant="compact" />
+          <EventCard event={event} variant="compact" disableLink />
         </Link>
       ))}
     </div>

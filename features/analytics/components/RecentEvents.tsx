@@ -31,7 +31,7 @@ export function RecentEvents({ events, selectedId, onSelect }: RecentEventsProps
             "rounded-lg border bg-card"
           )}
         >
-          <EventCard event={event} variant="compact" />
+          <EventCard event={event} variant="compact" disableLink />
         </button>
       ))}
     </div>
