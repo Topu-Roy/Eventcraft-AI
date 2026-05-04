@@ -1,22 +1,25 @@
-import { Geist, Geist_Mono, Roboto_Slab } from "next/font/google"
+import { IBM_Plex_Mono, Lora, Plus_Jakarta_Sans } from "next/font/google"
 import "./globals.css"
-import { cn } from "@/lib/utils"
 import { Header } from "@/components/layout/Header"
 import { ConvexClientProvider } from "@/components/providers/ConvexClientProvider"
 import { QueryClientProvider } from "@/components/providers/queryClientProvider"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 
-const robotoSlab = Roboto_Slab({ subsets: ["latin"], variable: "--font-serif" })
-
-const fontSans = Geist({
+const fontSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
 })
 
-const fontMono = Geist_Mono({
+const fontSerif = Lora({
+  subsets: ["latin"],
+  variable: "--font-serif",
+})
+
+const fontMono = IBM_Plex_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
+  weight: [],
 })
 
 export default function RootLayout({
@@ -28,7 +31,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontSans.variable, fontMono.variable, "font-serif", robotoSlab.variable)}
+      className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable} antialiased`}
     >
       <body>
         <ConvexClientProvider>
