@@ -1,7 +1,8 @@
 import { SeedPanel } from "@/features/admin/components/SeedPanel"
 import { UsersTable } from "@/features/admin/components/UsersTable"
+import type { Metadata } from "next"
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Admin — EventCraft AI",
   description: "Manage users, roles, and administrative tasks.",
 }

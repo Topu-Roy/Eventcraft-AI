@@ -1,17 +1,16 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { Suspense, useState } from "react"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { DashboardContent, DashboardContentSkeleton } from "@/features/analytics/components/DashboardContent"
 import { RecentEvents } from "@/features/analytics/components/RecentEvents"
+import { useQuery } from "convex/react"
 import { BarChart3, Plus, Ticket } from "lucide-react"
 import Link from "next/link"
-import { useQuery } from "convex/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DashboardAnimations } from "@/components/ui/DashboardAnimations"
-
 
 export default function DashboardPage() {
   const eventsResult = useQuery(api.events.getMyEvents)
@@ -37,7 +36,9 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Dashboard</h1>
-              <p className="mt-1 text-sm text-muted-foreground sm:text-base">Manage your events and track performance.</p>
+              <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+                Manage your events and track performance.
+              </p>
             </div>
           </div>
 
@@ -64,7 +65,9 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Dashboard</h1>
-              <p className="mt-1 text-sm text-muted-foreground sm:text-base">Manage your events and track performance.</p>
+              <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+                Manage your events and track performance.
+              </p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
               {planUsage && (
@@ -120,16 +123,11 @@ export default function DashboardPage() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold tracking-tight">Recent Events</h2>
-              <Link
-                href="/dashboard/events" className="text-sm text-primary hover:underline">
+              <Link href="/dashboard/events" className="text-sm text-primary hover:underline">
                 View all events →
               </Link>
             </div>
-            <RecentEvents
-              events={events}
-              selectedId={defaultSelected}
-              onSelect={setSelectedEventId}
-            />
+            <RecentEvents events={events} selectedId={defaultSelected} onSelect={setSelectedEventId} />
           </div>
 
           <div className="space-y-6">

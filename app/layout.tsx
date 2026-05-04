@@ -19,7 +19,7 @@ const fontSerif = Lora({
 const fontMono = IBM_Plex_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
-  weight: [],
+  weight: ["400"],
 })
 
 export default function RootLayout({

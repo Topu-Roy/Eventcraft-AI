@@ -1,8 +1,9 @@
 import { PasskeyManager } from "@/features/auth/components/PasskeyManager"
 import { ProfileForm } from "@/features/auth/components/ProfileForm"
 import { SessionManager } from "@/features/auth/components/SessionManager"
+import type { Metadata } from "next"
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Profile — EventCraft AI",
   description: "Manage your account settings and preferences.",
 }
