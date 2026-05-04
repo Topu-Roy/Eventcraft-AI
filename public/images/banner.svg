@@ -12,6 +12,6 @@
   <circle cx="52" cy="40" r="2.5" fill="rgba(255,255,255,0.7)"/>
   <circle cx="40" cy="52" r="2.5" fill="rgba(255,255,255,0.7)"/>
   <circle cx="28" cy="40" r="2.5" fill="rgba(255,255,255,0.7)"/>
-  <text x="75" y="48" fill="white" font-family="system-ui" font-size="22" font-weight="bold">EventCraft</text>
-  <text x="185" y="48" fill="rgba(255,255,255,0.5)" font-family="system-ui" font-size="16">AI</text>
+  <text x="78" y="48" fill="white" font-family="system-ui" font-size="22" font-weight="bold">EventCraft</text>
+  <text x="188" y="48" fill="rgba(255,255,255,0.5)" font-family="system-ui" font-size="16">AI</text>
 </svg>
