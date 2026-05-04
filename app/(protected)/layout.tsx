@@ -4,14 +4,13 @@ import { fetchAuthQuery } from "@/lib/auth-server"
 import { tryCatch } from "@/lib/try-catch"
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const result = await tryCatch(fetchAuthQuery(api.profiles.getCurrent))
+  const { data, error } = await tryCatch(fetchAuthQuery(api.profiles.getCurrent))
 
-  if (result.error || !result.data || result.data.error) {
+  if (error || !data || data.error) {
     redirect("/sign-in")
   }
 
-  const profile = result.data.data
-  if (!profile?.onboardingComplete) {
+  if (!data.data?.onboardingComplete) {
     redirect("/onboarding")
   }
 
