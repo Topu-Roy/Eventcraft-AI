@@ -1,23 +1,33 @@
-import { api } from "@/convex/_generated/api"
-import type { Metadata } from "next"
-import { redirect } from "next/navigation"
-import { fetchAuthQuery } from "@/lib/auth-server"
-import { tryCatch } from "@/lib/try-catch"
+"use client"
+
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/features/auth/hooks/useAuth"
 import { ClientHomePage } from "@/components/ClientHomePage"
 
-export const metadata: Metadata = {
-  title: "EventCraft AI — Events at the speed of thought",
-  description:
-    "AI-powered event creation. Describe your event in plain language. AI builds the draft. Tweak. Publish. Done in seconds.",
-}
+export default function HomePage() {
+  const { isLoading, isAuthenticated, needsOnboarding } = useAuth()
+  const router = useRouter()
 
-export default async function HomePage() {
-  const { data } = await tryCatch(fetchAuthQuery(api.profiles.getCurrent))
-
-  if (data) {
-    if (!data.data?.onboardingComplete) {
-      redirect("/onboarding")
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        return
+      }
+      if (needsOnboarding) {
+        router.replace("/onboarding")
+      } else {
+        router.replace("/explore")
+      }
     }
+  }, [isLoading, isAuthenticated, needsOnboarding, router])
+
+  if (isLoading) {
+    return null
+  }
+
+  if (isAuthenticated && !needsOnboarding) {
+    return null
   }
 
   return <ClientHomePage />

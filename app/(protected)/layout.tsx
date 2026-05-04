@@ -1,17 +1,23 @@
-import { api } from "@/convex/_generated/api"
-import { redirect } from "next/navigation"
-import { fetchAuthQuery } from "@/lib/auth-server"
-import { tryCatch } from "@/lib/try-catch"
+"use client"
 
-export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const { data, error } = await tryCatch(fetchAuthQuery(api.profiles.getCurrent))
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/features/auth/hooks/useAuth"
 
-  if (error || !data || data.error) {
-    redirect("/sign-in")
-  }
+export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  const { isLoading, isAuthenticated, needsOnboarding } = useAuth()
+  const router = useRouter()
 
-  if (!data.data?.onboardingComplete) {
-    redirect("/onboarding")
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace("/sign-in")
+    } else if (!isLoading && isAuthenticated && needsOnboarding) {
+      router.replace("/onboarding")
+    }
+  }, [isLoading, isAuthenticated, needsOnboarding, router])
+
+  if (isLoading || !isAuthenticated || needsOnboarding) {
+    return null
   }
 
   return <>{children}</>

@@ -42,6 +42,7 @@ export const tables = {
     capacity: v.optional(v.number()),
     registrationCount: v.number(),
     isFeatured: v.boolean(),
+    isOnline: v.optional(v.boolean()),
     coOrganizers: v.array(v.id("profile")),
     searchableText: v.string(),
     isSeed: v.boolean(),
