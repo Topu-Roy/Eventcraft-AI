@@ -12,7 +12,7 @@ type EventCardProps = {
   disableLink?: boolean
 }
 
-const FALLBACK_IMAGE = "/images/event-fallback.svg"
+const FALLBACK_IMAGE = "/assets/placeholders/event-fallback.svg"
 
 const categoryColors: Record<string, string> = {
   technology: "bg-blue-500/10 text-blue-500 border-blue-500/20",

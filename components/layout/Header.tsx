@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { MobileMenu } from "./MobileMenu"
 import { ProfileMenu } from "./ProfileMenu"
 
-const LOGO_SVG = "/images/logo.svg"
+const LOGO_SVG = "/assets/images/logo.svg"
 
 export async function Header() {
   const authResult = await tryCatch(isAuthenticated())
