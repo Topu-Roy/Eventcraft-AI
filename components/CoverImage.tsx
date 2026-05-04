@@ -17,7 +17,9 @@ export function CoverImage({ storageId, alt, className }: CoverImageProps) {
 
   if (!storageId) {
     return (
-      <div className={`flex flex-col items-center justify-center bg-gradient-to-br from-violet-600 to-violet-500 ${className}`}>
+      <div
+        className={`flex flex-col items-center justify-center bg-linear-to-br from-primary to-primary/80 ${className}`}
+      >
         <CalendarDays className="size-8 text-white/70" />
       </div>
     )
@@ -25,7 +27,9 @@ export function CoverImage({ storageId, alt, className }: CoverImageProps) {
 
   if (!imageUrl) {
     return (
-      <div className={`flex flex-col items-center justify-center bg-gradient-to-br from-violet-600 to-violet-500 ${className}`}>
+      <div
+        className={`flex flex-col items-center justify-center bg-linear-to-br from-primary to-primary/80 ${className}`}
+      >
         <CalendarDays className="size-8 text-white/70" />
       </div>
     )

@@ -1,7 +1,7 @@
 import type { Doc } from "@/convex/_generated/dataModel"
 import { CalendarDays, MapPin, Ticket, Users } from "lucide-react"
 import Link from "next/link"
-import { CoverImage } from "@/components/CoverImage"
+import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 
 type EventCardProps = {
@@ -11,6 +11,8 @@ type EventCardProps = {
   isRegistered?: boolean
   disableLink?: boolean
 }
+
+const FALLBACK_IMAGE = "/images/event-fallback.svg"
 
 const categoryColors: Record<string, string> = {
   technology: "bg-blue-500/10 text-blue-500 border-blue-500/20",
@@ -47,40 +49,45 @@ function formatCapacity(capacity: number | undefined, count: number): string {
   return `${count}/${capacity}`
 }
 
-const CardImage = ({ event, isPast, isRegistered }: { event: Doc<"events">; isPast: boolean; isRegistered?: boolean }) => (
-  <div className="relative aspect-video overflow-hidden bg-muted">
-    <CoverImage storageId={event.coverPhoto} alt={event.title} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-    {isPast && <div className="absolute inset-0 flex items-center justify-center bg-background/60"><span className="rounded-full bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground">Ended</span></div>}
-    {isRegistered && <div className="absolute top-2 right-2"><Badge variant="default" className="gap-1 text-[10px]"><Ticket className="size-3" />Registered</Badge></div>}
-  </div>
-)
-
-const CardInfo = ({ event }: { event: Doc<"events"> }) => (
-  <div className="flex flex-1 flex-col gap-2 p-3">
-    <h3 className="line-clamp-2 text-sm leading-tight font-semibold">{event.title}</h3>
-    <div className="flex flex-1 flex-col gap-1 text-xs text-muted-foreground">
-      <div className="flex items-center gap-1"><CalendarDays className="size-3 shrink-0" /><span>{formatEventDate(event.startDatetime)} · {formatEventTime(event.startDatetime)}</span></div>
-      <div className="flex items-center gap-1"><MapPin className="size-3 shrink-0" /><span className="truncate">{event.venue.city}, {event.venue.country}</span></div>
-    </div>
-  </div>
-)
+function renderImage(storageId: string | undefined, title: string, className: string) {
+  const imageUrl = storageId ? `/api/storage/${storageId}` : null
+  return imageUrl ? (
+    <Image src={imageUrl} alt={title} fill className={className} />
+  ) : (
+    <Image src={FALLBACK_IMAGE} alt={title} fill className={className} />
+  )
+}
 
 export function EventCard({ event, variant = "default", now, isRegistered, disableLink }: EventCardProps) {
   const isPast = event.startDatetime < (now ?? 0)
   const isFull = event.capacity !== undefined && event.registrationCount >= event.capacity
 
   if (variant === "compact") {
-    const content = (<><CardImage event={event} isPast={isPast} isRegistered={isRegistered} /><CardInfo event={event} /></>)
+    const content = (
+      <>
+        <div className="relative aspect-video overflow-hidden bg-muted">
+          {renderImage(event.coverPhoto, event.title, "object-cover transition-transform group-hover:scale-105")}
+          {isPast && <div className="absolute inset-0 flex items-center justify-center bg-background/60"><span className="rounded-full bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground">Ended</span></div>}
+          {isRegistered && <div className="absolute top-2 right-2"><Badge variant="default" className="gap-1 text-[10px]"><Ticket className="size-3" />Registered</Badge></div>}
+        </div>
+        <div className="flex flex-1 flex-col gap-2 p-3">
+          <h3 className="line-clamp-2 text-sm leading-tight font-semibold">{event.title}</h3>
+          <div className="flex flex-1 flex-col gap-1 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1"><CalendarDays className="size-3 shrink-0" /><span>{formatEventDate(event.startDatetime)} · {formatEventTime(event.startDatetime)}</span></div>
+            <div className="flex items-center gap-1"><MapPin className="size-3 shrink-0" /><span className="truncate">{event.venue.city}, {event.venue.country}</span></div>
+          </div>
+        </div>
+      </>
+    )
     if (disableLink) return <div className="group relative flex min-w-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-md">{content}</div>
     return <Link href={`/events/${event._id}`} className="group relative flex min-w-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-md">{content}</Link>
   }
 
   if (variant === "list") {
-    return (
-      <Link href={`/events/${event._id}`} className="group relative flex gap-4 overflow-hidden border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-sm">
-        {isRegistered && <div className="absolute top-2 right-2"><Badge variant="default" className="gap-1 text-[10px]"><Ticket className="size-3" />Registered</Badge></div>}
+    const content = (
+      <>
         <div className="relative aspect-square h-24 shrink-0 overflow-hidden bg-muted">
-          <CoverImage storageId={event.coverPhoto} alt={event.title} className="h-full w-full transition-transform group-hover:scale-105" />
+          {renderImage(event.coverPhoto, event.title, "object-cover transition-transform group-hover:scale-105")}
         </div>
         <div className="flex min-w-0 flex-1 flex-col justify-between">
           <div>
@@ -93,14 +100,15 @@ export function EventCard({ event, variant = "default", now, isRegistered, disab
             <span className="flex items-center gap-1"><Users className="size-3" />{formatCapacity(event.capacity, event.registrationCount)}</span>
           </div>
         </div>
-      </Link>
+      </>
     )
+    return <Link href={`/events/${event._id}`} className="group relative flex gap-4 overflow-hidden border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-sm">{content}</Link>
   }
 
   return (
     <Link href={`/events/${event._id}`} className="group relative flex w-full shrink-0 flex-col overflow-hidden border bg-card transition-all hover:border-primary/50 hover:shadow-sm sm:w-64">
       <div className="relative aspect-video overflow-hidden bg-muted">
-        <CoverImage storageId={event.coverPhoto} alt={event.title} className="h-full w-full" />
+        {renderImage(event.coverPhoto, event.title, "object-cover")}
         <div className="absolute top-2 left-2 flex gap-1.5">{getCategoryBadge(event.category)}</div>
         {isPast && <div className="absolute inset-0 flex items-center justify-center bg-background/60"><span className="text-xs font-medium text-muted-foreground">Ended</span></div>}
         {isFull && !isPast && <Badge className="absolute top-2 right-2" variant="destructive">Full</Badge>}

@@ -9,6 +9,4 @@
   <circle cx="150" cy="80" r="100" fill="rgba(255,255,255,0.08)"/>
   <circle cx="650" cy="320" r="120" fill="rgba(255,255,255,0.06)"/>
   <circle cx="400" cy="200" r="180" fill="rgba(255,255,255,0.04)"/>
-  <text x="400" y="180" text-anchor="middle" fill="white" font-family="system-ui" font-size="32" font-weight="bold">Event</text>
-  <text x="400" y="220" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="system-ui" font-size="16">Discover amazing events near you</text>
 </svg>

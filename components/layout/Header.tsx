@@ -1,12 +1,15 @@
 import { api } from "@/convex/_generated/api"
 import type { Doc } from "@/convex/_generated/dataModel"
-import { Calendar, LayoutDashboard, Plus, Search, Settings, Ticket } from "lucide-react"
+import { LayoutDashboard, Plus, Search, Settings, Ticket } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { fetchAuthQuery, isAuthenticated } from "@/lib/auth-server"
 import { tryCatch } from "@/lib/try-catch"
 import { Button } from "@/components/ui/button"
 import { MobileMenu } from "./MobileMenu"
 import { ProfileMenu } from "./ProfileMenu"
+
+const LOGO_SVG = "/images/logo.svg"
 
 export async function Header() {
   const authResult = await tryCatch(isAuthenticated())
@@ -25,8 +28,8 @@ export async function Header() {
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-4 md:px-6">
         <div className="flex items-center gap-2 md:gap-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary">
-              <Calendar className="size-4 text-primary-foreground" />
+            <div className="relative size-8 shrink-0 overflow-hidden rounded-lg">
+              <Image src={LOGO_SVG} alt="EventCraft" fill className="object-cover" />
             </div>
             <span className="hidden text-lg font-bold tracking-tight sm:inline">EventCraft AI</span>
             <span className="text-lg font-bold tracking-tight sm:hidden">EventAI</span>
