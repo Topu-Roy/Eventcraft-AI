@@ -68,6 +68,8 @@ function EventsListSkeleton() {
 
 export default function DashboardEventsPage() {
   const eventsResult = useQuery(api.events.getMyEvents)
+
+  const isLoading = eventsResult === undefined
   const events = eventsResult?.data ?? []
 
   return (
@@ -81,9 +83,13 @@ export default function DashboardEventsPage() {
           <SearchInput />
         </div>
 
-        <Suspense fallback={<EventsListSkeleton />}>
-          <EventsList events={events} />
-        </Suspense>
+        {isLoading ? (
+          <EventsListSkeleton />
+        ) : (
+          <Suspense fallback={<EventsListSkeleton />}>
+            <EventsList events={events} />
+          </Suspense>
+        )}
       </div>
     </div>
   )

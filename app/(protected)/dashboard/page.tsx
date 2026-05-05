@@ -11,11 +11,49 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DashboardAnimations } from "@/components/ui/DashboardAnimations"
+import { Skeleton } from "@/components/ui/skeleton"
+
+function DashboardSkeleton() {
+  return (
+    <div className="min-h-screen">
+      <div className="mx-auto max-w-7xl space-y-6 px-3 py-6 sm:space-y-8 sm:px-4 sm:py-8">
+        <div>
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="mt-1 h-4 w-64" />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="flex items-center gap-3 p-4">
+                <Skeleton className="size-10" />
+                <div>
+                  <Skeleton className="h-6 w-12" />
+                  <Skeleton className="mt-1 h-3 w-20" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="space-y-4">
+          <Skeleton className="h-6 w-32" />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-40" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function DashboardPage() {
   const eventsResult = useQuery(api.events.getMyEvents)
   const planUsageResult = useQuery(api.events.getPlanUsage)
 
+  const isLoading = eventsResult === undefined
   const events = eventsResult?.data ?? []
   const planUsage = planUsageResult?.data
 
@@ -28,6 +66,10 @@ export default function DashboardPage() {
 
   const recent = [...events].sort((a, b) => b.startDatetime - a.startDatetime).slice(0, 4)
   const defaultSelected = selectedEventId ?? (recent.length > 0 ? recent[0]._id : undefined)
+
+  if (isLoading) {
+    return <DashboardSkeleton />
+  }
 
   if (!events.length) {
     return (

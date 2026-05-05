@@ -1,10 +1,11 @@
+"use client"
+
 import { Suspense } from "react"
 import { api } from "@/convex/_generated/api"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { ArrowRight, Calendar, Clock, MapPin, Ticket, Users } from "lucide-react"
 import Link from "next/link"
-import { fetchAuthQuery } from "@/lib/auth-server"
-import { tryCatch } from "@/lib/try-catch"
+import { useQuery } from "convex/react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,6 +20,10 @@ export const metadata = {
 type TicketRegistration = Doc<"registrations"> & { event: Doc<"events"> }
 
 const ONE_HOUR_IN_MS = 60 * 60 * 1000
+
+function getCurrentTimestamp(): number {
+  return new Date().getTime()
+}
 
 function formatEventDate(timestamp: number): string {
   return new Date(timestamp).toLocaleDateString("en-US", {
@@ -185,25 +190,29 @@ function TicketListSkeleton() {
   )
 }
 
-async function getCurrentTimestamp(): Promise<number> {
-  return new Date().getTime()
+function ErrorState() {
+  return (
+    <Card>
+      <CardContent className="py-8 text-center text-muted-foreground">
+        Unable to load tickets. Please try again later.
+      </CardContent>
+    </Card>
+  )
 }
 
-async function TicketList() {
-  const currentTimestamp = await getCurrentTimestamp()
-  const result = await tryCatch(fetchAuthQuery(api.registrations.getMyRegistrations))
+function TicketList() {
+  const result = useQuery(api.registrations.getMyRegistrations)
+  const currentTimestamp = getCurrentTimestamp()
 
-  if (result.error || result.data?.error) {
-    return (
-      <Card>
-        <CardContent className="py-8 text-center text-muted-foreground">
-          Unable to load tickets. Please try again later.
-        </CardContent>
-      </Card>
-    )
+  if (result === undefined) {
+    return <TicketListSkeleton />
   }
 
-  const registrations: TicketRegistration[] = result.data?.data ?? []
+  if (result.error) {
+    return <ErrorState />
+  }
+
+  const registrations: TicketRegistration[] = result.data ?? []
   const validRegistrations = registrations?.filter((reg): reg is TicketRegistration => reg.event != null)
 
   if (!validRegistrations?.length) {

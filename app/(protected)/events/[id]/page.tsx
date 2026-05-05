@@ -1,18 +1,18 @@
-import { Suspense } from "react"
+"use client"
+
+import { Suspense, use } from "react"
 import { api } from "@/convex/_generated/api"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
 import { EventRegistrationCard } from "@/features/events/components/EventRegistrationCard"
 import { ArrowLeft, Calendar, Globe, ImageIcon, MapPin, Pencil } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { notFound } from "next/navigation"
-import { fetchAuthQuery } from "@/lib/auth-server"
-import { tryCatch } from "@/lib/try-catch"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useQuery } from "convex/react"
 
 type EventData = {
   event: Doc<"events">
@@ -85,25 +85,25 @@ function EventPageSkeleton() {
   )
 }
 
-export default async function EventPage({ params }: PageProps<"/events/[id]">) {
-  const { id } = await params
-  const eventId = id as Id<"events">
-
-  const result = await tryCatch(fetchAuthQuery(api.discovery.getEventDetail, { eventId }))
-
-  if (result.error || !result.data?.data) {
-    notFound()
-  }
-
-  const response = result.data
-  if (response.error || !response.data) {
-    notFound()
-  }
-
+function ErrorState() {
   return (
-    <Suspense fallback={<EventPageSkeleton />}>
-      <EventContent data={response.data} />
-    </Suspense>
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <div className="mx-auto max-w-4xl space-y-6 px-3 py-6 sm:space-y-8 sm:px-4 sm:py-8">
+        <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+          <div className="rounded-full bg-destructive/10 p-4">
+            <ImageIcon className="size-8 text-destructive" />
+          </div>
+          <h2 className="text-xl font-semibold">Event not found</h2>
+          <p className="text-muted-foreground">This event doesn&apos;t exist or you don&apos;t have access.</p>
+          <Button asChild>
+            <Link href="/explore">
+              <ArrowLeft className="mr-2 size-4" />
+              Explore Events
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -205,5 +205,26 @@ function EventContent({ data }: { data: EventData }) {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function EventPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const eventId = id as Id<"events">
+
+  const result = useQuery(api.discovery.getEventDetail, { eventId })
+
+  if (result === undefined) {
+    return <EventPageSkeleton />
+  }
+
+  if (result.error || !result.data) {
+    return <ErrorState />
+  }
+
+  return (
+    <Suspense fallback={<EventPageSkeleton />}>
+      <EventContent data={result.data} />
+    </Suspense>
   )
 }
