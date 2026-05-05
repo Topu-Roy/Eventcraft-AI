@@ -7,6 +7,9 @@ import { Layers, Ticket, TrendingUp, UserCheck, Users } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
+/**
+ * KPI card component for displaying metrics.
+ */
 function KpiCard({
   icon: Icon,
   label,
@@ -32,6 +35,9 @@ function KpiCard({
   )
 }
 
+/**
+ * Skeleton loader matching DashboardContent layout.
+ */
 export function DashboardContentSkeleton() {
   return (
     <div className="space-y-8">
@@ -59,6 +65,9 @@ export function DashboardContentSkeleton() {
   )
 }
 
+/**
+ * Displays analytics KPIs and charts for a specific event.
+ */
 export function DashboardContent({ eventId }: { eventId: Id<"events"> }) {
   const analytics = useQuery(api.checkin.getEventAnalytics, { eventId })
 

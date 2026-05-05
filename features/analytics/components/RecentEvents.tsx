@@ -4,6 +4,9 @@ import type { Doc, Id } from "@/convex/_generated/dataModel"
 import { EventCard } from "@/features/events/components/EventCard"
 import { cn } from "@/lib/utils"
 
+/**
+ * Displays the 4 most recent events as selectable cards.
+ */
 interface RecentEventsProps {
   events: Doc<"events">[]
   selectedId?: Id<"events">
