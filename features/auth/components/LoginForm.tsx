@@ -11,6 +11,10 @@ import { Separator } from "@/components/ui/separator"
 
 type SocialProvider = "github" | "google"
 
+/**
+ * Signs in with the specified social provider.
+ * Redirects to onboarding on success.
+ */
 function signInWithProvider(provider: SocialProvider) {
   return authClient.signIn.social({
     provider,
