@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useMemo, useState } from "react"
+import { Suspense, useState } from "react"
 import { api } from "@/convex/_generated/api"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { SearchInput } from "@/features/discovery/components/SearchInput"
@@ -13,20 +13,9 @@ function EventsList({ events }: { events: Doc<"events">[] }) {
   const [search] = useState("")
   const [statusFilter] = useState<string>("all")
 
-  const filtered = useMemo(() => {
-    let result = [...events].sort((a, b) => b.startDatetime - a.startDatetime)
-
-    if (search) {
-      const q = search.toLowerCase()
-      result = result.filter(e => e.title.toLowerCase().includes(q) || e.description?.toLowerCase().includes(q))
-    }
-
-    if (statusFilter !== "all") {
-      result = result.filter(e => e.status === statusFilter)
-    }
-
-    return result
-  }, [events, search, statusFilter])
+  const filtered = [...events]
+    .sort((a, b) => b.startDatetime - a.startDatetime)
+    .filter(e => (!search || e.title.toLowerCase().includes(search.toLowerCase()) || e.description?.toLowerCase().includes(search.toLowerCase())) && (statusFilter === "all" || e.status === statusFilter))
 
   if (!filtered.length) {
     return (
