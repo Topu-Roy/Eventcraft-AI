@@ -3,19 +3,14 @@
 import { Suspense } from "react"
 import { api } from "@/convex/_generated/api"
 import type { Doc } from "@/convex/_generated/dataModel"
+import { useQuery } from "convex/react"
 import { ArrowRight, Calendar, Clock, MapPin, Ticket, Users } from "lucide-react"
 import Link from "next/link"
-import { useQuery } from "convex/react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
-
-export const metadata = {
-  title: "My Tickets — EventCraft AI",
-  description: "Your event tickets. QR-coded. Always in your pocket.",
-}
 
 type TicketRegistration = Doc<"registrations"> & { event: Doc<"events"> }
 
